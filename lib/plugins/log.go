@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"github.com/juetun/study/app-dashboard/lib/app_log"
+	"github.com/juetun/app-dashboard/lib/app_log"
 	"github.com/sirupsen/logrus"
 	"os"
 )

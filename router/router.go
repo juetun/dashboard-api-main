@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/common"
 )
 
 type HandleRouter func(c *gin.Engine, urlPrefix string)

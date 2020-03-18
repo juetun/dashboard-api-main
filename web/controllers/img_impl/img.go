@@ -2,10 +2,11 @@ package img_impl
 
 import (
 	"path/filepath"
+
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/web/services"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/services"
 )
 
 type ControllerImg struct {

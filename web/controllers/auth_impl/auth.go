@@ -10,12 +10,12 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/services"
 	// "github.com/juetun/dashboard/jwt"
-	"github.com/juetun/study/app-content/conf"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/web/controllers"
-	"github.com/juetun/study/app-dashboard/web/services"
 	"github.com/mojocn/base64Captcha"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -40,7 +40,7 @@ func (c *ControllerAuth) Register(ctx *gin.Context) {
 		c.Response(ctx, 400001004, nil)
 		return
 	}
-	if cnt >= int64(conf.Cnf.UserCnt) {
+	if cnt >= int64(common.Conf.UserCnt) {
 		c.Log.Error(map[string]string{
 			"message": "auth.Register",
 			"error":   "User cnt beyond expectation",
@@ -62,7 +62,7 @@ func (c *ControllerAuth) AuthRegister(ctx *gin.Context) {
 		c.Response(ctx, 401000004, nil)
 		return
 	}
-	ar, ok := requestJson.(common.AuthRegister)
+	ar, ok := requestJson.(pojos.AuthRegister)
 	if !ok {
 		c.Log.Error(map[string]string{
 			"message": "auth.AuthRegister",
@@ -80,7 +80,7 @@ func (c *ControllerAuth) AuthRegister(ctx *gin.Context) {
 		c.Response(ctx, 400001004, nil)
 		return
 	}
-	if cnt >= int64(conf.Cnf.UserCnt) {
+	if cnt >= int64(common.Conf.UserCnt) {
 		c.Log.Error(map[string]string{
 			"message": "auth.AuthRegister",
 			"error":   "User cnt beyond expectation",
@@ -93,27 +93,17 @@ func (c *ControllerAuth) AuthRegister(ctx *gin.Context) {
 	return
 }
 func (c *ControllerAuth) Login(ctx *gin.Context) {
-	// srv := services.NewAuthService()
-	customStore := customizeRdsStore{conf.CacheClient}
-	base64Captcha.SetCustomStore(&customStore)
-	var configD = base64Captcha.ConfigDigit{
-		Height:     80,
-		Width:      240,
-		MaxSkew:    0.7,
-		DotCount:   80,
-		CaptchaLen: 5,
+	srv := services.NewAuthService()
+	data, err := srv.Login()
+	if err != nil {
+		c.Response(ctx, 407000115, nil)
+		return
 	}
-	idKeyD, capD := base64Captcha.GenerateCaptcha("", configD)
-	base64stringD := base64Captcha.CaptchaWriteToBase64Encoding(capD)
-	data := make(map[string]interface{})
-	data["key"] = idKeyD
-	data["png"] = base64stringD
 	c.Response(ctx, 0, data)
 	return
 }
 func (c *ControllerAuth) AuthLogin(ctx *gin.Context) {
 	srv := services.NewAuthService()
-
 	requestJson, exists := ctx.Get("json")
 	if !exists {
 		c.Log.Error(map[string]string{
@@ -123,7 +113,7 @@ func (c *ControllerAuth) AuthLogin(ctx *gin.Context) {
 		c.Response(ctx, 401000004, nil)
 		return
 	}
-	al, ok := requestJson.(common.AuthLogin)
+	al, ok := requestJson.(pojos.AuthLogin)
 	if !ok {
 		c.Log.Error(map[string]string{
 			"message": "auth.AuthLogin",

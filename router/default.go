@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/web/controllers/web_impl"
+	"github.com/juetun/app-dashboard/web/controllers/web_impl"
 	"html/template"
 	"time"
 )

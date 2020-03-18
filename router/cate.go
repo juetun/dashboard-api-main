@@ -2,9 +2,9 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/lib/middlewares"
-	"github.com/juetun/study/app-dashboard/web/controllers/con_impl"
-	"github.com/juetun/study/app-dashboard/web/validate"
+	"github.com/juetun/app-dashboard/lib/middlewares"
+	"github.com/juetun/app-dashboard/web/controllers/con_impl"
+	"github.com/juetun/app-dashboard/web/validate"
 )
 
 func init() {

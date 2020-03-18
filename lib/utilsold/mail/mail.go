@@ -15,7 +15,7 @@ import (
 	"net/smtp"
 	"strings"
 
-	conf2 "github.com/juetun/study/app-dashboard/conf"
+	conf2 "github.com/juetun/app-dashboard/conf"
 )
 
 type EmailType string

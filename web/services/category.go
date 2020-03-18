@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/web/models"
-	"github.com/juetun/study/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 type CategoryService struct {
@@ -199,6 +199,18 @@ func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCatego
 
 }
 
+func (r *CategoryService) PostCate(postId int) (int, error) {
+	postCate := new(models.ZPostCate)
+	_, err := r.Db.Where("post_id = ?", postId).Get(postCate)
+	if err != nil {
+		r.Log.Error(map[string]string{
+			"message": "service.PostCates",
+			"err":     err.Error(),
+		})
+		return 0, err
+	}
+	return postCate.CateId, nil
+}
 // Get the cate list what by parent sort
 func (r *CategoryService) CateListBySort() ([]pojos.Category, error) {
 	cacheKey := common.Conf.CateListKey

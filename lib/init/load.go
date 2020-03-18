@@ -1,8 +1,8 @@
 package init
 
 import (
-	"github.com/juetun/study/app-dashboard/lib/app_start"
-	"github.com/juetun/study/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/app_start"
+	"github.com/juetun/app-dashboard/lib/common"
 )
 
 // 初始化加载内容

@@ -7,8 +7,8 @@
 package qq_captcha
 
 import (
-	conf2 "github.com/juetun/study/app-dashboard/conf"
-	request2 "github.com/juetun/study/app-dashboard/request"
+	conf2 "github.com/juetun/app-dashboard/conf"
+	request2 "github.com/juetun/app-dashboard/request"
 	"net/http"
 	"time"
 )

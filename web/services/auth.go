@@ -9,10 +9,11 @@ package services
 import (
 	"fmt"
 
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/web/models"
-	"github.com/juetun/study/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/mojocn/base64Captcha"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,6 +23,24 @@ type AuthService struct {
 
 func NewAuthService() *AuthService {
 	return &AuthService{}
+}
+func (r *AuthService) Login() (res *map[string]string, err error) {
+	// srv := services.NewAuthService()
+	customStore := customizeRdsStore{r.CacheClient}
+	base64Captcha.SetCustomStore(&customStore)
+	var configD = base64Captcha.ConfigDigit{
+		Height:     80,
+		Width:      240,
+		MaxSkew:    0.7,
+		DotCount:   80,
+		CaptchaLen: 5,
+	}
+	idKeyD, capD := base64Captcha.GenerateCaptcha("", configD)
+	base64stringD := base64Captcha.CaptchaWriteToBase64Encoding(capD)
+	data := make(map[string]interface{})
+	data["key"] = idKeyD
+	data["png"] = base64stringD
+	return &data, err
 }
 func (r *AuthService) GetUserByEmail(email string) (user *models.ZUsers, err error) {
 	user = new(models.ZUsers)

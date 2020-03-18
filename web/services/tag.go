@@ -14,10 +14,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/web/models"
-	"github.com/juetun/study/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 type TagService struct {

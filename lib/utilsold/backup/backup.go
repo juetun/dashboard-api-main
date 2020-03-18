@@ -7,12 +7,12 @@
 package backup
 
 import (
-	zgh "github.com/juetun/study/app-dashboard"
-	conf2 "github.com/juetun/study/app-dashboard/conf"
-	conn2 "github.com/juetun/study/app-dashboard/conn"
-	"github.com/juetun/study/app-dashboard/lib/utils/cron"
-	"github.com/juetun/study/app-dashboard/lib/utils/mail"
-	"github.com/juetun/study/app-dashboard/lib/utils/zip"
+	zgh "github.com/juetun/app-dashboard"
+	conf2 "github.com/juetun/app-dashboard/conf"
+	conn2 "github.com/juetun/app-dashboard/conn"
+	"github.com/juetun/app-dashboard/lib/utils/cron"
+	"github.com/juetun/app-dashboard/lib/utils/mail"
+	"github.com/juetun/app-dashboard/lib/utils/zip"
 	"os"
 	"time"
 )

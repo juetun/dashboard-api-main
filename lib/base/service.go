@@ -3,7 +3,7 @@ package base
 import (
 	"github.com/go-redis/redis"
 	"github.com/go-xorm/xorm"
-	"github.com/juetun/study/app-dashboard/lib/app_log"
+	"github.com/juetun/app-dashboard/lib/app_log"
 )
 
 type ServiceBase struct {

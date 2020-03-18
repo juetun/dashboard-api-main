@@ -3,7 +3,7 @@ package plugins
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/juetun/study/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/spf13/viper"
 )
 

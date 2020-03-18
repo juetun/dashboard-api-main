@@ -12,12 +12,11 @@ import (
 	"time"
 
 	"github.com/go-xorm/xorm"
-	"github.com/juetun/study/app-content/conf"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/web/models"
-	"github.com/juetun/study/app-dashboard/web/pojos"
-	"github.com/juetun/study/app-dashboard/web/services/bak"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/services/bak"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 )
@@ -509,7 +508,8 @@ func (r *ConsolePostService) PostIdTag(postId int) (tagIds []int, err error) {
 }
 
 func (r *ConsolePostService) PostCates(postId int) (cate *models.ZCategories, err error) {
-	cateId, err := r.PostCate(postId)
+	srv := NewCategoryService()
+	cateId, err := srv.PostCate(postId)
 	if err != nil {
 		r.Log.Error(map[string]string{
 			"message": "service.PostCates",
@@ -527,19 +527,6 @@ func (r *ConsolePostService) PostCates(postId int) (cate *models.ZCategories, er
 		return
 	}
 	return
-}
-
-func (r *ConsolePostService) PostCate(postId int) (int, error) {
-	postCate := new(models.ZPostCate)
-	_, err := r.Db.Where("post_id = ?", postId).Get(postCate)
-	if err != nil {
-		r.Log.Error(map[string]string{
-			"message": "service.PostCates",
-			"err":     err.Error(),
-		})
-		return 0, err
-	}
-	return postCate.CateId, nil
 }
 
 func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) {

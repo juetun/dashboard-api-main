@@ -7,7 +7,7 @@
 package cron
 
 import (
-	"github.com/juetun/study/app-dashboard"
+	"github.com/juetun/app-dashboard"
 	"github.com/robfig/cron"
 )
 

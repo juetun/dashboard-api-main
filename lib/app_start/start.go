@@ -1,7 +1,7 @@
 package app_start
 
 import (
-	"github.com/juetun/study/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/common"
 	stytemLog "log"
 )
 

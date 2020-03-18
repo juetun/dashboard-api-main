@@ -13,9 +13,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis"
-	conf2 "github.com/juetun/study/app-dashboard/conf"
-	"github.com/juetun/study/app-dashboard/lib/app_log"
-	utils2 "github.com/juetun/study/app-dashboard/lib/utils"
+	conf2 "github.com/juetun/app-dashboard/conf"
+	"github.com/juetun/app-dashboard/lib/app_log"
+	utils2 "github.com/juetun/app-dashboard/lib/utils"
 )
 
 type JwtParam struct {

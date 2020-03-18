@@ -8,7 +8,7 @@ package alarm
 
 import (
 	"github.com/go-errors/errors"
-	"github.com/juetun/study/app-dashboard/lib/utils/mail"
+	"github.com/juetun/app-dashboard/lib/utils/mail"
 	"regexp"
 	"strings"
 )

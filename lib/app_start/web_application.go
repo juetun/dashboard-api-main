@@ -3,9 +3,9 @@ package app_start
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-dashboard/lib/common"
-	"github.com/juetun/study/app-dashboard/lib/middlewares"
-	"github.com/juetun/study/app-dashboard/router"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/middlewares"
+	"github.com/juetun/app-dashboard/router"
 	"net/http"
 	"os"
 	"os/signal"

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/juetun/study/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 func Offset(page string, limit string) (limitInt int, offset int) {

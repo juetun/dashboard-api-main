@@ -7,8 +7,8 @@
 package hashid
 
 import (
-	"github.com/juetun/study/app-dashboard"
-	conf2 "github.com/juetun/study/app-dashboard/conf"
+	"github.com/juetun/app-dashboard"
+	conf2 "github.com/juetun/app-dashboard/conf"
 )
 
 type HashIdParams struct {

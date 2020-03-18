@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/juetun/study/app-dashboard/lib/utilsold/hashid"
+	"github.com/juetun/app-dashboard/lib/utilsold/hashid"
 	"github.com/speps/go-hashids"
 )
 

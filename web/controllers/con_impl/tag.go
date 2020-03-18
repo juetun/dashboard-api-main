@@ -5,9 +5,9 @@ import (
 	"github.com/juetun/study/app-content/common"
 	"github.com/juetun/study/app-content/conf"
 	"github.com/juetun/study/app-content/service"
-	"github.com/juetun/study/app-dashboard/gin/api"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/gin/api"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/web/controllers"
 	"net/http"
 	"strconv"
 )

@@ -8,7 +8,7 @@ package zip
 
 import (
 	"archive/zip"
-	"github.com/juetun/study/app-dashboard"
+	"github.com/juetun/app-dashboard"
 	"io"
 	"os"
 )

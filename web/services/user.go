@@ -9,8 +9,8 @@ package services
 import (
 	"github.com/go-xorm/xorm"
 	"github.com/juetun/study/app-content/conf"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/web/models"
 )
 
 type UserService struct {

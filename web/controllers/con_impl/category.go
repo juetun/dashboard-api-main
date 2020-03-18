@@ -7,14 +7,13 @@
 package con_impl
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard/gin/api"
-	"github.com/juetun/study/app-content/common"
-	"github.com/juetun/study/app-content/service"
-	"github.com/juetun/study/app-dashboard/lib/base"
-	"github.com/juetun/study/app-dashboard/web/controllers"
-	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/services"
 )
 
 type ControllerCategory struct {
@@ -27,132 +26,131 @@ func NewControllerCategory() controllers.Console {
 	return controller
 }
 
-func (cate *ControllerCategory) Index(c *gin.Context) {
-	appG := api.Gin{C: c}
-	cates, err := service.CateListBySort()
+func (r *ControllerCategory) Index(c *gin.Context) {
+
+	srv := services.NewCategoryService()
+	cates, err := srv.CateListBySort()
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Index", "err", err.Error())
-		appG.Response(http.StatusOK, 402000001, nil)
+		r.Log.Errorln("message", "console.Cate.Index", "err", err.Error())
+		r.Response(c, 402000001, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, cates)
+	r.Response(c, 0, cates)
 	return
 }
 
-func (cate *ControllerCategory) Create(c *gin.Context) {
+func (r *ControllerCategory) Create(c *gin.Context) {
 
 }
 
-func (cate *ControllerCategory) Store(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerCategory) Store(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
-		zgh.ZLog().Error("message", "Cate.Store", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 400001003, nil)
+		r.Log.Errorln("message", "Cate.Store", "error", "get request_params from context fail")
+		r.Response(c, 400001003, nil)
 		return
 	}
-	var cs common.CateStore
-	cs, ok := requestJson.(common.CateStore)
+	var cs pojos.CateStore
+	cs, ok := requestJson.(pojos.CateStore)
 	if !ok {
-		zgh.ZLog().Error("message", "Cate.Store", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "Cate.Store", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
-
-	_, err := service.CateStore(cs)
+	srv := services.NewCategoryService()
+	_, err := srv.CateStore(cs)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Store", "err", err.Error())
-		appG.Response(http.StatusOK, 402000010, nil)
+		r.Log.Errorln("message", "console.Cate.Store", "err", err.Error())
+		r.Response(c, 402000010, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
 
-func (cate *ControllerCategory) Edit(c *gin.Context) {
+func (r *ControllerCategory) Edit(c *gin.Context) {
 	cateIdStr := c.Param("id")
 	cateIdInt, err := strconv.Atoi(cateIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 400001002, nil)
+		r.Log.Errorln("message", "console.Cate.Edit", "err", err.Error())
+		r.Response(c, 400001002, nil)
 		return
 	}
-	cateData, err := service.GetCateById(cateIdInt)
+	srv := services.NewCategoryService()
+	cateData, err := srv.GetCateById(cateIdInt)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 402000000, nil)
+		r.Log.Errorln("message", "console.Cate.Edit", "err", err.Error())
+		r.Response(c, 402000000, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, cateData)
+	r.Response(c, 0, cateData)
 	return
 }
 
-func (cate *ControllerCategory) Update(c *gin.Context) {
+func (r *ControllerCategory) Update(c *gin.Context) {
 	cateIdStr := c.Param("id")
 	cateIdInt, err := strconv.Atoi(cateIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Update", "err", err.Error())
-		appG.Response(http.StatusOK, 400001002, nil)
+		r.Log.Errorln("message", "console.Cate.Update", "err", err.Error())
+		r.Response(c, 400001002, nil)
 		return
 	}
 	requestJson, exists := c.Get("json")
 	if !exists {
-		zgh.ZLog().Error("message", "Cate.Update", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 400001003, nil)
+		r.Log.Errorln("message", "Cate.Update", "error", "get request_params from context fail")
+		r.Response(c, 400001003, nil)
 		return
 	}
-	var cs common.CateStore
-	cs, ok := requestJson.(common.CateStore)
+	var cs pojos.CateStore
+	cs, ok := requestJson.(pojos.CateStore)
 	if !ok {
-		zgh.ZLog().Error("message", "cate.Update", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "cate.Update", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
-	_, err = service.CateUpdate(cateIdInt, cs)
+	srv := services.NewCategoryService()
+	_, err = srv.CateUpdate(cateIdInt, cs)
 	if err != nil {
-		zgh.ZLog().Error("message", "cate.Update", "error", err.Error())
-		appG.Response(http.StatusOK, 402000009, nil)
+		r.Log.Errorln("message", "cate.Update", "error", err.Error())
+		r.Response(c, 402000009, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
 
-func (cate *ControllerCategory) Destroy(c *gin.Context) {
+func (r *ControllerCategory) Destroy(c *gin.Context) {
 	cateIdStr := c.Param("id")
 	cateIdInt, err := strconv.Atoi(cateIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 400001002, nil)
+		r.Log.Errorln("message", "console.Cate.Destroy", "err", err.Error())
+		r.Response(c, 400001002, nil)
+		return
+	}
+	srv := services.NewCategoryService()
+	_, err = srv.GetCateById(cateIdInt)
+	if err != nil {
+		r.Log.Errorln("message", "console.Cate.Destroy", "err", err.Error())
+		r.Response(c, 402000000, nil)
 		return
 	}
 
-	_, err = service.GetCateById(cateIdInt)
+	pd, err := srv.GetCateByParentId(cateIdInt)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 402000000, nil)
-		return
-	}
-
-	pd, err := service.GetCateByParentId(cateIdInt)
-	if err != nil {
-		zgh.ZLog().Error("message", "console.Cate.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 402000000, nil)
+		r.Log.Errorln("message", "console.Cate.Destroy", "err", err.Error())
+		r.Response(c, 402000000, nil)
 		return
 	}
 	if pd.Id > 0 {
-		zgh.ZLog().Error("message", "console.Cate.Destroy", err, "It has children node")
-		appG.Response(http.StatusOK, 402000011, nil)
+		r.Log.Errorln("message", "console.Cate.Destroy", err, "It has children node")
+		r.Response(c, 402000011, nil)
 		return
 	}
 
-	service.DelCateRel(cateIdInt)
-	appG.Response(http.StatusOK, 0, nil)
+	srv.DelCateRel(cateIdInt)
+	r.Response(c, 0, nil)
 	return
 }

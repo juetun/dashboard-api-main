@@ -1,7 +1,7 @@
 package pojos
 
 import (
-	"github.com/juetun/study/app-dashboard/web/models"
+	"github.com/juetun/app-dashboard/web/models"
 	"html/template"
 	"time"
 )
