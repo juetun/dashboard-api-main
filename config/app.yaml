@@ -1,0 +1,5 @@
+app:
+  name: "dashboard" #应用名称
+  port: 8089    #应用启动端口
+  version: "2.0" #应用版本
+  grace_reload: 1  #是否支持优雅重启

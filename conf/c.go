@@ -18,7 +18,6 @@ const (
 	HASHIDSALT = "salt"
 	HASHIDMINLENGTH = 8
 
-
 	REDISADDR = ""
 	REDISPWD = ""
 	REDISDB = 0
@@ -29,11 +28,7 @@ const (
 	JWTSECRETKEY = "izghua"
 	JWTTOKENKEY = "login:token:"
 	JWTTOKENLIFE = time.Hour * time.Duration(72)
-
-
 	QCapUrl = "https://ssl.captcha.qq.com/ticket/verify"
-
-
 
 )
 
