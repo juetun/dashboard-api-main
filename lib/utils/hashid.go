@@ -4,15 +4,15 @@
  * Date: 2018-12-13
  * Time: 21:29
  */
-package hashid
+package utils
 
 import (
-	"github.com/juetun/app-dashboard"
-	conf2 "github.com/juetun/app-dashboard/conf"
+	"github.com/juetun/app-dashboard/lib/app_log"
+	"github.com/speps/go-hashids"
 )
 
 type HashIdParams struct {
-	Salt string
+	Salt      string
 	MinLength int
 }
 
@@ -34,13 +34,13 @@ func (hd *HashIdParams) SetHashIdLength(minLength int) func(*HashIdParams) inter
 	}
 }
 
-
-func (hd *HashIdParams)HashIdInit(options ...func(*HashIdParams) interface{}) (*hashids.HashID,error) {
+func (hd *HashIdParams) HashIdInit(options ...func(*HashIdParams) interface{}) (*hashids.HashID, error) {
 	q := &HashIdParams{
-		Salt:      conf2.HASHIDSALT,
-		MinLength: conf2.HASHIDMINLENGTH,
+		Salt:      "salt",
+		MinLength: 8,
 	}
-	for _,option := range options {
+
+	for _, option := range options {
 		option(q)
 	}
 	hashIdParams = q
@@ -49,11 +49,8 @@ func (hd *HashIdParams)HashIdInit(options ...func(*HashIdParams) interface{}) (*
 	hds.MinLength = hashIdParams.MinLength
 	h, err := hashids.NewWithData(hds)
 	if err != nil {
-		zgh.ZLog().Error("content","hash new with data is error","error",err.Error())
-		return nil,err
+		app_log.GetLog().Errorln("content", "hash new with data is error", "error", err.Error())
+		return nil, err
 	}
-	return h,nil
+	return h, nil
 }
-
-
-

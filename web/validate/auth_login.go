@@ -8,9 +8,8 @@ package validate
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard/gin/api"
-	"github.com/juetun/study/app-content/common"
-	"net/http"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 type AuthLoginV struct {
@@ -18,43 +17,43 @@ type AuthLoginV struct {
 
 func (av *AuthLoginV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		appG := api.Gin{C: c}
-		var json common.AuthLogin
+		appG:=common.NewGin(c)
+		var json pojos.AuthLogin
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response(http.StatusOK, 400001000, nil)
+			appG.Response(400001000, nil)
 			return
 		}
 
 		reqValidate := &AuthLogin{
-			Email:json.Email,
-			Password:json.Password,
-			Captcha:json.Captcha,
-			CaptchaKey:json.CaptchaKey,
+			Email:      json.Email,
+			Password:   json.Password,
+			Captcha:    json.Captcha,
+			CaptchaKey: json.CaptchaKey,
 		}
 		if b := appG.Validate(reqValidate); !b {
 			return
 		}
-		c.Set("json",json)
+		c.Set("json", json)
 		c.Next()
 	}
 }
 
 type AuthLogin struct {
-	Email string `valid:"Required;Email"`
-	Password string `valid:"Required;MaxSize(30)"`
-	Captcha string `valid:"Required;MaxSize(5)"`
+	Email      string `valid:"Required;Email"`
+	Password   string `valid:"Required;MaxSize(30)"`
+	Captcha    string `valid:"Required;MaxSize(5)"`
 	CaptchaKey string `valid:"Required;MaxSize(30)"`
 }
 
 func (av *AuthLogin) Message() map[string]int {
 	return map[string]int{
-		"Email.Required":407000000,
-		"Email.Email":407000001,
-		"Password.Required":407000002,
-		"Password.MaxSize":407000003,
-		"Captcha.Required":407000004,
-		"Captcha.MaxSize":407000005,
-		"CaptchaKey.Required":407000006,
-		"CaptchaKey.MaxSize":407000007,
+		"Email.Required":      407000000,
+		"Email.Email":         407000001,
+		"Password.Required":   407000002,
+		"Password.MaxSize":    407000003,
+		"Captcha.Required":    407000004,
+		"Captcha.MaxSize":     407000005,
+		"CaptchaKey.Required": 407000006,
+		"CaptchaKey.MaxSize":  407000007,
 	}
 }

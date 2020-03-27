@@ -44,7 +44,7 @@ func GoRepeat(str string, num int) string {
 	return newStr
 }
 
-func MyPaginate(count int64, limit int, page int) Paginate {
+func MyPaginate(count int64, limit int, page int) pojos.Paginate {
 	res := round(int(count), limit)
 	totalPage := res
 

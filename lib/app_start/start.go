@@ -1,19 +1,20 @@
 package app_start
 
 import (
-	"github.com/juetun/app-dashboard/lib/common"
 	stytemLog "log"
+
+	"github.com/juetun/app-dashboard/lib/common"
 )
 
 type PluginHandleFunction func() (err error)
 
-//加载插件结构体
+// 加载插件结构体
 type PluginHandleStruct struct {
 	FuncHandler PluginHandleFunction
 	Name        string
 }
 
-//插件结构体装载对象 ,采用指针共享数据
+// 插件结构体装载对象 ,采用指针共享数据
 var PluginsHandleStruct = &[]PluginHandleStruct{}
 
 type PluginsOperate struct {
@@ -23,7 +24,7 @@ func NewPluginsOperate() *PluginsOperate {
 	return &PluginsOperate{}
 }
 
-//执行加载插件过程
+// 执行加载插件过程
 func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
 	var io = common.NewSystemOut().SetInfoType(common.LogLevelInfo)
 	stytemLog.Printf("")
@@ -45,7 +46,7 @@ func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
 	return r
 }
 
-//加载插件
+// 加载插件
 func (r *PluginsOperate) Use(pluginFunc ...PluginHandleFunction) *PluginsOperate {
 	for _, value := range pluginFunc {
 		*PluginsHandleStruct = append(*PluginsHandleStruct, PluginHandleStruct{

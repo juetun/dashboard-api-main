@@ -7,15 +7,14 @@
 package con_impl
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard/gin/api"
-	"github.com/juetun/study/app-content/common"
-	"github.com/juetun/study/app-content/conf"
-	"github.com/juetun/study/app-content/service"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/web/controllers"
-	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/services"
 )
 
 type ControllerLink struct {
@@ -28,126 +27,124 @@ func NewControllerLink() controllers.Console {
 	return controller
 }
 
-func (l *ControllerLink) Index(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerLink) Index(c *gin.Context) {
 
 	queryPage := c.DefaultQuery("page", "1")
-	queryLimit := c.DefaultQuery("limit", conf.Cnf.DefaultLimit)
+	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultLimit)
 	queryPageInt, err := strconv.Atoi(queryPage)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Post.Index", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Post.Index", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	limit, offset := common.Offset(queryPage, queryLimit)
 
-	links, cnt, err := service.LinkList(offset, limit)
+	srv := services.NewLinkService()
+	links, cnt, err := srv.LinkList(offset, limit)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Index", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Link.Index", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	data := make(map[string]interface{})
 	data["list"] = links
 	data["page"] = common.MyPaginate(cnt, limit, queryPageInt)
 
-	appG.Response(http.StatusOK, 0, data)
+	r.Response(c, 0, data)
 	return
 }
-func (l *ControllerLink) Create(c *gin.Context) {
+func (r *ControllerLink) Create(c *gin.Context) {
 }
-func (l *ControllerLink) Store(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerLink) Store(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
-		zgh.ZLog().Error("message", "link.Store", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 401000004, nil)
+		r.Log.Errorln("message", "link.Store", "error", "get request_params from context fail")
+		r.Response(c, 401000004, nil)
 		return
 	}
-	ls, ok := requestJson.(common.LinkStore)
+	ls, ok := requestJson.(pojos.LinkStore)
 	if !ok {
-		zgh.ZLog().Error("message", "link.Store", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "link.Store", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
-
-	err := service.LinkSore(ls)
+	srv := services.NewLinkService()
+	err := srv.LinkSore(ls)
 	if err != nil {
-		zgh.ZLog().Error("message", "link.Store", "error", err.Error())
-		appG.Response(http.StatusOK, 406000005, nil)
+		r.Log.Errorln("message", "link.Store", "error", err.Error())
+		r.Response(c, 406000005, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
-func (l *ControllerLink) Edit(c *gin.Context) {
+func (r *ControllerLink) Edit(c *gin.Context) {
 	linkIdStr := c.Param("id")
 	linkIdInt, err := strconv.Atoi(linkIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Link.Edit", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	link, err := service.LinkDetail(linkIdInt)
+	srv := services.NewLinkService()
+	link, err := srv.LinkDetail(linkIdInt)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 406000006, nil)
+		r.Log.Errorln("message", "console.Link.Edit", "err", err.Error())
+		r.Response(c, 406000006, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, link)
+	r.Response(c, 0, link)
 	return
 }
-func (l *ControllerLink) Update(c *gin.Context) {
+func (r *ControllerLink) Update(c *gin.Context) {
 	linkIdStr := c.Param("id")
 	linkIdInt, err := strconv.Atoi(linkIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Update", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Link.Update", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 
 	requestJson, exists := c.Get("json")
 	if !exists {
-		zgh.ZLog().Error("message", "Link.Update", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 400001003, nil)
+		r.Log.Errorln("message", "Link.Update", "error", "get request_params from context fail")
+		r.Response(c, 400001003, nil)
 		return
 	}
-	ls, ok := requestJson.(common.LinkStore)
+	ls, ok := requestJson.(pojos.LinkStore)
 	if !ok {
-		zgh.ZLog().Error("message", "Link.Update", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "Link.Update", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
-	err = service.LinkUpdate(ls, linkIdInt)
+	srv := services.NewLinkService()
+	err = srv.LinkUpdate(ls, linkIdInt)
 	if err != nil {
-		zgh.ZLog().Error("message", "Link.Update", "error", err.Error())
-		appG.Response(http.StatusOK, 406000007, nil)
+		r.Log.Errorln("message", "Link.Update", "error", err.Error())
+		r.Response(c, 406000007, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
-func (l *ControllerLink) Destroy(c *gin.Context) {
+func (r *ControllerLink) Destroy(c *gin.Context) {
 	linkIdStr := c.Param("id")
 	linkIdInt, err := strconv.Atoi(linkIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Link.Destroy", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-
-	err = service.LinkDestroy(linkIdInt)
+	srv := services.NewLinkService()
+	err = srv.LinkDestroy(linkIdInt)
 	if err != nil {
-		zgh.ZLog().Error("message", "console.Link.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Link.Destroy", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }

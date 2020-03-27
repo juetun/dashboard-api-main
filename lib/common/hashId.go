@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/juetun/app-dashboard/lib/utilsold/hashid"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/speps/go-hashids"
 )
 
@@ -11,7 +11,7 @@ var (
 
 func PluginsHashId() (err error) {
 
-	hd := new(hashid.HashIdParams)
+	hd := new(utils.HashIdParams)
 	salt := hd.SetHashIdSalt("i must add a salt what is only for me")
 	hdLength := hd.SetHashIdLength(8)
 	zHashId, err := hd.HashIdInit(hdLength, salt)

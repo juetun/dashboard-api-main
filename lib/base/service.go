@@ -9,5 +9,5 @@ import (
 type ServiceBase struct {
 	Log         *app_log.AppLog
 	Db          *xorm.Engine
-	CacheClient redis.Client
+	CacheClient *redis.Client
 }

@@ -14,7 +14,7 @@ type ControllerHome struct {
 	base.ControllerBase
 }
 
-func NewControllerHome() controllers.Statistics {
+func NewControllerHome() controllers.System {
 	controller := &ControllerHome{}
 	controller.ControllerBase.Init()
 	return controller

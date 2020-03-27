@@ -1,4 +1,11 @@
-package conf
+/**
+* @Author:changjiang
+* @Description:
+* @File:msg
+* @Version: 1.0.0
+* @Date 2020/3/19 10:06 下午
+ */
+package web
 
 
 var message = map[int]string{

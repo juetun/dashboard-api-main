@@ -20,13 +20,13 @@ func init() {
 			})
 			r.LoadHTMLGlob("template/home/*.tmpl")
 
-			r.Static("/static/home", "./static/home")
-			h.GET("/", web.Index)
-			h.GET("/categories/:name", web.IndexCate)
-			h.GET("/tags/:name", web.IndexTag)
-			h.GET("/detail/:id", web.Detail)
-			h.GET("/archives", web.Archives)
-			h.GET("/404", web.NoFound)
+			r.Static(urlPrefix +"/static/home", "./static/home")
+			h.GET(urlPrefix +"/", web.Index)
+			h.GET(urlPrefix +"/categories/:name", web.IndexCate)
+			h.GET(urlPrefix +"/tags/:name", web.IndexTag)
+			h.GET(urlPrefix +"/detail/:id", web.Detail)
+			h.GET(urlPrefix +"/archives", web.Archives)
+			h.GET(urlPrefix +"/404", web.NoFound)
 		}
 	}, )
 }

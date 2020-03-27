@@ -2,15 +2,16 @@ package app_start
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/lib/middlewares"
-	"github.com/juetun/app-dashboard/router"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/middlewares"
+	"github.com/juetun/app-dashboard/router"
 )
 
 type WebApplication struct {
@@ -32,7 +33,7 @@ func NewWebApplication() *WebApplication {
 
 func (r *WebApplication) LoadRouter() *WebApplication {
 
-	err := router.RunLoadRouter(r.GinEngine) //注册Gin路由组件
+	err := router.RunLoadRouter(r.GinEngine) // 注册Gin路由组件
 	if err != nil {
 		r.syslog.SetInfoType(common.LogLevelError).
 			SystemOutPrintf("Load router err  %s", err.Error())
@@ -40,15 +41,15 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 	return r
 }
 
-//开始加载Gin 服务
+// 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
 	middlewares.LoadMiddleWare()
 	r.GinEngine.Use(middlewares.MiddleWareComponent...)
 	r.GinEngine.GET("/index", func(c *gin.Context) {
-		//time.Sleep(5 * time.Second)
+		// time.Sleep(5 * time.Second)
 		c.String(http.StatusOK, "Welcome Gin Server")
 	})
-	if common.GetAppConfig().AppGraceReload { //如果支持优雅重启
+	if common.GetAppConfig().AppGraceReload { // 如果支持优雅重启
 		r.Start()
 		return
 	}

@@ -146,8 +146,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 		"themeCateImg":     common.Conf.ThemeCateImg,
 		"themeTagImg":      common.Conf.ThemeTagImg,
 		"title":            "",
-
-		"tem": "defaultList",
+		"tem":              "defaultList",
 	}
 	h["script"] = template.HTML(common.Conf.OtherScript)
 	srv := NewCategoryService()

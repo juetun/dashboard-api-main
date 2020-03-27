@@ -7,6 +7,10 @@
  */
 package common
 
+import (
+	"time"
+)
+
 var Conf *Config
 
 type Config struct {

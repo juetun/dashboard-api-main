@@ -16,7 +16,6 @@ import (
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
-	"github.com/juetun/app-dashboard/web/services/bak"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 )
@@ -86,9 +85,10 @@ func (r *ConsolePostService) ConsolePostIndex(limit, offset int, isTrash bool) (
 			CreatedAt: post.CreatedAt,
 			UpdatedAt: post.UpdatedAt,
 		}
+		srv := NewCategoryService()
 
 		// category
-		cates, err := bak.GetPostCateByPostId(post.Id)
+		cates, err := srv.GetPostCateByPostId(post.Id)
 		if err != nil {
 			r.Log.Error(map[string]string{
 				"message": "service.ConsolePostIndex", "err": err.Error(),
@@ -102,15 +102,17 @@ func (r *ConsolePostService) ConsolePostIndex(limit, offset int, isTrash bool) (
 			SeoDesc:     cates.SeoDesc,
 		}
 
+		srvTag := NewTagService()
 		// tag
-		tagIds, err := bak.GetPostTagsByPostId(post.Id)
+		tagIds, err := srvTag.GetPostTagsByPostId(post.Id)
 		if err != nil {
 			r.Log.Error(map[string]string{
 				"message": "service.ConsolePostIndex", "err": err.Error(),
 			})
 			return nil, err
 		}
-		tags, err := bak.GetTagsByIds(tagIds)
+
+		tags, err := srvTag.GetTagsByIds(tagIds)
 		if err != nil {
 			r.Log.Error(map[string]string{
 				"message": "service.ConsolePostIndex", "err": err.Error(),
@@ -141,8 +143,10 @@ func (r *ConsolePostService) ConsolePostIndex(limit, offset int, isTrash bool) (
 			Num: view.Num,
 		}
 
+		srvUser := NewUserService()
+
 		// user
-		user, err := bak.GetUserById(post.UserId)
+		user, err := srvUser.GetUserById(post.UserId)
 		if err != nil {
 			r.Log.Error(map[string]string{
 				"message": "service.ConsolePostIndex", "err": err.Error(),
@@ -414,9 +418,9 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	View := pojos.ConsoleView{
 		Num: view.Num,
 	}
-
+	srvUser := NewUserService()
 	// user
-	user, err := bak.GetUserById(post.UserId)
+	user, err := srvUser.GetUserById(post.UserId)
 	if err != nil {
 		r.Log.Error(map[string]string{
 			"message": "service.IndexPostDetailDao",

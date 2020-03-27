@@ -12,7 +12,7 @@ func init() {
 		system := r.Group(urlPrefix + "/console/system")
 		cSystem := statistics_impl.NewControllerHome()
 		systemV := validate.NewValidate().NewSystemV.MyValidate()
-		system.GET("/", middlewares.Permission("console.systemiddlewares.index"), cSystem.Index)
-		system.PUT("/:id", middlewares.Permission("console.systemiddlewares.update"), systemV, cSystem.Update)
+		system.GET("/", middlewares.Permission("console.middlewares.index"), cSystem.Index)
+		system.PUT("/:id", middlewares.Permission("console.middlewares.update"), systemV, cSystem.Update)
 	})
 }

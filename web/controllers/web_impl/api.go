@@ -16,7 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/app_log"
-	"github.com/juetun/dashboard/conf"
+	"github.com/juetun/app-dashboard/web"
 )
 
 type ApiController struct {
@@ -27,7 +27,7 @@ func (r *ApiController) Response(httpCode, errCode int, data gin.H) {
 	if data == nil {
 		panic("常规信息应该设置")
 	}
-	msg := utils.GetMsg(errCode)
+	msg := web.GetMsg(errCode)
 	beginTime, _ := strconv.ParseInt(r.C.Writer.Header().Get("X-Begin-Time"), 10, 64)
 
 	duration := time.Now().Sub(time.Unix(0, beginTime))
@@ -37,7 +37,10 @@ func (r *ApiController) Response(httpCode, errCode int, data gin.H) {
 	r.C.Writer.Header().Set("X-Response-time", roundedStr)
 	requestUrl := r.C.Request.URL.String()
 	requestMethod := r.C.Request.Method
-	app_log.GetLog().Infoln("message", "Index Response", "Request Url", requestUrl, "Request method", requestMethod, "code", errCode, "errMsg", msg, "took", roundedStr)
+	app_log.GetLog().Infoln("message", "Index Response", "Request Url",
+		requestUrl, "Request method", requestMethod,
+		"code", errCode, "errMsg", msg,
+		"took", roundedStr)
 	if errCode == 500 {
 		r.C.HTML(http.StatusOK, "5xx.tmpl", data)
 	} else if errCode == 404 {

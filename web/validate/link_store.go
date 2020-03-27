@@ -8,53 +8,51 @@ package validate
 
 import (
 	"fmt"
+
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard/gin/api"
-	"github.com/juetun/study/app-content/common"
-	"net/http"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 type LinkStoreV struct {
 }
 
-func (lv *LinkStoreV)MyValidate() gin.HandlerFunc {
+func (lv *LinkStoreV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		appG := api.Gin{C: c}
-		var json common.LinkStore
+		appG := common.NewGin(c)
+		var json pojos.LinkStore
 		if err := c.ShouldBindJSON(&json); err != nil {
 			fmt.Println(json)
-			appG.Response(http.StatusOK, 400001000, nil)
+			appG.Response(400001000, nil)
 			return
 		}
 
 		reqValidate := &LinkStore{
-			Name:json.Name,
-			Link:json.Link,
-			Order:json.Order,
+			Name:  json.Name,
+			Link:  json.Link,
+			Order: json.Order,
 		}
 		if b := appG.Validate(reqValidate); !b {
-			fmt.Println(reqValidate,json)
+			fmt.Println(reqValidate, json)
 			return
 		}
-		c.Set("json",json)
+		c.Set("json", json)
 		c.Next()
 	}
 }
 
 type LinkStore struct {
-	Name string `valid:"Required;MaxSize(100)"`
-	Link string `valid:"Required;MaxSize(100)"`
-	Order int `valid:"Min(0)"`
+	Name  string `valid:"Required;MaxSize(100)"`
+	Link  string `valid:"Required;MaxSize(100)"`
+	Order int    `valid:"Min(0)"`
 }
-
 
 func (c *LinkStore) Message() map[string]int {
 	return map[string]int{
-		"Name.Required":406000000,
-		"Name.MaxSize":406000001,
-		"Link.Required":406000002,
-		"Link.MaxSize":406000003,
-		"Order.Min":406000004,
+		"Name.Required": 406000000,
+		"Name.MaxSize":  406000001,
+		"Link.Required": 406000002,
+		"Link.MaxSize":  406000003,
+		"Order.Min":     406000004,
 	}
 }
-

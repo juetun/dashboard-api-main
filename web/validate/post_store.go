@@ -8,51 +8,46 @@ package validate
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard/gin/api"
-	"github.com/juetun/study/app-content/common"
-	"net/http"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 type PostStoreV struct {
 }
 
-
-func (pv *PostStoreV)MyValidate() gin.HandlerFunc {
+func (pv *PostStoreV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		appG := api.Gin{C: c}
-		var json common.PostStore
-		//接收各种参数
+		appG := common.NewGin(c)
+		var json pojos.PostStore
+		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response(http.StatusOK, 400001000, nil)
+			appG.Response(400001000, nil)
 			return
 		}
 
 		reqValidate := &PostStore{
-			Title:json.Title,
-			Tags:json.Tags,
-			Summary:json.Summary,
+			Title:   json.Title,
+			Tags:    json.Tags,
+			Summary: json.Summary,
 		}
 		if b := appG.Validate(reqValidate); !b {
 			return
 		}
-		c.Set("json",json)
+		c.Set("json", json)
 		c.Next()
 	}
 }
 
-
-
 type PostStore struct {
 	Title string `valid:"Required"`
-	Tags []int
-	//Category int `valid:Required`
+	Tags  []int
+	// Category int `valid:Required`
 	Summary string `valid:"Required;"`
 }
 
-
 func (c *PostStore) Message() map[string]int {
 	return map[string]int{
-		"Title.Required":401000000,
-		"Summary.Required":401000003,
+		"Title.Required":   401000000,
+		"Summary.Required": 401000003,
 	}
 }

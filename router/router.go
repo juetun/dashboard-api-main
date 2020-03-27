@@ -8,7 +8,8 @@ import (
 type HandleRouter func(c *gin.Engine, urlPrefix string)
 
 var HandleFunc = make([]HandleRouter, 0)
-var UrlPrefix = "/v1/app"
+
+const UrlPrefix = "/v1/app"
 
 func RunLoadRouter(c *gin.Engine) (err error) {
 	io := common.NewSystemOut().SetInfoType(common.LogLevelInfo)

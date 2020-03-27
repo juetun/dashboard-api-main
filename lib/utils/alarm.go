@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-errors/errors"
 	"github.com/juetun/app-dashboard/lib/app_log"
-	"github.com/juetun/app-dashboard/lib/utilsold/mail"
 )
 
 // Define AlarmType to string
@@ -138,7 +137,7 @@ func Alarm(content string) {
 				app_log.GetLog().Errorln("content", "邮件接收者不能为空")
 				break
 			}
-			err = mail.SendMail(string(alarmParam.MailTo), "报警", content)
+			err = SendMail(string(alarmParam.MailTo), "报警", content)
 			break
 		case AlarmTypeTwo:
 			break

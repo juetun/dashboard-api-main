@@ -7,17 +7,15 @@
 package con_impl
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/study/app-content/common"
-	"github.com/juetun/study/app-content/conf"
-	"github.com/juetun/study/app-content/service"
-	"github.com/juetun/app-dashboard/gin/api"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/web/controllers"
-	"github.com/juetun/app-dashboard/web/services"
-	"net/http"
 	"path/filepath"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/app-dashboard/web/services"
 )
 
 type ControllerPost struct {
@@ -30,102 +28,109 @@ func NewControllerPost() controllers.Console {
 	return controller
 }
 
-func (p *ControllerPost) Index(c *gin.Context) {
-	pageNo := c.DefaultQuery("page", base.DefaultPageNo)
-	pageSize := c.DefaultQuery("limit", base.DefaultPageSize)
+func (r *ControllerPost) Index(c *gin.Context) {
+	queryPage := c.DefaultQuery("page", base.DefaultPageNo)
+	queryLimit := c.DefaultQuery("limit", base.DefaultPageSize)
+
+	limit, offset := common.Offset(queryPage, queryLimit)
+	queryPageInt, err := strconv.Atoi(queryPage)
+
 	srv := services.NewConsolePostService()
-	postList, err := srv.ConsolePostIndex(pageNo, pageSize, false)
+	postList, err := srv.ConsolePostIndex(limit, offset, false)
 	if err != nil {
-		c.Response(http.StatusOK, 500000000, nil)
+		r.Response(c, 500000000, nil)
 		return
 	}
 
-	postCount, err := service.ConsolePostCount(limit, offset, false)
-
+	postCount, err := srv.ConsolePostCount(limit, offset, false)
 	data := make(map[string]interface{})
 	data["list"] = postList
 	data["page"] = common.MyPaginate(postCount, limit, queryPageInt)
-
-	appG.Response(http.StatusOK, 0, data)
+	r.Response(c, 0, data)
 	return
 }
 
-func (p *ControllerPost) Create(c *gin.Context) {
-	cates, err := service.CateListBySort()
-	appG := api.Gin{C: c}
+func (r *ControllerPost) Create(c *gin.Context) {
+	srv := services.NewCategoryService()
+	cates, err := srv.CateListBySort()
+
 	if err != nil {
-		p.Log.Error("message", "console.Create", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	tags, err := service.AllTags()
+	srvTag := services.NewTagService()
+	tags, err := srvTag.AllTags()
 	if err != nil {
-		p.Log.Error("message", "console.Create", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	data := make(map[string]interface{})
 	data["cates"] = cates
 	data["tags"] = tags
-	data["imgUploadUrl"] = conf.Cnf.ImgUploadUrl
-	appG.Response(http.StatusOK, 0, data)
+	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
+	r.Response(c, 0, data)
 	return
 }
 
-func (p *ControllerPost) Store(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerPost) Store(c *gin.Context) {
+
 	requestJson, exists := c.Get("json")
 	if !exists {
-		p.Log.Error("message", "post.Store", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 401000004, nil)
+		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
+		r.Response(c, 401000004, nil)
 		return
 	}
-	var ps common.PostStore
-	ps, ok := requestJson.(common.PostStore)
+	var ps pojos.PostStore
+	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
-		p.Log.Error("message", "post.Store", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
 
 	userId, exist := c.Get("userId")
 	if !exist || userId.(int) == 0 {
-		p.Log.Error("message", "post.Store", "error", "Can not get user")
-		appG.Response(http.StatusOK, 400001004, nil)
+		r.Log.Errorln("message", "post.Store", "error", "Can not get user")
+		r.Response(c, 400001004, nil)
 		return
 	}
-
-	service.PostStore(ps, userId.(int))
-	appG.Response(http.StatusOK, 0, nil)
+	srvPost := services.NewConsolePostService()
+	srvPost.PostStore(ps, userId.(int))
+	r.Response(c, 0, nil)
 	return
 }
 
-func (p *ControllerPost) Edit(c *gin.Context) {
+func (r *ControllerPost) Edit(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		p.Log.Error("message", "console.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	post, err := service.PostDetail(postIdInt)
+	srvPost := services.NewConsolePostService()
+	srvCate := services.NewCategoryService()
+	srvTag := services.NewTagService()
+
+	post, err := srvPost.PostDetail(postIdInt)
 	if err != nil {
-		p.Log.Error("message", "console.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	postTags, err := service.PostIdTag(postIdInt)
+	postTags, err := srvPost.PostIdTag(postIdInt)
 	if err != nil {
-		p.Log.Error("message", "console.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	postCate, err := service.PostCate(postIdInt)
+	postCate, err := srvCate.PostCate(postIdInt)
 	if err != nil {
-		p.Log.Error("message", "console.Edit", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	data := make(map[string]interface{})
@@ -134,156 +139,156 @@ func (p *ControllerPost) Edit(c *gin.Context) {
 	posts["postCate"] = postCate
 	posts["postTag"] = postTags
 	data["post"] = posts
-	cates, err := service.CateListBySort()
+	cates, err := srvCate.CateListBySort()
 	if err != nil {
-		p.Log.Error("message", "console.Create", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	tags, err := service.AllTags()
+	tags, err := srvTag.AllTags()
 	if err != nil {
-		p.Log.Error("message", "console.Create", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	data["cates"] = cates
 	data["tags"] = tags
-	data["imgUploadUrl"] = conf.Cnf.ImgUploadUrl
-	appG.Response(http.StatusOK, 0, data)
+	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
+	r.Response(c, 0, data)
 	return
 }
 
-func (p *ControllerPost) Update(c *gin.Context) {
+func (r *ControllerPost) Update(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		p.Log.Error("message", "console.Update", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Update", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 
 	requestJson, exists := c.Get("json")
 	if !exists {
-		p.Log.Error("message", "post.Store", "error", "get request_params from context fail")
-		appG.Response(http.StatusOK, 400001003, nil)
+		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
+		r.Response(c, 400001003, nil)
 		return
 	}
-	var ps common.PostStore
-	ps, ok := requestJson.(common.PostStore)
+	srv := services.NewConsolePostService()
+	var ps pojos.PostStore
+	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
-		p.Log.Error("message", "post.Store", "error", "request_params turn to error")
-		appG.Response(http.StatusOK, 400001001, nil)
+		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
+		r.Response(c, 400001001, nil)
 		return
 	}
-	service.PostUpdate(postIdInt, ps)
-	appG.Response(http.StatusOK, 0, nil)
+	srv.PostUpdate(postIdInt, ps)
+	r.Response(c, 0, nil)
 	return
 }
 
-func (p *ControllerPost) Destroy(c *gin.Context) {
+func (r *ControllerPost) Destroy(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		p.Log.Error("message", "console.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-
-	_, err = service.PostDestroy(postIdInt)
+	srv := services.NewConsolePostService()
+	_, err = srv.PostDestroy(postIdInt)
 	if err != nil {
-		p.Log.Error("message", "console.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
 
-func (p *ControllerPost) TrashIndex(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerPost) TrashIndex(c *gin.Context) {
 
 	queryPage := c.DefaultQuery("page", "1")
-	queryLimit := c.DefaultQuery("limit", conf.Cnf.DefaultLimit)
+	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultLimit)
 
 	limit, offset := common.Offset(queryPage, queryLimit)
-	postList, err := service.ConsolePostIndex(limit, offset, true)
+
+	srv := services.NewConsolePostService()
+	postList, err := srv.ConsolePostIndex(limit, offset, true)
 	if err != nil {
-		p.Log.Error("message", "console.TrashIndex", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
 	queryPageInt, err := strconv.Atoi(queryPage)
 	if err != nil {
-		p.Log.Error("message", "console.TrashIndex", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	postCount, err := service.ConsolePostCount(limit, offset, true)
+	postCount, err := srv.ConsolePostCount(limit, offset, true)
 
 	data := make(map[string]interface{})
 	data["list"] = postList
 	data["page"] = common.MyPaginate(postCount, limit, queryPageInt)
 
-	appG.Response(http.StatusOK, 0, data)
+	r.Response(c, 0, data)
 	return
 }
 
-func (p *ControllerPost) UnTrash(c *gin.Context) {
+func (r *ControllerPost) UnTrash(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
-	appG := api.Gin{C: c}
 
 	if err != nil {
-		p.Log.Error("message", "console.Destroy", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	_, err = service.PostUnTrash(postIdInt)
+	srv := services.NewConsolePostService()
+	_, err = srv.PostUnTrash(postIdInt)
 	if err != nil {
-		p.Log.Error("message", "console.UnTrash", "err", err.Error())
-		appG.Response(http.StatusOK, 500000000, nil)
+		r.Log.Errorln("message", "console.UnTrash", "err", err.Error())
+		r.Response(c, 500000000, nil)
 		return
 	}
-	appG.Response(http.StatusOK, 0, nil)
+	r.Response(c, 0, nil)
 	return
 }
 
-func (p *ControllerPost) ImgUpload(c *gin.Context) {
-	appG := api.Gin{C: c}
+func (r *ControllerPost) ImgUpload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		p.Log.Info("message", "post.ImgUpload", "err", err.Error())
-		appG.Response(http.StatusOK, 401000004, nil)
+		r.Log.Infoln("message", "post.ImgUpload", "err", err.Error())
+		r.Response(c, 401000004, nil)
 		return
 	}
 
 	filename := filepath.Base(file.Filename)
-	dst := conf.Cnf.ImgUploadDst + filename
+	dst := common.Conf.ImgUploadDst + filename
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		p.Log.Info("message", "post.ImgUpload", "error", err.Error())
-		appG.Response(http.StatusOK, 401000005, nil)
+		r.Log.Infoln("message", "post.ImgUpload", "error", err.Error())
+		r.Response(c, 401000005, nil)
 		return
 	}
 
+	srvQiniu := services.NewQiuNiuService()
 	// Default upload both
 	data := make(map[string]interface{})
-	if conf.Cnf.ImgUploadBoth {
-		go service.Qiniu(dst, filename)
-		data["path"] = conf.Cnf.AppImgUrl + filename
-	} else {
-		if conf.Cnf.QiNiuUploadImg {
-			go service.Qiniu(dst, filename)
-			data["path"] = conf.Cnf.QiNiuHostName + filename
-		} else {
-			data["path"] = conf.Cnf.AppImgUrl + filename
-		}
+	if common.Conf.ImgUploadBoth {
+		go srvQiniu.Qiniu(dst, filename)
+		data["path"] = common.Conf.AppImgUrl + filename
+		r.Response(c, 0, data)
+		return
 	}
-
-	appG.Response(http.StatusOK, 0, data)
+	if common.Conf.QiNiuUploadImg {
+		go srvQiniu.Qiniu(dst, filename)
+		data["path"] = common.Conf.QiNiuHostName + filename
+	} else {
+		data["path"] = common.Conf.AppImgUrl + filename
+	}
+	r.Response(c, 0, data)
 	return
 }
