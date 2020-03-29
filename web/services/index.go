@@ -100,9 +100,12 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 		return
 	}
-	var postList []*pojos.ConsolePostList
+	var postList *[]pojos.ConsolePostList
 	var postCount int64
-	postSrv := NewConsolePostService()
+	var dba *gorm.DB
+
+	postSrv := NewConsolePostService(r.Context)
+
 	switch indexType {
 	case IndexTypeOne:
 		tag := new(models.ZTags)
@@ -141,27 +144,31 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 			return
 		}
 	case IndexTypeThree:
-		postList, err = postSrv.ConsolePostIndex(limit, offset, false)
+
+		dba, postCount, err = postSrv.ConsolePostCount(limit, offset, false)
 		if err != nil {
 			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
-		postCount, err = postSrv.ConsolePostCount(limit, offset, false)
-		if err != nil {
-			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
-			return
+		if postCount > 0 {
+			postList, err = postSrv.ConsolePostIndex(dba, limit, offset, false)
+			if err != nil {
+				r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+				return
+			}
 		}
 	default:
-		postList, err = postSrv.ConsolePostIndex(limit, offset, false)
+		dba, postCount, err = postSrv.ConsolePostCount(limit, offset, false)
 		if err != nil {
 			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
-
-		postCount, err = postSrv.ConsolePostCount(limit, offset, false)
-		if err != nil {
-			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
-			return
+		if postCount > 0 {
+			postList, err = postSrv.ConsolePostIndex(dba, limit, offset, false)
+			if err != nil {
+				r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+				return
+			}
 		}
 	}
 

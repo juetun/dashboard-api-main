@@ -1,11 +1,11 @@
 package models
 
 import (
-	"time"
+	"github.com/juetun/app-dashboard/lib/base"
 )
 
 type ZPasswordResets struct {
-	Email     string    `xorm:"not null index VARCHAR(255)"`
-	Token     string    `xorm:"not null VARCHAR(255)"`
-	CreatedAt time.Time `xorm:"TIMESTAMP"`
+	base.Model
+	Email string `gorm:"column:email;" json:"email"`
+	Token string `gorm:"column:token;" json:"token"`
 }

@@ -7,10 +7,8 @@
 package services
 
 import (
-	"database/sql"
 	"errors"
 	"html/template"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
@@ -31,185 +29,150 @@ func NewConsolePostService(context ...*base.Context) (p *ConsolePostService) {
 	return
 }
 
-func (r *ConsolePostService) ConsolePostCount(limit int, offset int, isTrash bool) (count int64, err error) {
+func (r *ConsolePostService) ConsolePostCount(limit int, offset int, isTrash bool) (dba *gorm.DB, count int64, err error) {
+	dba = r.getDbaTable()
 	if isTrash {
-		err = r.getDbaTable().
-			Unscoped().
-			Where("`deleted_at` IS NOT NULL OR `deleted_at`=?", "0001-01-01 00:00:00").
-			Order("id desc").
-			Limit(limit).
-			Offset(offset).
-			Count(&count).Error
+		dba = dba.Unscoped().Where("deleted_at IS NOT NULL")
 	} else {
-		err = r.getDbaTable().
-			Where("deleted_at IS NULL OR deleted_at = ?", "0001-01-01 00:00:00").
-			Order("id desc").
-			Limit(limit).
-			Offset(offset).
-			Count(&count).
-			Error
+		dba = dba.Unscoped().Where("deleted_at IS  NULL")
 	}
+	err = dba.Count(&count).
+		Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.ConsolePostCount", "err": err.Error(),
 		})
-		return 0, err
 	}
-	return count, nil
+	return
 }
 
 func (r *ConsolePostService) getDbaTable() *gorm.DB {
 	return r.Context.Db.Table((&models.ZPosts{}).TableName())
 }
-func (r *ConsolePostService) ConsolePostIndex(limit, offset int, isTrash bool) (postListArr []*pojos.ConsolePostList, err error) {
-	postListArr = make([]*pojos.ConsolePostList, 0)
-	var rows *sql.Rows
-	if isTrash {
-		rows, err = r.getDbaTable().Unscoped().
-			// Where("`deleted_at` IS NOT NULL OR `deleted_at`=?", "0001-01-01 00:00:00").
-			Order("id desc").
-			Limit(limit).
-			Offset(offset).
-			Rows()
-	} else {
-		rows, err = r.getDbaTable().
-			// Where("deleted_at IS NULL OR deleted_at = ?", "0001-01-01 00:00:00").
-			Order("id desc").
-			Limit(limit).
-			Offset(offset).
-			Rows()
+func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, isTrash bool) (postListArr *[]pojos.ConsolePostList, err error) {
+	postListArr = &[]pojos.ConsolePostList{}
+	if dba == nil {
+		dba = r.getDbaTable().Unscoped().Where("deleted_at NOT NULL")
 	}
+
+	var dt []models.ZPosts
+	err = dba.Order("id desc").
+		Limit(limit).
+		Offset(offset).
+		Find(&dt).Error
 
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.ConsolePostIndex", "err": err.Error(),
 		})
-		return nil, err
+		return
+	}
+	srv := NewCategoryService(r.Context)
+	srvTag := NewTagService(r.Context)
+	srvUser := NewUserService(r.Context)
+	ids, userId := r.uniquePostId(&dt)
+	var mapCates *map[int]pojos.PostShow
+	mapCates, err = srv.GetPostCateByPostIds(ids)
+	if err != nil {
+		return
+	}
+	var mapTags *map[int][]pojos.ConsoleTag
+	mapTags, err = srvTag.GetPostTagsByPostIds(ids)
+	if err != nil {
+		return
+	}
+	var mapUser *map[int]models.ZUsers
+	mapUser, err = srvUser.GetUserMapByIds(userId)
+	if err != nil {
+		return
+	}
+	var mapView *map[int]models.ZPostViews
+	mapView, err = r.PostView(ids)
+	if err != nil {
+		return
 	}
 
-	defer rows.Close()
-	for rows.Next() {
-		// post
-		post := new(models.ZPosts)
-		err = rows.Scan(post)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-
-		consolePost := pojos.ConsolePost{
-			Id:        post.Id,
-			Uid:       post.Uid,
-			Title:     post.Title,
-			Summary:   post.Summary,
-			Original:  post.Original,
-			Content:   post.Content,
-			Password:  post.Password,
-			CreatedAt: post.CreatedAt,
-			UpdatedAt: post.UpdatedAt,
-		}
-		srv := NewCategoryService()
-
-		// category
-		cates, err := srv.GetPostCateByPostId(post.Id)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-		consoleCate := pojos.ConsoleCate{
-			Id:          cates.Id,
-			Name:        cates.Name,
-			DisplayName: cates.DisplayName,
-			SeoDesc:     cates.SeoDesc,
-		}
-
-		srvTag := NewTagService()
-		// tag
-		tagIds, err := srvTag.GetPostTagsByPostId(post.Id)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-
-		tags, err := srvTag.GetTagsByIds(tagIds)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-		var consoleTags []pojos.ConsoleTag
-		for _, v := range tags {
-			consoleTag := pojos.ConsoleTag{
-				Id:          v.Id,
-				Name:        v.Name,
-				DisplayName: v.DisplayName,
-				SeoDesc:     v.SeoDesc,
-				Num:         v.Num,
-			}
-			consoleTags = append(consoleTags, consoleTag)
-		}
-
-		// view
-		view, err := r.PostView(post.Id)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-		consoleView := pojos.ConsoleView{
-			Num: view.Num,
-		}
-
-		srvUser := NewUserService()
-
-		// user
-		user, err := srvUser.GetUserById(post.UserId)
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.ConsolePostIndex", "err": err.Error(),
-			})
-			return nil, err
-		}
-		consoleUser := pojos.ConsoleUser{
-			Id:     user.Id,
-			Name:   user.Name,
-			Email:  user.Email,
-			Status: user.Status,
-		}
-
+	for _, post := range dt {
 		postList := pojos.ConsolePostList{
-			Post:     consolePost,
-			Category: consoleCate,
-			Tags:     consoleTags,
-			View:     consoleView,
-			Author:   consoleUser,
+			Post: pojos.ConsolePost{
+				Id:        post.Id,
+				Uid:       post.Uid,
+				Title:     post.Title,
+				Summary:   post.Summary,
+				Original:  post.Original,
+				Content:   post.Content,
+				Password:  post.Password,
+				CreatedAt: post.CreatedAt,
+				UpdatedAt: post.UpdatedAt,
+			},
+			Category: pojos.ConsoleCate{},
+			Tags:     make([]pojos.ConsoleTag, 0),
+			View:     pojos.ConsoleView{},
+			Author:   pojos.ConsoleUser{},
 		}
-		postListArr = append(postListArr, &postList)
-	}
+		if _, ok := (*mapCates)[post.Id]; ok {
+			postList.Category = pojos.ConsoleCate{
+				Id:          (*mapCates)[post.Id].ZCategories.Id,
+				Name:        (*mapCates)[post.Id].ZCategories.Name,
+				DisplayName: (*mapCates)[post.Id].ZCategories.DisplayName,
+				SeoDesc:     (*mapCates)[post.Id].ZCategories.SeoDesc,
+			}
+		}
+		if _, ok := (*mapUser)[post.UserId]; ok {
+			postList.Author = pojos.ConsoleUser{
+				Id:     (*mapUser)[post.UserId].Id,
+				Name:   (*mapUser)[post.UserId].Name,
+				Email:  (*mapUser)[post.UserId].Email,
+				Status: (*mapUser)[post.UserId].Status,
+			}
+		}
+		if _, ok := (*mapView)[post.Id]; ok {
+			postList.View = pojos.ConsoleView{Num: (*mapView)[post.Id].Num}
+		}
+		if _, ok := (*mapTags)[post.Id]; ok {
+			postList.Tags = (*mapTags)[post.Id]
+		}
 
-	return postListArr, nil
+		*postListArr = append(*postListArr, postList)
+	}
+	return
+}
+func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (*[]int, *[]int) {
+	ids := make([]int, 0)
+	userId := make([]int, 0)
+	mUid := make(map[int]int)
+	mId := make(map[int]int)
+	for _, post := range *dt {
+		if _, ok := mUid[post.UserId]; !ok {
+			userId = append(userId, post.UserId)
+			mUid[post.UserId] = post.UserId
+		}
+		if _, ok := mId[post.Id]; !ok {
+			ids = append(ids, post.Id)
+			mId[post.Id] = post.Id
+		}
+	}
+	return &ids, &userId
 }
 
 func (r *ConsolePostService) getZPostViewsDbaTable() *gorm.DB {
 	return r.Context.Db.Table((&models.ZPostViews{}).TableName())
 }
-func (r *ConsolePostService) PostView(postId int) (postV *models.ZPostViews, err error) {
-	postV = new(models.ZPostViews)
-	err = r.getZPostViewsDbaTable().Where("post_id = ?", postId).Select("num").Find(postV).Error
+
+func (r *ConsolePostService) PostView(postId *[]int) (postV *map[int]models.ZPostViews, err error) {
+	postV = &map[int]models.ZPostViews{}
+	var views []models.ZPostViews
+	err = r.getZPostViewsDbaTable().Where("post_id in (?)", *postId).
+		Find(&views).Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.PostView", "err": err.Error(),
 		})
 	}
-	return postV, nil
+	for _, value := range views {
+		(*postV)[value.PostId] = value
+	}
+	return
 }
 
 func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId int) {
@@ -426,7 +389,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	}
 
 	// view
-	view, err := r.PostView(post.Id)
+	view, err := r.PostView(&[]int{post.Id})
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.IndexPostDetailDao",
@@ -434,8 +397,9 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 		})
 		return
 	}
-	View := pojos.ConsoleView{
-		Num: view.Num,
+	View := pojos.ConsoleView{}
+	if _, ok := (*view)[post.Id]; ok {
+		View.Num = (*view)[post.Id].Num
 	}
 	srvUser := NewUserService()
 	// user
@@ -700,29 +664,27 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 	return
 }
 
-func (r *ConsolePostService) PostDestroy(postId int) (bool, error) {
+func (r *ConsolePostService) PostDestroy(postId int) (res bool, err error) {
 	post := new(models.ZPosts)
-	toBeCharge := time.Now().Format(time.RFC3339)
-	timeLayout := time.RFC3339
-	loc, _ := time.LoadLocation("Local")
-	theTime, err := time.ParseInLocation(timeLayout, toBeCharge, loc)
-	post.DeletedAt = &theTime
-	err = r.Context.Db.Where("id =?", postId).Update(post).Error
+
+	err = r.Context.Db.Where("id =?", postId).Delete(post).Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.PostDestroy",
 			"err":     err.Error(),
 		})
-		return false, err
+		return
 	}
-	return true, nil
+	res = true
+	return
 }
 
 func (r *ConsolePostService) PostUnTrash(postId int) (res bool, err error) {
-	post := new(models.ZPosts)
-	theTime, _ := time.Parse("2006-01-02 15:04:05", "")
-	post.DeletedAt = &theTime
-	err = r.Context.Db.Table((&models.ZPosts{}).TableName()).Where("id =?", postId).Update(post).Error
+	err = r.Context.Db.Table((&models.ZPosts{}).TableName()).
+		Where("id =?", postId).
+		Update("deleted_at", nil).
+		// Delete(&models.ZPosts{}).
+		Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.PostUnTrash",
@@ -755,8 +717,8 @@ func (r *ConsolePostService) PostTagListCount(tagId int, limit int, offset int) 
 	return
 }
 
-func (r *ConsolePostService) PostTagList(tagId int, limit int, offset int) (postListArr []*pojos.ConsolePostList, err error) {
-	postListArr = make([]*pojos.ConsolePostList, 0)
+func (r *ConsolePostService) PostTagList(tagId int, limit int, offset int) (postListArr *[]pojos.ConsolePostList, err error) {
+	postListArr = &[]pojos.ConsolePostList{}
 	rows, err := r.Context.Db.Table((&models.ZPostTag{}).TableName()).
 		Where("tag_id = ?", tagId).Order("id desc").
 		Limit(limit).
@@ -803,7 +765,7 @@ func (r *ConsolePostService) PostTagList(tagId int, limit int, offset int) (post
 		postList := pojos.ConsolePostList{
 			Post: consolePost,
 		}
-		postListArr = append(postListArr, &postList)
+		*postListArr = append(*postListArr, postList)
 	}
 
 	return postListArr, nil
@@ -822,7 +784,8 @@ func (r *ConsolePostService) PostCateListCount(cateId int, limit int, offset int
 	return
 }
 
-func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (postListArr []*pojos.ConsolePostList, err error) {
+func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (postListArr *[]pojos.ConsolePostList, err error) {
+	postListArr = &[]pojos.ConsolePostList{}
 	rows, err := r.Context.Db.Where("cate_id = ?", cateId).
 		Order("id desc").
 		Limit(limit).
@@ -834,7 +797,7 @@ func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (po
 			"message": "service.Index.PostCateList",
 			"err":     err.Error(),
 		})
-		return nil, err
+		return
 	}
 
 	defer rows.Close()
@@ -847,7 +810,7 @@ func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (po
 				"message": "service.Index.PostCateList",
 				"err":     err.Error(),
 			})
-			return nil, err
+			return
 		}
 
 		post := new(models.ZPosts)
@@ -871,8 +834,8 @@ func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (po
 		postList := pojos.ConsolePostList{
 			Post: consolePost,
 		}
-		postListArr = append(postListArr, &postList)
+		*postListArr = append(*postListArr, postList)
 	}
 
-	return postListArr, nil
+	return
 }

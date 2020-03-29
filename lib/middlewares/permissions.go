@@ -10,36 +10,46 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/app_log"
+	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web"
 )
 
+// 加载权限验证Gin中间件
 func Permission() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		status := cors(c)
+		if c.Request.Method == "OPTIONS" {
+			c.JSON(http.StatusOK, "Options Request!")
+			c.Next()
+			return
+		}
 		// 跨域配置
-		if status := cors(c); status {
+		if status {
 			return
 		}
 
 		var res bool
 		apiG := common.NewGin(c)
 
-		// 如果是白名单的链接，则直接让过
-		res = web.CheckWhite(c)
+		s := getRUri(c)
+		// 如果是白名单的链接，则直接让过(用户不需要登录就让访问的URL)
+		res = web.CheckWhite(c, s)
 		if res {
 			c.Next()
 			return
 		}
 
+		// 用户登录信息验证
 		if exitStatus := auth(c); exitStatus {
 			return
 		}
-		// 验证权限
-		res = web.CheckPermissions(c)
+		// 用户登录了的验证权限
+		res = web.CheckPermissions(c, s)
 
 		// 如果不在白名单范围内，则让过
 		if !res {
@@ -49,8 +59,10 @@ func Permission() gin.HandlerFunc {
 				"router name": c.Request.RequestURI,
 				"httpMethod":  c.Request.Method,
 			})
-			obj := utils.NewEmptyObject()
-			c.JSON(http.StatusForbidden, obj)
+			obj := base.NewResult()
+			obj.Code = http.StatusForbidden
+			obj.Msg = fmt.Sprintf("no auth(%s)",s)
+			c.JSON(http.StatusOK, obj)
 			c.Abort()
 			return
 		}
@@ -75,7 +87,7 @@ func auth(c *gin.Context) (exit bool) {
 			"method": "zgh.ginmiddleware.auth",
 			"error":  msg,
 		})
-		c.JSON(http.StatusUnauthorized, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
+		c.JSON(http.StatusOK, common.NewHttpResult().SetCode(http.StatusUnauthorized).SetMessage(msg))
 		c.Abort()
 		exit = true
 		return
@@ -104,10 +116,7 @@ func cors(c *gin.Context) (exitStatus bool) {
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Auth-Token, X-Auth-UUID, X-Auth-Openid, referrer, Authorization, x-client-id, x-client-version, x-client-type")
 	c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	if c.Request.Method == "OPTIONS" {
-		c.AbortWithStatus(200)
-		exitStatus = true
-	}
+
 	return
 }
 
@@ -137,4 +146,15 @@ func userMessageSet(c *gin.Context, routerAsName string) (code int, res interfac
 	c.Set("userId", userIdInt)
 	c.Set("token", token)
 	return
+}
+
+func getRUri(c *gin.Context) string {
+	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
+	if uri == "" { // 如果是默认页 ，则直接让过
+		return "default"
+	}
+	s1 := strings.Split(uri, "?")
+	s2 := strings.TrimRight(s1[0], "/")
+	fmt.Printf("Uri is :'%v'", s2)
+	return s2
 }

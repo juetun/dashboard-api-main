@@ -1,11 +1,15 @@
 package models
 
+import (
+	"github.com/juetun/app-dashboard/lib/base"
+)
+
 type ZPostTag struct {
-	Id     int `xorm:"not null pk autoincr INT(10)"`
-	PostId int `xorm:"not null comment('文章ID') index INT(11)"`
-	TagId  int `xorm:"not null comment('标签ID') index INT(11)"`
+	base.Model
+	PostId int `gorm:"column:post_id;" json:"post_id"`
+	TagId  int `gorm:"column:tag_id;" json:"tag_id"`
 }
 
-func (r *ZPostTag)TableName() string {
+func (r *ZPostTag) TableName() string {
 	return "z_post_tag"
 }

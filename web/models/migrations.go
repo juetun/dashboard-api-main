@@ -1,7 +1,7 @@
 package models
 
 type ZMigrations struct {
-	Id        int    `xorm:"not null pk autoincr INT(10)"`
-	Migration string `xorm:"not null VARCHAR(255)"`
-	Batch     int    `xorm:"not null INT(11)"`
+	ID        int    `gorm:"primary_key" json:"id"`
+	Migration string  `gorm:"column:migration;" json:"migration"`
+	Batch     int     `gorm:"column:batch;" json:"batch"`
 }

@@ -15,8 +15,10 @@ type UserService struct {
 	base.ServiceBase
 }
 
-func NewUserService() *UserService {
-	return &UserService{}
+func NewUserService(context ...*base.Context) (p *UserService) {
+	p = &UserService{}
+	p.SetContext(context)
+	return
 }
 func (r *UserService) GetUserById(userId int) (user *models.ZUsers, err error) {
 	user = new(models.ZUsers)
@@ -30,6 +32,27 @@ func (r *UserService) GetUserById(userId int) (user *models.ZUsers, err error) {
 		return user, err
 	}
 	return user, nil
+}
+func (r *UserService) GetUserMapByIds(userId *[]int) (user *map[int]models.ZUsers, err error) {
+	user = &map[int]models.ZUsers{}
+	if len(*userId) == 0 {
+		return
+	}
+	var users []models.ZUsers
+	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
+		Where("id in (?)", *userId).
+		Find(&users).
+		Error
+	if err != nil {
+		r.Context.Log.Errorln("message", "service.GetUserMapByIds",
+			"error",
+			err.Error())
+		return
+	}
+	for _, value := range users {
+		(*user)[value.Id] = value
+	}
+	return
 }
 
 func (r *UserService) UserCnt() (cnt int64, err error) {

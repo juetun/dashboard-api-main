@@ -1,16 +1,14 @@
 package models
 
 import (
-	"time"
+	"github.com/juetun/app-dashboard/lib/base"
 )
 
 type ZLinks struct {
-	Id        int       `xorm:"not null pk autoincr INT(10)"`
-	Name      string    `xorm:"not null comment('友链名') VARCHAR(255)"`
-	Link      string    `xorm:"not null comment('友链链接') VARCHAR(255)"`
-	Order     int       `xorm:"not null comment('排序') INT(11)"`
-	CreatedAt time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
-	UpdatedAt time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
+	base.Model
+	Name  string `gorm:"column:name;" json:"name"`
+	Link  string `gorm:"column:link;" json:"link"`
+	Order int    `gorm:"column:order;" json:"order"`
 }
 
 func (r *ZLinks) TableName() string {

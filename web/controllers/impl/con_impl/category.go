@@ -61,10 +61,10 @@ func (r *ControllerCategory) Store(c *gin.Context) {
 	_, err := srv.CateStore(cs)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Store", "err", err.Error())
-		r.Response(c, 402000010, nil)
+		r.Response(c, 402000010, nil, err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 
@@ -114,10 +114,10 @@ func (r *ControllerCategory) Update(c *gin.Context) {
 	_, err = srv.CateUpdate(cateIdInt, cs)
 	if err != nil {
 		r.Log.Errorln("message", "cate.Update", "error", err.Error())
-		r.Response(c, 402000009, nil)
+		r.Response(c, 402000009, nil,err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 

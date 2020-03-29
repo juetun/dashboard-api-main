@@ -24,6 +24,9 @@ type Result struct {
 	Msg  string      `json:"message"`
 }
 
+func NewResult() *Result {
+	return  &Result{}
+}
 func (r *ControllerBase) Response(c *gin.Context, code int, data interface{}, msg ...string) {
 	c.JSON(http.StatusOK, Result{Code: code, Data: data, Msg: strings.Join(msg, ",")})
 }

@@ -25,7 +25,6 @@ type TagService struct {
 	base.ServiceBase
 }
 
-
 func NewTagService(context ...*base.Context) (p *TagService) {
 	p = &TagService{}
 	p.SetContext(context)
@@ -58,6 +57,73 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 	err = dba.Create(tagInsert).Error
 	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
+}
+func (r *TagService) GetPostTagsByPostIds(postIds *[]int) (res *map[int][]pojos.ConsoleTag, err error) {
+	res = &map[int][]pojos.ConsoleTag{}
+	if len(*postIds) == 0 {
+		return
+	}
+	var dt []models.ZPostTag
+	err = r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id in (?)", *postIds).
+		Find(&dt).Error
+	if err != nil {
+		r.Context.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
+		return
+	}
+	tagIds := r.uniqueTagId(&dt)
+	mp, err := r.GetTagsMapByIds(tagIds)
+	for _, value := range dt {
+		if _, ok := (*res)[value.PostId]; !ok {
+			(*res)[value.PostId] = make([]pojos.ConsoleTag, 0)
+		}
+		p := pojos.PostTagShow{
+			ZPostTag: value,
+			ZTags:    models.ZTags{},
+		}
+		if _, ok := (*mp)[value.TagId]; ok {
+			p.ZTags = (*mp)[value.TagId]
+		}
+		(*res)[value.PostId] = append((*res)[value.PostId], pojos.ConsoleTag{
+			Id:          p.ZTags.Id,
+			Name:        p.Name,
+			DisplayName: p.DisplayName,
+			SeoDesc:     p.SeoDesc,
+			Num:         p.Num,
+		})
+	}
+	return
+
+}
+func (r *TagService) GetTagsMapByIds(ids *[]int) (res *map[int]models.ZTags, err error) {
+	res = &map[int]models.ZTags{}
+	if len(*ids) == 0 {
+		return
+	}
+	var dt []models.ZTags
+	err = r.Context.Db.Table((&models.ZTags{}).TableName()).
+		Where("id in (?)", *ids).
+		Find(&dt).
+		Error
+	if err != nil {
+		return
+	}
+
+	for _, value := range dt {
+		(*res)[value.Id] = value
+	}
+	return
+}
+
+func (r *TagService) uniqueTagId(dt *[]models.ZPostTag) *[]int {
+	ids := make([]int, 0)
+	mapIds := make(map[int]int)
+	for _, value := range *dt {
+		if _, ok := mapIds[value.TagId]; !ok {
+			ids = append(ids, value.TagId)
+			mapIds[value.TagId] = value.TagId
+		}
+	}
+	return &ids
 }
 
 func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) {

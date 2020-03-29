@@ -8,10 +8,10 @@ import (
 
 func init() {
 	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
-		system := r.Group(urlPrefix + "/console/system")
+		system := r.Group(urlPrefix + "/console")
 		cSystem := home_impl.NewControllerHome()
 		systemV := validate.NewValidate().NewSystemV.MyValidate()
-		system.GET("/", cSystem.Index)
-		system.PUT("/:id", systemV, cSystem.Update)
+		system.GET("/system", cSystem.Index)
+		system.PUT("/system/:id", systemV, cSystem.Update)
 	})
 }

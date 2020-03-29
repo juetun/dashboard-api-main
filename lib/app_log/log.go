@@ -1,6 +1,7 @@
 package app_log
 
 import (
+	systemLog "log"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,9 @@ func newAppLog() *AppLog {
 
 // 获取日志操作对象
 func GetLog() *AppLog {
+	if logApp == nil {
+		systemLog.Printf("【%s】Log object is nil", "ERROR")
+	}
 	return logApp
 }
 func (r *AppLog) SetLog(log *logrus.Logger) *AppLog {

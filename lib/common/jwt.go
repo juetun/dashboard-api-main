@@ -120,7 +120,7 @@ func ParseToken(myToken string) (userId string, err error) {
 	if res == "" || res != myToken {
 		app_log.GetLog().Error(map[string]string{
 			"content": "token is invalid",
-			"error":   err.Error(),
+			"error":   myToken,
 		})
 		return "", errors.New("token is invalid")
 	}

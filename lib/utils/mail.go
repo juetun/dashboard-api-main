@@ -15,9 +15,10 @@ import (
 	"net/smtp"
 	"strings"
 
-	conf2 "github.com/juetun/app-dashboard/conf"
 	"github.com/juetun/app-dashboard/lib/app_log"
 )
+
+const MAIlTYPE = "html"
 
 type EmailType string
 
@@ -111,7 +112,7 @@ func (ep *EmailParam) SetMailType(types EmailType) EM {
 
 func (ep *EmailParam) MailInit(options ...EM) (*EmailParam, error) {
 	q := &EmailParam{
-		MailType: conf2.MAIlTYPE,
+		MailType: MAIlTYPE,
 	}
 	for _, option := range options {
 		_, err := option(q)

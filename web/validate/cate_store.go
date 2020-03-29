@@ -7,7 +7,10 @@
 package validate
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/web/pojos"
 )
@@ -21,39 +24,18 @@ func (cv *CateStoreV) MyValidate() gin.HandlerFunc {
 		var json pojos.CateStore
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response( 400001000, nil)
+			c.JSON(http.StatusOK, base.Result{
+				Code: 400001000,
+				Data: nil,
+				Msg:  err.Error()})
+			c.Abort()
 			return
 		}
-
-		reqValidate := &CateStore{
-			Name:        json.Name,
-			DisplayName: json.DisplayName,
-			ParentId:    json.ParentId,
-			SeoDesc:     json.SeoDesc,
-		}
-		if b := appG.Validate(reqValidate); !b {
+		if b := appG.Validate(&json); !b {
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
 		c.Next()
-	}
-}
-
-type CateStore struct {
-	Name        string `valid:"Required;MaxSize(100)"`
-	DisplayName string `valid:"Required;MaxSize(100)"`
-	ParentId    int    `valid:"Min(0)"`
-	SeoDesc     string `valid:"Required;MaxSize(250)"`
-}
-
-func (c *CateStore) Message() map[string]int {
-	return map[string]int{
-		"Name.Required":        402000002,
-		"Name.MaxSize":         402000006,
-		"DisplayName.Required": 402000003,
-		"DisplayName.MaxSize":  402000007,
-		"ParentId.Min":         402000004,
-		"SeoDesc.Required":     402000005,
-		"SeoDesc.MaxSize":      402000008,
 	}
 }

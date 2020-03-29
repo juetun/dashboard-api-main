@@ -7,12 +7,10 @@
 package web
 
 import (
-	"fmt"
-	"strings"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/app_log"
-	"github.com/juetun/app-dashboard/lib/common"
 )
 
 type HttpPermit struct {
@@ -45,49 +43,51 @@ var Permissions = []HttpPermit{
 		Method: []string{"GET"},
 		Uri:    "console/post/trash",
 	},
+	{
+		Method: []string{"GET",},
+		Uri:    "console/post",
+	},
+	{
+		Method: []string{"DELETE"},
+		Uri:    `^console\/post\/[^\/]+$`,
+	},
+	{
+		Method: []string{"GET"},
+		Uri:    `^console\/post\/edit\/[^\/]+$`,
+	},
+	{
+		Method: []string{"GET"},
+		Uri:    `console/cate`,
+	}, {
+		Method: []string{"GET"},
+		Uri:    `console/system`,
+	}, {
+		Method: []string{"GET"},
+		Uri:    `console/tag`,
+	},
+	{
+		Method: []string{"DELETE"},
+		Uri:    `console/cache`,
+	},
+	{
+		Method: []string{"DELETE"},
+		Uri:    `console/cache`,
+	},
+	{
+		Method: []string{"DELETE"},
+		Uri:    `console/logout`,
+	},
+	{
+		Method: []string{"DELETE"},
+		Uri:    `^console\/post\/[^\/]+\/trash$`,
+	},
 }
 
 // 需要验证权限的配置列表
-// var Permissions = []string{
-// 	"GET/console/login",
-// 	"GET/console.post.index",
-// 	"GET/console.post.create",
-// 	"POST/console.post.store",
-// 	"GET/console.post.edit",
-// 	"PUT/console.post.update",
-// 	"DELETE/console.post.destroy",
-// 	"GET/console.post.trash",
-// 	"POST/console.post.unTrash",
-// 	"POST/console.post.imgUpload",
-// 	"GET/console.cate.index",
-// 	"GET/console.cate.edit",
-// 	"PUT/console.cate.update",
-// 	"POST/console.cate.store",
-// 	"DELETE/console.cate.destroy",
-// 	"GET/console.tag.index",
-// 	"POST/console.tag.store",
-// 	"GET/console.tag.edit",
-// 	"PUT/console.tag.update",
-// 	"DELETE/console.tag.destroy",
-// 	"GET/console.system.index",
-// 	"PUT/console.system.update",
-// 	"GET/console.link.index",
-// 	"POST/console.link.store",
-// 	"GET/console.link.edit",
-// 	"PUT/console.link.update",
-// 	"DELETE/console.link.destroy",
-// 	"DELETE/console.auth.logout",
-// 	"GET/console.home.index",
-// 	"DELETE/console.auth.cache",
-// }
 
 // 不需要验证权限的配置列表
-// var PermissionsWhite = []string{
-// 	"GET/console/login",
-// }
 
-func CheckPermissions(c *gin.Context) (res bool) {
-	s := getRUri(c)
+func CheckPermissions(c *gin.Context, s string) (res bool) {
 	app_log.GetLog().Error(map[string]string{
 		"request_Uri": s,
 		"info":        "web.permissions.go(CheckPermissions)",
@@ -108,6 +108,7 @@ func everyValidateTrueOrFalse(methodArea *[]string, method, uri, s string) bool 
 		return true
 	}
 	validateMethod = false
+
 	if len(*methodArea) != 0 {
 
 		// 如果请求方法是返回内的值
@@ -118,8 +119,15 @@ func everyValidateTrueOrFalse(methodArea *[]string, method, uri, s string) bool 
 		}
 
 		// 如果请求方法是返回内的值 并且请求地址对，则认为对
-		if validateMethod == true && uri == s {
-			return true
+		if validateMethod == true {
+			if uri == s {
+				return true
+			}
+			// 写的正则表达式验证通过
+			isMatch, _ := regexp.MatchString(uri, s)
+			if isMatch {
+				return true
+			}
 		}
 	}
 
@@ -128,12 +136,17 @@ func everyValidateTrueOrFalse(methodArea *[]string, method, uri, s string) bool 
 		return true
 	}
 
+	// 写的正则表达式验证通过
+	isMatch, _ := regexp.MatchString(uri, s)
+	if isMatch {
+		return true
+	}
 	return false
 }
 
 // 白名单验证。此部分的接口用户不需要登录即可访问
-func CheckWhite(c *gin.Context) (res bool) {
-	s := getRUri(c)
+func CheckWhite(c *gin.Context, s string) (res bool) {
+
 	app_log.GetLog().Error(map[string]string{
 		"request_Uri": s,
 		"info":        "web.permissions.go(CheckWhite)",
@@ -146,13 +159,4 @@ func CheckWhite(c *gin.Context) (res bool) {
 		}
 	}
 	return false
-}
-func getRUri(c *gin.Context) string {
-	uri := strings.TrimLeft(c.Request.RequestURI, common.GetAppConfig().AppName+"/"+common.GetAppConfig().AppApiVersion)
-	if uri == "" { // 如果是默认页 ，则直接让过
-		return "default"
-	}
-	s1 := strings.Split(uri, "?")
-	fmt.Printf("Uri is :'%v'", s1)
-	return s1[0]
 }

@@ -49,13 +49,6 @@ func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 		Keywords:     "汽车信息",
 		Description:  "阿斯顿发生",
 		RecordNumber: "京ICP-0001",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-		// Theme:       "jekyll-theme-cayman",
-		// Title:        common.Conf.Title,
-		// Keywords:     common.Conf.Keywords,
-		// Description:  common.Conf.Description,
-		// RecordNumber: common.Conf.RecordNumber,
 	}
 	dba := r.Context.Db.Table((&models.ZBaseSys{}).TableName())
 	err = dba.Create(&systemInsert).Error

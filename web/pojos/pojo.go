@@ -1,9 +1,10 @@
 package pojos
 
 import (
-	"github.com/juetun/app-dashboard/web/models"
 	"html/template"
-	"time"
+
+	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/web/models"
 )
 
 type PostStore struct {
@@ -15,16 +16,29 @@ type PostStore struct {
 }
 
 type CateStore struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-	ParentId    int    `json:"parentId"`
-	SeoDesc     string `json:"seoDesc"`
+	Name        string `json:"name" valid:"Required;MaxSize(100)"`
+	DisplayName string `json:"display_name" valid:"Required;MaxSize(100)"`
+	ParentId    int    `json:"parent_id" valid:"Min(0)"`
+	SeoDesc     string `json:"seo_desc" valid:"Required;MaxSize(250)"`
+}
+
+// 传参校验用
+func (c *CateStore) Message() map[string]int {
+	return map[string]int{
+		"Name.Required":        402000002,
+		"Name.MaxSize":         402000006,
+		"DisplayName.Required": 402000003,
+		"DisplayName.MaxSize":  402000007,
+		"ParentId.Min":         402000004,
+		"SeoDesc.Required":     402000005,
+		"SeoDesc.MaxSize":      402000008,
+	}
 }
 
 type TagStore struct {
 	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-	SeoDesc     string `json:"seoDesc"`
+	DisplayName string `json:"display_name"`
+	SeoDesc     string `json:"seo_desc"`
 }
 
 type LinkStore struct {
@@ -47,63 +61,63 @@ type AuthRegister struct {
 }
 
 type ConsolePostList struct {
-	Post     ConsolePost  `json:"post,omitempty"`
-	Tags     []ConsoleTag `json:"tags,omitempty"`
-	Category ConsoleCate  `json:"category,omitempty"`
-	View     ConsoleView  `json:"view,omitempty"`
-	Author   ConsoleUser  `json:"author,omitempty"`
+	Post     ConsolePost  `json:"post"`
+	Tags     []ConsoleTag `json:"tags"`
+	Category ConsoleCate  `json:"category"`
+	View     ConsoleView  `json:"view"`
+	Author   ConsoleUser  `json:"author"`
 }
 
 type ConsolePost struct {
-	Id        int       `json:"id,omitempty"`
-	Uid       string    `json:"uid,omitempty"`
-	UserId    int       `json:"userId,omitempty"`
-	Title     string    `json:"title,omitempty"`
-	Summary   string    `json:"summary,omitempty"`
-	Original  string    `json:"original,omitempty"`
-	Content   string    `json:"content,omitempty"`
-	Password  string    `json:"password,omitempty"`
-	DeletedAt time.Time `json:"deletedAt,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	Id        int             `json:"id"`
+	Uid       string          `json:"uid"`
+	UserId    int             `json:"user_id"`
+	Title     string          `json:"title"`
+	Summary   string          `json:"summary"`
+	Original  string          `json:"original"`
+	Content   string          `json:"content"`
+	Password  string          `json:"password"`
+	DeletedAt base.TimeNormal `json:"deleted_at"`
+	CreatedAt base.TimeNormal `json:"created_at"`
+	UpdatedAt base.TimeNormal `json:"updated_at"`
 }
 
 type ConsoleTag struct {
-	Id          int    `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	SeoDesc     string `json:"seoDesc,omitempty"`
-	Num         int    `json:"num,omitempty"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	SeoDesc     string `json:"seo_desc"`
+	Num         int    `json:"num"`
 }
 
 type ConsoleCate struct {
-	Id          int    `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	DisplayName string `json:"displayName,omitempty"`
-	SeoDesc     string `json:"seoDesc,omitempty"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	SeoDesc     string `json:"seo_desc"`
 }
 
 type ConsoleUser struct {
-	Id     int    `json:"id,omitempty"`
-	Name   string `json:"name,omitempty"`
-	Email  string `json:"email,omitempty"`
-	Status int    `json:"status,omitempty"`
+	Id     int    `json:"id"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
+	Status int    `json:"status"`
 }
 
 type ConsoleSystem struct {
-	Title        string `json:"title;omitempty"`
-	Keywords     string `json:"keywords;omitempty"`
-	Theme        int    `json:"theme;omitempty"`
-	Description  string `json:"description;omitempty"`
-	RecordNumber string `json:"recordNumber;omitempty"`
+	Title        string `json:"title"`
+	Keywords     string `json:"keywords"`
+	Theme        int    `json:"theme"`
+	Description  string `json:"description"`
+	RecordNumber string `json:"record_number"`
 }
 
 type ConsoleView struct {
-	Num int `json:"num,omitempty"`
+	Num int `json:"num"`
 }
 
 type IndexPostList struct {
-	PostListArr []*ConsolePostList
+	PostListArr *[]ConsolePostList
 	Paginate    Paginate
 }
 
@@ -117,27 +131,27 @@ type Paginate struct {
 }
 
 type IndexPost struct {
-	Id        int           `json:"id,omitempty"`
-	Uid       string        `json:"uid,omitempty"`
-	UserId    int           `json:"userId,omitempty"`
-	Title     string        `json:"title,omitempty"`
-	Summary   string        `json:"summary,omitempty"`
-	Original  string        `json:"original,omitempty"`
-	Content   template.HTML `json:"content,omitempty"`
-	Password  string        `json:"password,omitempty"`
-	DeletedAt time.Time     `json:"deletedAt,omitempty"`
-	CreatedAt time.Time     `json:"createdAt,omitempty"`
-	UpdatedAt time.Time     `json:"updatedAt,omitempty"`
+	Id        int             `json:"id"`
+	Uid       string          `json:"uid"`
+	UserId    int             `json:"user_id"`
+	Title     string          `json:"title"`
+	Summary   string          `json:"summary"`
+	Original  string          `json:"original"`
+	Content   template.HTML   `json:"content"`
+	Password  string          `json:"password"`
+	DeletedAt base.TimeNormal `json:"deleted_at"`
+	CreatedAt base.TimeNormal `json:"created_at"`
+	UpdatedAt base.TimeNormal `json:"updated_at"`
 }
 
 type IndexPostDetail struct {
-	Post     IndexPost      `json:"post,omitempty"`
-	Tags     []ConsoleTag   `json:"tags,omitempty"`
-	Category ConsoleCate    `json:"category,omitempty"`
-	View     ConsoleView    `json:"view,omitempty"`
-	Author   ConsoleUser    `json:"author,omitempty"`
-	LastPost *models.ZPosts `json:"lastPost,omitempty"`
-	NextPost *models.ZPosts `json:"nextPost,omitempty"`
+	Post     IndexPost      `json:"post"`
+	Tags     []ConsoleTag   `json:"tags"`
+	Category ConsoleCate    `json:"category"`
+	View     ConsoleView    `json:"view"`
+	Author   ConsoleUser    `json:"author"`
+	LastPost *models.ZPosts `json:"last_post"`
+	NextPost *models.ZPosts `json:"next_post"`
 }
 
 type IndexGithubParam struct {

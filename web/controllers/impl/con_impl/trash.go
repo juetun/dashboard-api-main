@@ -27,14 +27,17 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 	pager := base.NewPager()
 	limit, offset := pager.InitPageBy(c, "GET")
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
-	postList, err := srv.ConsolePostIndex(limit, offset, false)
-	if err != nil {
-		r.Log.Errorln("message", "console.Index", "err", err.Error())
-		r.Response(c, 500000000, nil)
-		return
-	}
+	dba, postCount, err := srv.ConsolePostCount(limit, offset, false)
 
-	postCount, err := srv.ConsolePostCount(limit, offset, false)
+	var postList = &[]pojos.ConsolePostList{}
+	if postCount > 0 {
+		postList, err = srv.ConsolePostIndex(dba, limit, offset, false)
+		if err != nil {
+			r.Log.Errorln("message", "console.Index", "err", err.Error())
+			r.Response(c, 500000000, nil)
+			return
+		}
+	}
 
 	data := make(map[string]interface{})
 	data["list"] = postList
@@ -198,19 +201,25 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	pager := base.NewPager()
 	limit, offset := pager.InitPageBy(c, "GET")
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
-	postList, err := srv.ConsolePostIndex(limit, offset, true)
+	dba, postCount, err := srv.ConsolePostCount(limit, offset, true)
 	if err != nil {
 		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
-
-	postCount, err := srv.ConsolePostCount(limit, offset, true)
+	var postList = &[]pojos.ConsolePostList{}
+	if postCount > 0 {
+		postList, err = srv.ConsolePostIndex(dba, limit, offset, true)
+		if err != nil {
+			r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
+			r.Response(c, 500000000, nil)
+			return
+		}
+	}
 
 	data := make(map[string]interface{})
 	data["list"] = postList
 	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
-
 	r.Response(c, 0, data)
 	return
 }
@@ -230,7 +239,7 @@ func (r *ControllerTrash) UnTrash(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 func (r *ControllerTrash) ImgUpload(c *gin.Context) {

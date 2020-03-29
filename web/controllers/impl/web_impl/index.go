@@ -142,11 +142,11 @@ func (r *ControllerWeb) Detail(c *gin.Context) {
 	go srvIndex.PostViewAdd(postIdStr)
 
 	github := pojos.IndexGithubParam{
-		GithubName:         common.Conf.GithubName,
-		GithubRepo:         common.Conf.GithubRepo,
-		GithubClientId:     common.Conf.GithubClientId,
-		GithubClientSecret: common.Conf.GithubClientSecret,
-		GithubLabels:       common.Conf.GithubLabels,
+		// GithubName:         common.Conf.GithubName,
+		// GithubRepo:         common.Conf.GithubRepo,
+		// GithubClientId:     common.Conf.GithubClientId,
+		// GithubClientSecret: common.Conf.GithubClientSecret,
+		// GithubLabels:       common.Conf.GithubLabels,
 	}
 
 	h["post"] = postDetail
