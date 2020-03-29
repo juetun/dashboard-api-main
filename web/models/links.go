@@ -12,3 +12,7 @@ type ZLinks struct {
 	CreatedAt time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	UpdatedAt time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 }
+
+func (r *ZLinks) TableName() string {
+	return "z_links"
+}

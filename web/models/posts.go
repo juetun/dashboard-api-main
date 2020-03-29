@@ -17,3 +17,7 @@ type ZPosts struct {
 	CreatedAt time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	UpdatedAt time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 }
+
+func (r *ZPosts)TableName() string {
+	return "z_posts"
+}

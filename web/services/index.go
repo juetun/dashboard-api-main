@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/app_log"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
@@ -31,8 +32,10 @@ type IndexService struct {
 	base.ServiceBase
 }
 
-func NewIndexService() *IndexService {
-	return &IndexService{}
+func NewIndexService(context ...*base.Context) (p *IndexService) {
+	p = &IndexService{}
+	p.SetContext(context)
+	return
 }
 
 func (r *IndexService) IndexPost(page string, limit string, indexType IndexType, name string) (indexPostIndex pojos.IndexPostList, err error) {
@@ -50,19 +53,19 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 	}
 
 	field := ":name:" + name + ":page:" + page + ":limit:" + limit
-	cacheRes, err := r.CacheClient.HGet(postKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(postKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		indexPostIndex, err := r.doCacheIndexPostList(postKey, field, indexType, name, page, limit)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
 	}
 	if err != nil {
-		r.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
 		return indexPostIndex, err
 	}
 
@@ -71,7 +74,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 		// set data to the cache what use the cache key
 		indexPostIndex, err := r.doCacheIndexPostList(postKey, field, indexType, name, page, limit)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
@@ -79,10 +82,10 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 
 	err = json.Unmarshal([]byte(cacheRes), &indexPostIndex)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
 		indexPostIndex, err := r.doCacheIndexPostList(postKey, field, indexType, name, page, limit)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPost", "err", err.Error())
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
@@ -94,7 +97,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 	limit, offset := common.Offset(queryPage, queryLimit)
 	queryPageInt, err := strconv.Atoi(queryPage)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 		return
 	}
 	var postList []*pojos.ConsolePostList
@@ -103,59 +106,61 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 	switch indexType {
 	case IndexTypeOne:
 		tag := new(models.ZTags)
-		_, err = r.Db.Where("Name = ?", name).Get(tag)
+		err = r.Context.Db.Table((&models.ZTags{}).TableName()).Where("Name = ?", name).Find(tag).Error
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 		postList, err = postSrv.PostTagList(tag.Id, limit, offset)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 		postCount, err = postSrv.PostTagListCount(tag.Id, limit, offset)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 	case IndexTypeTwo:
 		cate := new(models.ZCategories)
-		_, err = r.Db.Where("Name = ?", name).Get(cate)
+		err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
+			Where("Name = ?", name).
+			Find(cate).Error
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 		postList, err = postSrv.PostCateList(cate.Id, limit, offset)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 		postCount, err = postSrv.PostCateListCount(cate.Id, limit, offset)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 	case IndexTypeThree:
 		postList, err = postSrv.ConsolePostIndex(limit, offset, false)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 		postCount, err = postSrv.ConsolePostCount(limit, offset, false)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 	default:
 		postList, err = postSrv.ConsolePostIndex(limit, offset, false)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 
 		postCount, err = postSrv.ConsolePostCount(limit, offset, false)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 			return
 		}
 	}
@@ -169,12 +174,12 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 
 	jsonRes, err := json.Marshal(&res)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 		return
 	}
-	err = r.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostList", "err", err.Error())
 		return
 	}
 	return
@@ -184,34 +189,34 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail pojos.Index
 	cacheKey := common.Conf.PostDetailIndexKey
 	field := ":post:id:" + postIdStr
 
-	postSrv:=NewConsolePostService()
+	postSrv := NewConsolePostService()
 	postIdInt, err := strconv.Atoi(postIdStr)
 	if err != nil {
 		app_log.GetLog().Errorln("message", "service.Index.IndexPostDetail", "err", err.Error())
 		return
 	}
-	cacheRes, err := r.CacheClient.HGet(cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
-		postDetail, err := r.doCacheIndexPostDetail(postSrv,cacheKey, field, postIdInt)
+		postDetail, err := r.doCacheIndexPostDetail(postSrv, cacheKey, field, postIdInt)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
 			return postDetail, err
 		}
 		return postDetail, nil
 	}
 	if err != nil {
-		r.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
 		return postDetail, err
 	}
 
 	if cacheRes == "" {
 		// Data is  null
 		// set data to the cache what use the cache key
-		postDetail, err = r.doCacheIndexPostDetail(postSrv,cacheKey, field, postIdInt)
+		postDetail, err = r.doCacheIndexPostDetail(postSrv, cacheKey, field, postIdInt)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
 			return postDetail, err
 		}
 		return postDetail, nil
@@ -219,10 +224,10 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail pojos.Index
 
 	err = json.Unmarshal([]byte(cacheRes), &postDetail)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
-		postDetail, err = r.doCacheIndexPostDetail(postSrv,cacheKey, field, postIdInt)
+		r.Context.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
+		postDetail, err = r.doCacheIndexPostDetail(postSrv, cacheKey, field, postIdInt)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.IndexPostDetail", "err", err.Error())
 			return postDetail, err
 		}
 		return postDetail, nil
@@ -233,17 +238,17 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail pojos.Index
 func (r *IndexService) doCacheIndexPostDetail(postSrv *ConsolePostService, cacheKey string, field string, postIdInt int) (postDetail pojos.IndexPostDetail, err error) {
 	postDetail, err = postSrv.IndexPostDetailDao(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheIndexPostDetail", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheIndexPostDetail", "err", err.Error())
 		return
 	}
 	jsonRes, err := json.Marshal(&postDetail)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheIndexPostDetail", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostDetail", "err", err.Error())
 		return
 	}
-	err = r.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheIndexPostDetail", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheIndexPostDetail", "err", err.Error())
 		return
 	}
 	return
@@ -252,12 +257,13 @@ func (r *IndexService) doCacheIndexPostDetail(postSrv *ConsolePostService, cache
 func (r *IndexService) PostViewAdd(postIdStr string) {
 	postIdInt, err := strconv.Atoi(postIdStr)
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.PostViewAdd", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.PostViewAdd", "err", err.Error())
 		return
 	}
-	_, err = r.Db.Where("post_id = ?", postIdInt).Incr("num").Update(models.ZPostViews{})
+	err = r.Context.Db.Table((&models.ZPostViews{}).TableName()).
+		Where("post_id = ?", postIdInt).Update("num", gorm.Expr("num + ?", 1)).Error
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.PostViewAdd", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.PostViewAdd", "err", err.Error())
 		return
 	}
 	return
@@ -267,19 +273,19 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 	cacheKey := common.Conf.ArchivesKey
 	field := ":all:"
 
-	cacheRes, err := r.CacheClient.HGet(cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		archivesList, err := r.doCacheArchives(cacheKey, field)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
 			return archivesList, err
 		}
 		return archivesList, nil
 	}
 	if err != nil {
-		r.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
 		return archivesList, err
 	}
 
@@ -288,7 +294,7 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 		// set data to the cache what use the cache key
 		archivesList, err := r.doCacheArchives(cacheKey, field)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
 			return archivesList, err
 		}
 		return archivesList, nil
@@ -297,10 +303,10 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 	archivesList = make(map[string][]*models.ZPosts)
 	err = json.Unmarshal([]byte(cacheRes), &archivesList)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
 		archivesList, err := r.doCacheArchives(cacheKey, field)
 		if err != nil {
-			r.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.index.PostArchives", "err", err.Error())
 			return archivesList, err
 		}
 		return archivesList, nil
@@ -310,9 +316,12 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 
 func (r *ConsolePostService) doCacheArchives(cacheKey string, field string) (archivesList map[string][]*models.ZPosts, err error) {
 	posts := make([]*models.ZPosts, 0)
-	err = r.Db.Where("deleted_at IS NULL OR deleted_at = ?", "0001-01-01 00:00:00").Desc("created_at").Find(&posts)
+	err = r.Context.Db.Table((&models.ZPosts{}).TableName()).
+		Where("deleted_at IS NULL OR deleted_at = ?", "0001-01-01 00:00:00").
+		Order("created_at desc").
+		Find(&posts).Error
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.doCacheArchives", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.doCacheArchives", "err", err.Error())
 		return
 	}
 	archivesList = make(map[string][]*models.ZPosts)
@@ -323,12 +332,12 @@ func (r *ConsolePostService) doCacheArchives(cacheKey string, field string) (arc
 
 	jsonRes, err := json.Marshal(&archivesList)
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheArchives", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheArchives", "err", err.Error())
 		return
 	}
-	err = r.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
 	if err != nil {
-		r.Log.Errorln("message", "service.index.doCacheArchives", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.index.doCacheArchives", "err", err.Error())
 		return
 	}
 	return

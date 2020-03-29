@@ -28,5 +28,5 @@ func GetMsg(code int) string {
 	if msg, ok := message[code]; ok {
 		return msg
 	}
-	return message[100000001]
+	return message[100000002]
 }

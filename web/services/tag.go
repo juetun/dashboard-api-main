@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/web/models"
@@ -24,19 +25,27 @@ type TagService struct {
 	base.ServiceBase
 }
 
-func NewTagService() *TagService {
-	return &TagService{}
+
+func NewTagService(context ...*base.Context) (p *TagService) {
+	p = &TagService{}
+	p.SetContext(context)
+	return
 }
 func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 	tag := new(models.ZTags)
-	_, err = r.Db.Where("name = ?", ts.Name).Get(tag)
+	dba := r.Context.Db.
+		Table((&models.ZTags{}).TableName())
+	err = dba.
+		Where("name = ?", ts.Name).
+		Find(tag).
+		Error
 	if err != nil {
-		r.Log.Errorln("message", "service.TagStore", "error", err.Error())
+		r.Context.Log.Errorln("message", "service.TagStore", "error", err.Error())
 		return err
 	}
 
 	if tag.Id > 0 {
-		r.Log.Errorln("message", "service.TagStore", "error", "Tag has exists")
+		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag has exists")
 		return errors.New("Tag has exists")
 	}
 
@@ -46,16 +55,15 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 		SeoDesc:     ts.SeoDesc,
 		Num:         0,
 	}
-	_, err = r.Db.Insert(tagInsert)
-	r.CacheClient.Del(common.Conf.TagListKey)
+	err = dba.Create(tagInsert).Error
+	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
 
 func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) {
-	postTag := new(models.ZPostTag)
-	rows, err := r.Db.Where("post_id = ?", postId).Cols("tag_id").Rows(postTag)
+	rows, err := r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id = ?", postId).Select("tag_id").Rows()
 	if err != nil {
-		r.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
+		r.Context.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
 		return nil, nil
 	}
 	defer rows.Close()
@@ -72,23 +80,29 @@ func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) 
 
 func (r *TagService) GetTagById(tagId int) (tag *models.ZTags, err error) {
 	tag = new(models.ZTags)
-	_, err = r.Db.ID(tagId).Get(tag)
+	err = r.getTableDb().Where("id=?", tagId).Find(tag).Error
 	return
 }
+func (r *TagService) getTableDb() *gorm.DB {
+	return r.Context.Db.Table((&models.ZTags{}).TableName())
+}
 
-func (r *TagService) TagUpdate(tagId int, ts pojos.TagStore) error {
+func (r *TagService) TagUpdate(tagId int, ts pojos.TagStore) (err error) {
 	tagUpdate := &models.ZTags{
 		Name:        ts.Name,
 		DisplayName: ts.DisplayName,
 		SeoDesc:     ts.SeoDesc,
 	}
-	_, err := r.Db.ID(tagId).Update(tagUpdate)
+	err = r.getTableDb().Where("id=?", tagId).
+		Update(tagUpdate).Error
 	return err
 }
 
-func (r *TagService) GetTagsByIds(tagIds []int) ([]*models.ZTags, error) {
-	tags := make([]*models.ZTags, 0)
-	err := r.Db.In("id", tagIds).Cols("id", "name", "display_name", "seo_desc", "num").Find(&tags)
+func (r *TagService) GetTagsByIds(tagIds []int) (tags []*models.ZTags, err error) {
+	tags = make([]*models.ZTags, 0)
+	err = r.getTableDb().
+		Where("id in (?)", tagIds).
+		Select("id,name,display_name,seo_desc,num").Find(&tags).Error
 	if err != nil {
 		return nil, err
 	}
@@ -97,34 +111,40 @@ func (r *TagService) GetTagsByIds(tagIds []int) ([]*models.ZTags, error) {
 
 func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models.ZTags, err error) {
 	tags = make([]*models.ZTags, 0)
-	num, err = r.Db.Desc("num").Limit(limit, offset).FindAndCount(&tags)
+	dba := r.getTableDb()
+	err = dba.Count(&num).Error
+	if err != nil {
+		return
+	}
+	if num > 0 {
+		err = dba.Order("num desc ").
+			Limit(limit).
+			Offset(offset).
+			Find(&tags).
+			Error
+	}
 	return
 }
 
 func (r *TagService) DelTagRel(tagId int) {
-	session := r.Db.NewSession()
+	session := r.Context.Db.Begin().Table((&models.ZPostTag{}).TableName())
 	defer session.Close()
 	postTag := new(models.ZPostTag)
-	_, err := session.Where("tag_id = ?", tagId).Delete(postTag)
+	err := session.Where("tag_id = ?", tagId).Delete(postTag).Error
 	if err != nil {
 		_ = session.Rollback()
-		r.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
 	tag := new(models.ZTags)
-	_, err = session.ID(tagId).Delete(tag)
+	err = session.Where("id=?", tagId).Delete(tag).Error
 	if err != nil {
 		_ = session.Rollback()
-		r.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
-	err = session.Commit()
-	if err != nil {
-		_ = session.Rollback()
-		r.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
-		return
-	}
-	r.CacheClient.Del(common.Conf.TagListKey)
+	session.Commit()
+	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
 func (r *TagService) CommonData() (h gin.H, err error) {
@@ -152,7 +172,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 	srv := NewCategoryService()
 	cates, err := srv.CateListBySort()
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	var catess []pojos.IndexCategory
@@ -166,21 +186,21 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 	tags, err := r.AllTags()
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 
 	srvLink := NewLinkService()
 	links, err := srvLink.AllLink()
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	srvSystem := NewSystemService()
 
 	system, err := srvSystem.IndexSystem()
 	if err != nil {
-		r.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	h["cates"] = catess
@@ -192,27 +212,27 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 func (r *TagService) AllTags() ([]models.ZTags, error) {
 	cacheKey := common.Conf.TagListKey
-	cacheRes, err := r.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
 	if err == redis.Nil {
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
-			r.Log.Infoln("message", "service.AllTags", "err", err.Error())
+			r.Context.Log.Infoln("message", "service.AllTags", "err", err.Error())
 			return tags, err
 		}
 		return tags, nil
 	}
 	if err != nil {
-		r.Log.Infoln("message", "service.AllTags", "err", err.Error())
+		r.Context.Log.Infoln("message", "service.AllTags", "err", err.Error())
 		return nil, err
 	}
 
 	var cacheTag []models.ZTags
 	err = json.Unmarshal([]byte(cacheRes), &cacheTag)
 	if err != nil {
-		r.Log.Errorln("message", "service.AllTags", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.AllTags", "err", err.Error())
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
-			r.Log.Errorln("message", "service.AllTags", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.AllTags", "err", err.Error())
 			return nil, err
 		}
 		return tags, nil
@@ -223,17 +243,17 @@ func (r *TagService) AllTags() ([]models.ZTags, error) {
 func (r *TagService) doCacheTagList(cacheKey string) ([]models.ZTags, error) {
 	tags, err := r.tags()
 	if err != nil {
-		r.Log.Infoln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Infoln("message", "service.doCacheTagList", "err", err.Error())
 		return tags, err
 	}
 	jsonRes, err := json.Marshal(&tags)
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
 		return nil, err
 	}
-	err = r.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
 		return nil, err
 	}
 	return tags, nil
@@ -241,9 +261,9 @@ func (r *TagService) doCacheTagList(cacheKey string) ([]models.ZTags, error) {
 
 func (r *TagService) tags() ([]models.ZTags, error) {
 	tags := make([]models.ZTags, 0)
-	err := r.Db.Find(&tags)
+	err := r.getTableDb().Find(&tags).Error
 	if err != nil {
-		r.Log.Infoln("message", "service.Tags", "err", err.Error())
+		r.Context.Log.Infoln("message", "service.Tags", "err", err.Error())
 		return tags, err
 	}
 
@@ -251,7 +271,6 @@ func (r *TagService) tags() ([]models.ZTags, error) {
 }
 
 func (r *TagService) TagCnt() (cnt int64, err error) {
-	tag := new(models.ZTags)
-	cnt, err = r.Db.Count(tag)
+	err = r.getTableDb().Count(&cnt).Error
 	return
 }

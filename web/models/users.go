@@ -5,7 +5,7 @@ import (
 )
 
 type ZUsers struct {
-	Id              int       `xorm:"not null pk autoincr INT(10)"`
+	Id              int       `gorm:"id" json:"id"`
 	Name            string    `xorm:"not null comment('用户名') VARCHAR(255)"`
 	Email           string    `xorm:"not null comment('邮箱') index unique VARCHAR(255)"`
 	Status          int       `xorm:"not null default 0 comment('用户状态 0创建,1正常') TINYINT(4)"`
@@ -14,4 +14,8 @@ type ZUsers struct {
 	RememberToken   string    `xorm:"VARCHAR(100)"`
 	CreatedAt       time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP";json:"created_at,omitempty"`
 	UpdatedAt       time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP";json:"updated_at,omitempty"`
+}
+
+func (r *ZUsers) TableName() string {
+	return "z_users"
 }

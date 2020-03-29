@@ -13,3 +13,7 @@ type ZTags struct {
 	CreatedAt   time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	UpdatedAt   time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 }
+
+func (r *ZTags) TableName() string {
+	return "z_tags"
+}

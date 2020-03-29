@@ -1,13 +1,21 @@
 package base
 
-import (
-	"github.com/go-redis/redis"
-	"github.com/go-xorm/xorm"
-	"github.com/juetun/app-dashboard/lib/app_log"
-)
-
 type ServiceBase struct {
-	Log         *app_log.AppLog
-	Db          *xorm.Engine
-	CacheClient *redis.Client
+	Context *Context
+}
+
+func (r *ServiceBase) SetContext(context []*Context) (s *ServiceBase) {
+	switch len(context) {
+	case 0:
+		r.Context = NewContext()
+		break
+	case 1:
+		r.Context = context[0]
+		r.Context.Init() // 初始化一些没有初始化的对象
+		break
+	default:
+		panic("你传递的参数当前不支持")
+	}
+
+	return r
 }

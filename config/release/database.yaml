@@ -1,0 +1,4 @@
+default:
+  max_idle_conns: 1
+  max_open_conns: 2
+  addr: "root:123456@tcp(127.0.0.1:3306)/juetun_web?charset=utf8mb4&parseTime=True&loc=Local"

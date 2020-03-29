@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
 )
@@ -22,20 +22,16 @@ type ControllerPost struct {
 	base.ControllerBase
 }
 
-func NewControllerPost() controllers.Console {
+func NewControllerPost() inter.Console {
 	controller := &ControllerPost{}
 	controller.ControllerBase.Init()
 	return controller
 }
 
 func (r *ControllerPost) Index(c *gin.Context) {
-	queryPage := c.DefaultQuery("page", base.DefaultPageNo)
-	queryLimit := c.DefaultQuery("limit", base.DefaultPageSize)
-
-	limit, offset := common.Offset(queryPage, queryLimit)
-	queryPageInt, err := strconv.Atoi(queryPage)
-
-	srv := services.NewConsolePostService()
+	pager := base.NewPager()
+	limit, offset := pager.InitPageBy(c, "GET")
+	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	postList, err := srv.ConsolePostIndex(limit, offset, false)
 	if err != nil {
 		r.Response(c, 500000000, nil)
@@ -45,13 +41,13 @@ func (r *ControllerPost) Index(c *gin.Context) {
 	postCount, err := srv.ConsolePostCount(limit, offset, false)
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, queryPageInt)
+	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }
 
 func (r *ControllerPost) Create(c *gin.Context) {
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	cates, err := srv.CateListBySort()
 
 	if err != nil {
@@ -59,7 +55,7 @@ func (r *ControllerPost) Create(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srvTag := services.NewTagService()
+	srvTag := services.NewTagService(&base.Context{Log: r.Log})
 	tags, err := srvTag.AllTags()
 	if err != nil {
 		r.Log.Errorln("message", "console.Create", "err", err.Error())
@@ -96,7 +92,7 @@ func (r *ControllerPost) Store(c *gin.Context) {
 		r.Response(c, 400001004, nil)
 		return
 	}
-	srvPost := services.NewConsolePostService()
+	srvPost := services.NewConsolePostService(&base.Context{Log: r.Log})
 	srvPost.PostStore(ps, userId.(int))
 	r.Response(c, 0, nil)
 	return
@@ -111,9 +107,9 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srvPost := services.NewConsolePostService()
-	srvCate := services.NewCategoryService()
-	srvTag := services.NewTagService()
+	srvPost := services.NewConsolePostService(&base.Context{Log: r.Log})
+	srvCate := services.NewCategoryService(&base.Context{Log: r.Log})
+	srvTag := services.NewTagService(&base.Context{Log: r.Log})
 
 	post, err := srvPost.PostDetail(postIdInt)
 	if err != nil {
@@ -174,7 +170,7 @@ func (r *ControllerPost) Update(c *gin.Context) {
 		r.Response(c, 400001003, nil)
 		return
 	}
-	srv := services.NewConsolePostService()
+	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	var ps pojos.PostStore
 	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
@@ -196,7 +192,7 @@ func (r *ControllerPost) Destroy(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := services.NewConsolePostService()
+	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	_, err = srv.PostDestroy(postIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
@@ -209,29 +205,22 @@ func (r *ControllerPost) Destroy(c *gin.Context) {
 
 func (r *ControllerPost) TrashIndex(c *gin.Context) {
 
-	queryPage := c.DefaultQuery("page", "1")
-	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultLimit)
+	pager := base.NewPager()
+	limit, offset := pager.InitPageBy(c, "GET")
 
-	limit, offset := common.Offset(queryPage, queryLimit)
-
-	srv := services.NewConsolePostService()
+	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	postList, err := srv.ConsolePostIndex(limit, offset, true)
 	if err != nil {
 		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
-	queryPageInt, err := strconv.Atoi(queryPage)
-	if err != nil {
-		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
-		r.Response(c, 500000000, nil)
-		return
-	}
+
 	postCount, err := srv.ConsolePostCount(limit, offset, true)
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, queryPageInt)
+	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -246,7 +235,7 @@ func (r *ControllerPost) UnTrash(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := services.NewConsolePostService()
+	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	_, err = srv.PostUnTrash(postIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.UnTrash", "err", err.Error())
@@ -274,7 +263,7 @@ func (r *ControllerPost) ImgUpload(c *gin.Context) {
 		return
 	}
 
-	srvQiniu := services.NewQiuNiuService()
+	srvQiniu := services.NewQiuNiuService(&base.Context{Log: r.Log})
 	// Default upload both
 	data := make(map[string]interface{})
 	if common.Conf.ImgUploadBoth {

@@ -1,10 +1,14 @@
 package base
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
 
 const (
-	DefaultPageSize = "15"
-	DefaultPageNo   = "1"
+	DefaultPageSize = 15
+	DefaultPageNo   = 1
 )
 
 type Pager struct {
@@ -43,4 +47,10 @@ func (r *Pager) Offset(page string, limit string) (limitInt int, offset int) {
 		limitInt = 20
 	}
 	return limitInt, (pageInt - 1) * limitInt
+}
+func (r *Pager) InitPageBy(c *gin.Context, method string) (limit, offset int) {
+	queryPage := c.DefaultQuery("page", strconv.Itoa(DefaultPageNo))
+	queryLimit := c.DefaultQuery("limit", strconv.Itoa(DefaultPageSize))
+	limit, offset = r.Offset(queryPage, queryLimit)
+	return
 }

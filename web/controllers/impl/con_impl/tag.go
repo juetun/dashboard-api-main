@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
 )
@@ -15,7 +15,7 @@ type ControllerTag struct {
 	base.ControllerBase
 }
 
-func NewControllerTag() controllers.Console {
+func NewControllerTag() inter.Console {
 	controller := &ControllerTag{}
 	controller.ControllerBase.Init()
 	return controller
@@ -23,26 +23,20 @@ func NewControllerTag() controllers.Console {
 
 func (r *ControllerTag) Index(c *gin.Context) {
 
-	queryPage := c.DefaultQuery("page", "1")
-	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultLimit)
+	pager := base.NewPager()
+	limit, offset := pager.InitPageBy(c, "GET")
 
-	limit, offset := common.Offset(queryPage, queryLimit)
-	srv := services.NewTagService()
+	srv := services.NewTagService(&base.Context{Log: r.Log})
 	count, tags, err := srv.TagsIndex(limit, offset)
 	if err != nil {
 		r.Log.Errorln("message", "console.Tag.Index", "err", err.Error())
 		r.Response(c, 402000001, nil)
 		return
 	}
-	queryPageInt, err := strconv.Atoi(queryPage)
-	if err != nil {
-		r.Log.Errorln("message", "console.Tag.Index", "err", err.Error())
-		r.Response(c, 500000000, nil)
-		return
-	}
+
 	data := make(map[string]interface{})
 	data["list"] = tags
-	data["page"] = common.MyPaginate(count, limit, queryPageInt)
+	data["page"] = common.MyPaginate(count, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -66,7 +60,7 @@ func (r *ControllerTag) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewTagService()
+	srv := services.NewTagService(&base.Context{Log: r.Log})
 	err := srv.TagStore(ts)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Store", "err", err.Error())
@@ -86,7 +80,7 @@ func (r *ControllerTag) Edit(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := services.NewTagService()
+	srv := services.NewTagService(&base.Context{Log: r.Log})
 	tagData, err := srv.GetTagById(tagIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Tag.Edit", "err", err.Error())
@@ -118,7 +112,7 @@ func (r *ControllerTag) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewTagService()
+	srv := services.NewTagService(&base.Context{Log: r.Log})
 	err = srv.TagUpdate(tagIdInt, ts)
 	if err != nil {
 		r.Log.Errorln("message", "Tag.Update", "error", err.Error())
@@ -138,7 +132,7 @@ func (r *ControllerTag) Destroy(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := services.NewTagService()
+	srv := services.NewTagService(&base.Context{Log: r.Log})
 	_, err = srv.GetTagById(tagIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Tag.Destroy", "err", err.Error())

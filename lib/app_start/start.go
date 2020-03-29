@@ -32,12 +32,10 @@ func (r *PluginsOperate) LoadPlugins() *PluginsOperate {
 	stytemLog.Printf("")
 	var err error
 	for _, handle := range *PluginsHandleStruct {
-		io.SystemOutPrintf("Ready load Plugin %s", handle.Name)
 		err = handle.FuncHandler()
 		if err != nil {
 			panic(err)
 		}
-		io.SystemOutPrintf("Load Plugin %s finished", handle.Name)
 	}
 	io.SystemOutPrintf("Start load plugins finished \n")
 	stytemLog.Printf("")

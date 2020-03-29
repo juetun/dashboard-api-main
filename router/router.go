@@ -9,11 +9,11 @@ type HandleRouter func(c *gin.Engine, urlPrefix string)
 
 var HandleFunc = make([]HandleRouter, 0)
 
-const UrlPrefix = "/v1/app"
-
 func RunLoadRouter(c *gin.Engine) (err error) {
+	appConfig := common.GetAppConfig()
+	var UrlPrefix =  appConfig.AppName + "/" + appConfig.AppApiVersion
 	io := common.NewSystemOut().SetInfoType(common.LogLevelInfo)
-	io.SystemOutPrintln("Start load route config....")
+	io.SystemOutPrintf("Start load route config.... %s",UrlPrefix)
 	defer func() {
 		io.SystemOutPrintln("Load route finished")
 	}()

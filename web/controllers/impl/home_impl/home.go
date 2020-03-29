@@ -1,11 +1,11 @@
-package statistics_impl
+package home_impl
 
 import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
 )
@@ -14,7 +14,7 @@ type ControllerHome struct {
 	base.ControllerBase
 }
 
-func NewControllerHome() controllers.System {
+func NewControllerHome() inter.System {
 	controller := &ControllerHome{}
 	controller.ControllerBase.Init()
 	return controller
@@ -23,7 +23,7 @@ func NewControllerHome() controllers.System {
 func (r *ControllerHome) Index(c *gin.Context) {
 	themes := make(map[int]interface{})
 	themes[1] = 1
-	srv := services.NewSystemService()
+	srv := services.NewSystemService(&base.Context{Log: r.Log})
 	system, err := srv.GetSystemList()
 	if err != nil {
 		r.Log.Errorln("message", "console.Home.Index", "err", err.Error())
@@ -60,7 +60,7 @@ func (r *ControllerHome) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewSystemService()
+	srv := services.NewSystemService(&base.Context{Log: r.Log})
 	err = srv.SystemUpdate(systemIdInt, ss)
 	if err != nil {
 		r.Log.Errorln("message", "system.Update", "error", err.Error())

@@ -1,7 +1,5 @@
 package conf
 
-import "time"
-
 const (
 	DBHOST = "127.0.0.1"
 	DBPORT = "3306"
@@ -22,12 +20,7 @@ const (
 	REDISPWD = ""
 	REDISDB = 0
 
-	JWTISS = "izghua"
-	JWTAUDIENCE = "zgh"
-	JWTJTI = "izghua"
-	JWTSECRETKEY = "izghua"
-	JWTTOKENKEY = "login:token:"
-	JWTTOKENLIFE = time.Hour * time.Duration(72)
+
 	QCapUrl = "https://ssl.captcha.qq.com/ticket/verify"
 
 )

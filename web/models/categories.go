@@ -13,3 +13,7 @@ type ZCategories struct {
 	CreatedAt   time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	UpdatedAt   time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 }
+
+func (r *ZCategories)TableName() string {
+	return "z_categories"
+}

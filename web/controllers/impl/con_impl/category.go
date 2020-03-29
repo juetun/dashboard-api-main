@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
 )
@@ -20,7 +20,7 @@ type ControllerCategory struct {
 	base.ControllerBase
 }
 
-func NewControllerCategory() controllers.Console {
+func NewControllerCategory() inter.Console {
 	controller := &ControllerCategory{}
 	controller.ControllerBase.Init()
 	return controller
@@ -28,7 +28,7 @@ func NewControllerCategory() controllers.Console {
 
 func (r *ControllerCategory) Index(c *gin.Context) {
 
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	cates, err := srv.CateListBySort()
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Index", "err", err.Error())
@@ -57,7 +57,7 @@ func (r *ControllerCategory) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	_, err := srv.CateStore(cs)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Store", "err", err.Error())
@@ -77,7 +77,7 @@ func (r *ControllerCategory) Edit(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	cateData, err := srv.GetCateById(cateIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Edit", "err", err.Error())
@@ -110,7 +110,7 @@ func (r *ControllerCategory) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	_, err = srv.CateUpdate(cateIdInt, cs)
 	if err != nil {
 		r.Log.Errorln("message", "cate.Update", "error", err.Error())
@@ -130,7 +130,7 @@ func (r *ControllerCategory) Destroy(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := services.NewCategoryService()
+	srv := services.NewCategoryService(&base.Context{Log: r.Log})
 	_, err = srv.GetCateById(cateIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Destroy", "err", err.Error())

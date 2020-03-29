@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type ZSystems struct {
+type ZBaseSys struct {
 	Id           int       `xorm:"not null pk autoincr INT(10)"`
 	Theme        int       `xorm:"not null default 0 comment('主题') TINYINT(4)"`
 	Title        string    `xorm:"not null comment('网站title') VARCHAR(255)"`
@@ -13,4 +13,8 @@ type ZSystems struct {
 	RecordNumber string    `xorm:"not null comment('备案号') VARCHAR(255)"`
 	CreatedAt    time.Time `xorm:"created not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
 	UpdatedAt    time.Time `xorm:"updated not null default 'CURRENT_TIMESTAMP' TIMESTAMP"`
+}
+
+func (r *ZBaseSys) TableName() string {
+	return "z_base_sys"
 }

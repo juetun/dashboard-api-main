@@ -5,3 +5,7 @@ type ZPostTag struct {
 	PostId int `xorm:"not null comment('文章ID') index INT(11)"`
 	TagId  int `xorm:"not null comment('标签ID') index INT(11)"`
 }
+
+func (r *ZPostTag)TableName() string {
+	return "z_post_tag"
+}

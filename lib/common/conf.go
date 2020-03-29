@@ -16,7 +16,6 @@ var Conf *Config
 type Config struct {
 	AppUrl            string `yaml:"AppUrl"`
 	AppImgUrl         string `yaml:"AppImgUrl"`
-	DefaultLimit      string `yaml:"DefaultLimit"`
 	DefaultIndexLimit string `yaml:"DefaultIndexLimit"`
 
 	DbUser     string `yaml:"DbUser"`
@@ -71,7 +70,7 @@ type Config struct {
 	Description  string `yaml:"Description"`
 	RecordNumber string `yaml:"RecordNumber"`
 
-	UserCnt int `yaml:"UserCnt"`
+	// UserCnt int `yaml:"UserCnt"`
 
 	// index
 	PostIndexKey       string `yaml:"PostIndexKey"`

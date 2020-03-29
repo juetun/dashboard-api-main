@@ -18,18 +18,24 @@ type UserService struct {
 func NewUserService() *UserService {
 	return &UserService{}
 }
-func (r *UserService) GetUserById(userId int) (*models.ZUsers, error) {
-	user := new(models.ZUsers)
-	_, err := r.Db.Id(userId).Cols("name", "email").Get(user)
+func (r *UserService) GetUserById(userId int) (user *models.ZUsers, err error) {
+	user = new(models.ZUsers)
+	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
+		Where("id=?", userId).
+		Select("name,email").
+		Find(user).
+		Error
 	if err != nil {
-		r.Log.Errorln("message", "service.GetUserById", "error", err.Error())
+		r.Context.Log.Errorln("message", "service.GetUserById", "error", err.Error())
 		return user, err
 	}
 	return user, nil
 }
 
 func (r *UserService) UserCnt() (cnt int64, err error) {
-	user := new(models.ZUsers)
-	cnt, err = r.Db.Count(user)
+	err = r.Context.Db.
+		Table((&models.ZUsers{}).TableName()).
+		Count(&cnt).
+		Error
 	return
 }

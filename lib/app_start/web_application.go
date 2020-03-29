@@ -20,15 +20,19 @@ type WebApplication struct {
 }
 
 func NewWebApplication() *WebApplication {
-	if common.GetEnv() == "release" {
+	if common.GetAppConfig().AppEnv == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
-	return &WebApplication{
+	webApp := &WebApplication{
 		GinEngine: gin.Default(),
 		syslog:    common.NewSystemOut(),
 	}
+	// 加载GIN框架 中间件
+	middlewares.LoadMiddleWare()
+	webApp.GinEngine.Use(middlewares.MiddleWareComponent...)
+	return webApp
 }
 
 func (r *WebApplication) LoadRouter() *WebApplication {
@@ -43,14 +47,12 @@ func (r *WebApplication) LoadRouter() *WebApplication {
 
 // 开始加载Gin 服务
 func (r *WebApplication) Run() (err error) {
-	middlewares.LoadMiddleWare()
-	r.GinEngine.Use(middlewares.MiddleWareComponent...)
-	r.GinEngine.GET("/index", func(c *gin.Context) {
-		// time.Sleep(5 * time.Second)
-		c.String(http.StatusOK, "Welcome Gin Server")
-	})
-	if common.GetAppConfig().AppGraceReload { // 如果支持优雅重启
-		r.Start()
+
+	defaultEngine(r.GinEngine)
+
+	// // 如果支持优雅重启
+	if common.GetAppConfig().AppGraceReload {
+		r.start()
 		return
 	}
 	r.syslog.SetInfoType(common.LogLevelInfo).
@@ -58,7 +60,7 @@ func (r *WebApplication) Run() (err error) {
 	r.GinEngine.Run(r.getListenPortString()) // listen and serve on 0.0.0.0:8080
 	return
 }
-func (r *WebApplication) Start() {
+func (r *WebApplication) start() {
 	r.syslog.SetInfoType(common.LogLevelInfo).
 		SystemOutPrintln("Support grace reload")
 	srv := &http.Server{
@@ -88,4 +90,11 @@ func (r *WebApplication) Start() {
 }
 func (r *WebApplication) getListenPortString() string {
 	return ":" + strconv.Itoa(common.GetAppConfig().AppPort)
+}
+
+func defaultEngine(r *gin.Engine) {
+	r.GET("/index", func(c *gin.Context) {
+		// time.Sleep(5 * time.Second)
+		c.String(http.StatusOK, "Welcome Gin Server")
+	})
 }

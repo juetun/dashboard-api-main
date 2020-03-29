@@ -1,16 +1,16 @@
 package middlewares
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
 
-var MiddleWareComponent = []gin.HandlerFunc{}
+	"github.com/gin-gonic/gin"
+)
+
+var MiddleWareComponent = make([]gin.HandlerFunc, 0)
 
 func LoadMiddleWare() {
+	fmt.Println("Load gin middleWare start")
+	MiddleWareComponent = append(MiddleWareComponent, Permission(), )
+	fmt.Println("Load gin middleWare over")
 
-	cors := CORS(CORSOptions{Origin: "*",}) //跨域控制
-	auth := Auth()                          //用户信息验证 token反解
-	//webApp.Use(m.RequestID(m.RequestIDOptions{AllowSetting: true}))
-	//webApp.Use(ginutil.Recovery(recoverHandler))
-	//webApp.Use(m2.CheckExist())
-	//webApp.Static("/static/uploads/images/", "./static/uploads/images/")
-	MiddleWareComponent = append(MiddleWareComponent, cors, auth)
 }

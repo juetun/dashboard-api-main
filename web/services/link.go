@@ -22,12 +22,20 @@ type LinkService struct {
 	base.ServiceBase
 }
 
-func NewLinkService() *LinkService {
-	return &LinkService{}
+func NewLinkService(context ...*base.Context) (p *LinkService) {
+	p = &LinkService{}
+	p.SetContext(context)
+	return
 }
 func (r *LinkService) LinkList(offset int, limit int) (links []models.ZLinks, cnt int64, err error) {
 	links = make([]models.ZLinks, 0)
-	cnt, err = r.Db.Asc("order").Limit(limit, offset).FindAndCount(&links)
+	dba := r.Context.Db
+	err = dba.Count(&cnt).Error
+	if cnt > 0 {
+		err = dba.Order("order asc").Limit(limit).
+			Offset(offset).
+			Find(&links).Error
+	}
 	return
 }
 
@@ -37,13 +45,14 @@ func (r *LinkService) LinkSore(ls pojos.LinkStore) (err error) {
 		Link:  ls.Link,
 		Order: ls.Order,
 	}
-	_, err = r.Db.Insert(&LinkInsert)
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).Create(&LinkInsert).Error
 	return
 }
 
 func (r *LinkService) LinkDetail(linkId int) (link *models.ZLinks, err error) {
-	link = new(models.ZLinks)
-	_, err = r.Db.Id(linkId).Get(link)
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
+		Where("id=?", linkId).
+		Find(link).Error
 	return
 }
 
@@ -53,44 +62,48 @@ func (r *LinkService) LinkUpdate(ls pojos.LinkStore, linkId int) (err error) {
 		Name:  ls.Name,
 		Order: ls.Order,
 	}
-	_, err = r.Db.Id(linkId).Update(&linkUpdate)
+	err = r.Context.Db.Where("id=?", linkId).Update(&linkUpdate).Error
 	return
 }
 
 func (r *LinkService) LinkDestroy(linkId int) (err error) {
 	link := new(models.ZLinks)
-	_, err = r.Db.Id(linkId).Delete(link)
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
+		Where("id=?", link).
+		Delete(link).Error
 	return
 }
 
 func (r *LinkService) LinkCnt() (cnt int64, err error) {
 	link := new(models.ZLinks)
-	cnt, err = r.Db.Count(link)
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
+		Count(link).
+		Error
 	return
 }
 
 func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 
 	cacheKey := common.Conf.LinkIndexKey
-	cacheRes, err := r.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
 	if err == redis.Nil {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Log.Infoln("message", "service.AllLink", "err", err.Error())
+			r.Context.Log.Infoln("message", "service.AllLink", "err", err.Error())
 			return links, err
 		}
 		return links, nil
 	} else if err != nil {
-		r.Log.Infoln("message", "service.AllLink", "err", err.Error())
+		r.Context.Log.Infoln("message", "service.AllLink", "err", err.Error())
 		return nil, err
 	}
 
 	err = json.Unmarshal([]byte(cacheRes), &links)
 	if err != nil {
-		r.Log.Errorln("message", "service.AllLink", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.AllLink", "err", err.Error())
 		links, err = r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Log.Errorln("message", "service.AllLink", "err", err.Error())
+			r.Context.Log.Errorln("message", "service.AllLink", "err", err.Error())
 			return nil, err
 		}
 		return links, nil
@@ -100,19 +113,21 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 
 func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, err error) {
 	links = make([]models.ZLinks, 0)
-	err = r.Db.Find(&links)
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
+		Find(&links).
+		Error
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return links, err
 	}
 	jsonRes, err := json.Marshal(&links)
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return nil, err
 	}
-	err = r.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return nil, err
 	}
 	return links, nil

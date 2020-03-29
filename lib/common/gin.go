@@ -8,9 +8,7 @@
 package common
 
 import (
-	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/lib/app_log"
 	"github.com/juetun/app-dashboard/lib/base"
 )
 
@@ -31,25 +29,25 @@ func (r *Gin) Response(code int, data interface{}) {
 }
 
 func (r *Gin) Validate(obj validate) bool {
-	valid := validation.Validation{}
-	b, err := valid.Valid(obj)
-	var o base.ControllerBase
-	if err != nil {
+	// valid := validation.Validation{}
+	// b, err := valid.Valid(obj)
+	// var o base.ControllerBase
+	// if err != nil {
+	//
+	// 	app_log.GetLog().Errorln("message", "valid error", "err", err.Error())
+	// 	o.Response(r.C, 400000000, nil)
+	// 	return false
+	// }
 
-		app_log.GetLog().Errorln("message", "valid error", "err", err.Error())
-		o.Response(r.C, 400000000, nil)
-		return false
-	}
-
-	if !b {
-		errorMaps := obj.Message()
-		field := valid.Errors[0].Key
-		if v, ok := errorMaps[field]; ok {
-			o.Response(r.C, v, nil)
-			return b
-		}
-		o.Response(r.C, 100000001, nil)
-		return b
-	}
+	// if !b {
+	// 	errorMaps := obj.Message()
+	// 	field := valid.Errors[0].Key
+	// 	if v, ok := errorMaps[field]; ok {
+	// 		o.Response(r.C, v, nil)
+	// 		return b
+	// 	}
+	// 	o.Response(r.C, 100000001, nil)
+	// 	return b
+	// }
 	return true
 }

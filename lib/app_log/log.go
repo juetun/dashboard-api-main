@@ -1,20 +1,24 @@
 package app_log
 
 import (
+	"os"
+
 	"github.com/sirupsen/logrus"
 )
 
-var LogApp *AppLog
+var logApp *AppLog
 
 type AppLog struct {
 	*logrus.Logger
 }
 
-func NewAppLog() *AppLog {
+func newAppLog() *AppLog {
 	return &AppLog{}
 }
+
+// 获取日志操作对象
 func GetLog() *AppLog {
-	return LogApp
+	return logApp
 }
 func (r *AppLog) SetLog(log *logrus.Logger) *AppLog {
 	r.Logger = log
@@ -38,4 +42,14 @@ func (r *AppLog) Info(data map[string]string, message ...string) {
 		}
 	}
 	r.WithFields(fields).Error(message)
+}
+
+// 初始化日志操作对象
+func InitAppLog() {
+	log := logrus.New()
+	log.SetFormatter(&logrus.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(logrus.WarnLevel)
+	logApp = newAppLog()
+	logApp.SetLog(log)
 }

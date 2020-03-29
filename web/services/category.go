@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/web/models"
@@ -22,55 +23,56 @@ type CategoryService struct {
 	base.ServiceBase
 }
 
-func NewCategoryService() *CategoryService {
-	return &CategoryService{}
+func NewCategoryService(context ...*base.Context) (p *CategoryService) {
+	p = &CategoryService{}
+	p.SetContext(context)
+	return
 }
 func (r *CategoryService) GetCateById(cateId int) (cate *models.ZCategories, err error) {
-	cate = new(models.ZCategories)
-	_, err = r.Db.Id(cateId).Get(cate)
+	cate = &models.ZCategories{}
+	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
+		Where("id=?", cateId).
+		Find(cate).Error
 	return
 }
 
 func (r *CategoryService) GetCateByParentId(parentId int) (cate *models.ZCategories, err error) {
-	cate = new(models.ZCategories)
-	_, err = r.Db.Where("parent_id = ?", parentId).Get(cate)
+	cate = &models.ZCategories{}
+	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
+		Where("parent_id = ?", parentId).
+		Find(cate).Error
 	return
 }
 
 func (r *CategoryService) DelCateRel(cateId int) {
-	session := r.Db.NewSession()
+	session := r.Context.Db.Begin()
 	defer session.Close()
 	postCate := new(models.ZPostCate)
-	_, err := session.Where("cate_id = ?", cateId).Delete(postCate)
+	err := session.Where("cate_id = ?", cateId).Delete(postCate).Error
 	if err != nil {
 		_ = session.Rollback()
 		r.Error("message", "service.DelCateRel", "err", err.Error())
 		return
 	}
 	cate := new(models.ZCategories)
-	_, err = session.ID(cateId).Delete(cate)
+	err = session.Where("id=?", cateId).Delete(cate).Error
 	if err != nil {
 		_ = session.Rollback()
 		r.Error("message", "service.DelCateRel", "err", err.Error())
 		return
 	}
-	err = session.Commit()
-	if err != nil {
-		_ = session.Rollback()
-		r.Error("message", "service.DelCateRel", "err", err.Error())
-		return
-	}
-	r.CacheClient.Del(common.Conf.CateListKey)
+	session.Commit()
+	r.Context.CacheClient.Del(common.Conf.CateListKey)
 	return
 }
 
-func (r *CategoryService) CateStore(cs pojos.CateStore) (bool, error) {
+func (r *CategoryService) CateStore(cs pojos.CateStore) (res bool, err error) {
 
 	defaultCate := new(models.ZCategories)
-	_, err := r.Db.Where("name = ?", cs.Name).Get(defaultCate)
+	err = r.Context.Db.Where("name = ?", cs.Name).Find(defaultCate).Error
 	if err != nil {
 		r.Error("message", "service.CateStore", "err", err.Error())
-		return false, err
+		return
 	}
 	if defaultCate.Id > 0 {
 		r.Error("message", "service.CateStore", "err", "Cate has exists ")
@@ -79,7 +81,7 @@ func (r *CategoryService) CateStore(cs pojos.CateStore) (bool, error) {
 
 	if cs.ParentId > 0 {
 		cate := new(models.ZCategories)
-		_, err := r.Db.Id(cs.ParentId).Get(cate)
+		err = r.Context.Db.Where("id=?", cs.ParentId).Find(cate).Error
 		if err != nil {
 			r.Error("message", "service.CateStore", "err", err.Error())
 			return false, err
@@ -96,19 +98,21 @@ func (r *CategoryService) CateStore(cs pojos.CateStore) (bool, error) {
 		SeoDesc:     cs.SeoDesc,
 		ParentId:    cs.ParentId,
 	}
-	_, err = r.Db.Insert(cate)
+	err = r.Context.Db.Create(cate).Error
 	if err != nil {
 		r.Error("message", "service.CateStore", "err", err.Error())
 		return false, err
 	}
-	r.CacheClient.Del(common.Conf.CateListKey)
+	r.Context.CacheClient.Del(common.Conf.CateListKey)
 	return true, nil
 }
 
-func (r *CategoryService) CateUpdate(cateId int, cs pojos.CateStore) (bool, error) {
+func (r *CategoryService) CateUpdate(cateId int, cs pojos.CateStore) (res bool, err error) {
 	cate := new(models.ZCategories)
 	if cs.ParentId != 0 {
-		res, err := r.Db.Id(cs.ParentId).Get(cate)
+		err = r.Context.Db.Where("id=?", cs.ParentId).
+			Find(cate).
+			Error
 		if err != nil {
 			r.Error("message", "service.CateUpdate", "err", err.Error())
 			return false, err
@@ -132,78 +136,83 @@ func (r *CategoryService) CateUpdate(cateId int, cs pojos.CateStore) (bool, erro
 		SeoDesc:     cs.SeoDesc,
 		ParentId:    cs.ParentId,
 	}
-	_, err := r.Db.Id(cateId).Cols("name", "display_name", "seo_desc", "parent_id").Update(cateUpdate)
+	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
+		Where("id =?", cateId).Update(cateUpdate).Error
 	if err != nil {
 		r.Error("message", "service.CateUpdate", "err", err.Error())
 		return false, err
 	}
-	r.CacheClient.Del(common.Conf.CateListKey)
+	r.Context.CacheClient.Del(common.Conf.CateListKey)
 	return true, nil
 }
 
 func (r *CategoryService) GetSimilar(beginId []int, resIds []int, level int) (beginId2 []int, resIds2 []int, level2 int) {
 	if len(beginId) != 0 {
 		cates := make([]*models.ZCategories, 0)
-		err := r.Db.In("parent_id", beginId).Find(&cates)
+		err := r.Context.Db.Table((&models.ZCategories{}).TableName()).Where("parent_id in(?)", beginId).
+			Find(&cates).Error
 		if err != nil {
 			r.Error("message", "service.GetSimilar", err, "the parent id data is not exists ")
 			return []int{}, []int{}, 0
 		}
-		if len(cates) != 0 {
-			if level == 0 {
-				resIds2 = beginId
-			} else {
-				resIds2 = resIds
-			}
-			for _, v := range cates {
-				id := v.Id
-				beginId2 = append(beginId2, id)
-				resIds2 = append(resIds2, id)
-			}
-			level2 = level + 1
-			return r.GetSimilar(beginId2, resIds2, level2)
-		}
-		if level == 0 && len(cates) == 0 {
-			return beginId, beginId, level
-		} else {
+		if len(cates) == 0 {
 			return beginId, resIds, level
 		}
+		if level == 0 {
+			resIds2 = beginId
+		} else {
+			resIds2 = resIds
+		}
+		for _, v := range cates {
+			id := v.Id
+			beginId2 = append(beginId2, id)
+			resIds2 = append(resIds2, id)
+		}
+		level2 = level + 1
+		return r.GetSimilar(beginId2, resIds2, level2)
 	}
-	return beginId, resIds, level
+	return beginId, beginId, level
+
 }
 
 func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCategories, err error) {
 	postCate := new(models.ZPostCate)
-	has, err := r.Db.Cols("cate_id").Where("post_id = ?", postId).Get(postCate)
+	err = r.Context.Db.Table((&models.ZPostCate{}).TableName()).Select("cate_id").Where("post_id = ?", postId).
+		Find(postCate).Error
 	if err != nil {
-		r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
-		return cates, err
-	}
-	if has {
-		cates = new(models.ZCategories)
-		has, err = r.Db.Where("id = ?", postCate.CateId).Cols("id", "name", "display_name", "seo_desc").Get(cates)
-		if err != nil {
-			r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
-			return cates, err
-		}
-		if !has {
+		if gorm.IsRecordNotFoundError(err) {
 			r.Error("message", "service.GetPostCateByPostId", "err", "there has not data")
 			return cates, errors.New("can not get the post cate")
 		}
-	} else {
-		r.Error("message", "service.GetPostCateByPostId", "err", "there has not data")
-		return cates, errors.New("can not get the post cate")
+		r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
+		return cates, err
 	}
 
+	cates = new(models.ZCategories)
+	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
+		Where("id = ?", postCate.CateId).
+		Select("id,name,display_name,seo_desc").
+		Find(cates).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			r.Error("message", "service.GetPostCateByPostId", "err", "there has not data")
+			return cates, errors.New("can not get the post cate")
+		}
+		r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
+		return cates, err
+	}
 	return cates, nil
 
 }
 
-func (r *CategoryService) PostCate(postId int) (int, error) {
+func (r *CategoryService) PostCate(postId int) (res int, err error) {
 	postCate := new(models.ZPostCate)
-	_, err := r.Db.Where("post_id = ?", postId).Get(postCate)
+	err = r.Context.Db.Table(postCate.TableName()).
+		Where("post_id = ?", postId).
+		Find(postCate).
+		Error
 	if err != nil {
-		r.Log.Error(map[string]string{
+		r.Context.Log.Error(map[string]string{
 			"message": "service.PostCates",
 			"err":     err.Error(),
 		})
@@ -211,10 +220,11 @@ func (r *CategoryService) PostCate(postId int) (int, error) {
 	}
 	return postCate.CateId, nil
 }
+
 // Get the cate list what by parent sort
 func (r *CategoryService) CateListBySort() ([]pojos.Category, error) {
 	cacheKey := common.Conf.CateListKey
-	cacheRes, err := r.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -274,7 +284,7 @@ func (r *CategoryService) doCacheCateList(cacheKey string) ([]pojos.Category, er
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err
 	}
-	err = r.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err
@@ -315,7 +325,9 @@ func (r *CategoryService) merge(arr1 []pojos.Category, arr2 []pojos.Category) []
 // create the default one
 func (r *CategoryService) allCates() ([]models.ZCategories, error) {
 	cates := make([]models.ZCategories, 0)
-	err := r.Db.Find(&cates)
+	err := r.Context.Db.Table((&models.ZCategories{}).TableName()).
+		Find(&cates).
+		Error
 
 	if err != nil {
 		r.Info("message", "service.AllCates", "err", err.Error())
@@ -329,16 +341,16 @@ func (r *CategoryService) allCates() ([]models.ZCategories, error) {
 			SeoDesc:     "默认的分类",
 			ParentId:    0,
 		}
-		affected, err := r.Db.Insert(&cateCreate)
+		err := r.Context.Db.Create(&cateCreate).Error
 		if err != nil {
 			r.Info("message", "service.AllCates", "err", err.Error())
 			return cates, err
 		}
-		if affected < 1 {
+		if cateCreate.Id < 1 {
 			r.Info("message", "service.AllCates", err, "未成功插入数据")
 			return cates, errors.New("插入默认分类数据失败")
 		}
-		err = r.Db.Find(&cates)
+		err = r.Context.Db.Table((&models.ZCategories{}).TableName()).Find(&cates).Error
 
 		if err != nil {
 			r.Info("message", "service.AllCates", "err", err.Error())
@@ -352,8 +364,7 @@ func (r *CategoryService) allCates() ([]models.ZCategories, error) {
 }
 
 func (r *CategoryService) CateCnt() (cnt int64, err error) {
-	cate := new(models.ZCategories)
-	cnt, err = r.Db.Count(cate)
+	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).Count(&cnt).Error
 	return
 }
 

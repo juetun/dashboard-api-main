@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/web/controllers"
+	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
 )
@@ -21,7 +21,7 @@ type ControllerLink struct {
 	base.ControllerBase
 }
 
-func NewControllerLink() controllers.Console {
+func NewControllerLink() inter.Console {
 	controller := &ControllerLink{}
 	controller.ControllerBase.Init()
 	return controller
@@ -29,17 +29,10 @@ func NewControllerLink() controllers.Console {
 
 func (r *ControllerLink) Index(c *gin.Context) {
 
-	queryPage := c.DefaultQuery("page", "1")
-	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultLimit)
-	queryPageInt, err := strconv.Atoi(queryPage)
-	if err != nil {
-		r.Log.Errorln("message", "console.Post.Index", "err", err.Error())
-		r.Response(c, 500000000, nil)
-		return
-	}
-	limit, offset := common.Offset(queryPage, queryLimit)
+	pager := base.NewPager()
+	limit, offset := pager.InitPageBy(c, "GET")
 
-	srv := services.NewLinkService()
+	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	links, cnt, err := srv.LinkList(offset, limit)
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Index", "err", err.Error())
@@ -48,7 +41,7 @@ func (r *ControllerLink) Index(c *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["list"] = links
-	data["page"] = common.MyPaginate(cnt, limit, queryPageInt)
+	data["page"] = common.MyPaginate(cnt, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -68,7 +61,7 @@ func (r *ControllerLink) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewLinkService()
+	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	err := srv.LinkSore(ls)
 	if err != nil {
 		r.Log.Errorln("message", "link.Store", "error", err.Error())
@@ -87,7 +80,7 @@ func (r *ControllerLink) Edit(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := services.NewLinkService()
+	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	link, err := srv.LinkDetail(linkIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Edit", "err", err.Error())
@@ -119,7 +112,7 @@ func (r *ControllerLink) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewLinkService()
+	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	err = srv.LinkUpdate(ls, linkIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "Link.Update", "error", err.Error())
@@ -138,7 +131,7 @@ func (r *ControllerLink) Destroy(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := services.NewLinkService()
+	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	err = srv.LinkDestroy(linkIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Destroy", "err", err.Error())
