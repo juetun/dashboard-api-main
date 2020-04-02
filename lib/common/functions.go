@@ -9,8 +9,6 @@ package common
 import (
 	"strconv"
 	"time"
-
-	"github.com/juetun/app-dashboard/web/pojos"
 )
 
 func Offset(page string, limit string) (limitInt int, offset int) {
@@ -42,51 +40,6 @@ func GoRepeat(str string, num int) string {
 		}
 	}
 	return newStr
-}
-
-func MyPaginate(count int64, limit int, page int) pojos.Paginate {
-	res := round(int(count), limit)
-	totalPage := res
-
-	lastPage := 0
-	if page-1 <= 0 {
-		lastPage = 1
-	} else {
-		lastPage = page - 1
-	}
-
-	currentPage := 0
-	if page >= res {
-		currentPage = res
-	} else {
-		currentPage = page
-	}
-
-	nextPage := 0
-	if page+1 >= res {
-		nextPage = res
-	} else {
-		nextPage = page + 1
-	}
-
-	return pojos.Paginate{
-		Limit:   limit,
-		Count:   int(count),
-		Total:   totalPage,
-		Last:    lastPage,
-		Current: currentPage,
-		Next:    nextPage,
-	}
-}
-
-func round(a int, b int) int {
-	rem := a % b
-	dis := a / b
-	if rem > 0 {
-		return dis + 1
-	} else {
-		return dis
-	}
 }
 
 func Rem(divisor int) bool {

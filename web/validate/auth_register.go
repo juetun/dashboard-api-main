@@ -21,7 +21,8 @@ func (r *AuthRegisterV) MyValidate() gin.HandlerFunc {
 		var json pojos.AuthRegister
 		if err := c.ShouldBindJSON(&json); err != nil {
 			// o.Response(http.StatusOK, 400001000, nil)
-			appG.Response(400001000, nil)
+			appG.Response(400001000, err.Error())
+			c.Abort()
 			return
 		}
 
@@ -30,7 +31,8 @@ func (r *AuthRegisterV) MyValidate() gin.HandlerFunc {
 			Password: json.Password,
 			UserName: json.UserName,
 		}
- 		if b := appG.Validate(reqValidate); !b {
+		if b := appG.Validate(reqValidate); !b {
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
@@ -44,13 +46,14 @@ type AuthRegister struct {
 	Password string `valid:"Required;MaxSize(30)"`
 }
 
-func (r *AuthRegister) Message() map[string]int {
-	return map[string]int{
-		"Email.Required":    407000000,
-		"Email.Email":       407000001,
-		"Password.Required": 407000002,
-		"Password.MaxSize":  407000003,
-		"UserName.Required": 407000012,
-		"UserName.MaxSize":  407000013,
+func (r *AuthRegister) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Email.Required.":    {Code: 407000000, Message: "请输入邮箱"},
+		"Email.Email.":       {Code: 407000001, Message: "您输入的邮箱格式不正确"},
+		"Password.Required.": {Code: 407000002, Message: "请输入密码"},
+		"Password.MaxSize.":  {Code: 407000003, Message: "密码不超过30个字符"},
+		"UserName.Required.": {Code: 407000012, Message: "请输入用户名"},
+		"UserName.MaxSize.":  {Code: 407000013, Message: "用户名不超过30个字符"},
 	}
+
 }

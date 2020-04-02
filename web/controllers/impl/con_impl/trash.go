@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
@@ -41,7 +42,7 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -219,7 +220,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }

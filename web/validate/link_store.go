@@ -7,8 +7,6 @@
 package validate
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/web/pojos"
@@ -22,8 +20,8 @@ func (lv *LinkStoreV) MyValidate() gin.HandlerFunc {
 		appG := common.NewGin(c)
 		var json pojos.LinkStore
 		if err := c.ShouldBindJSON(&json); err != nil {
-			fmt.Println(json)
-			appG.Response(400001000, nil)
+			appG.Response(400001000, err.Error())
+			c.Abort()
 			return
 		}
 
@@ -33,7 +31,7 @@ func (lv *LinkStoreV) MyValidate() gin.HandlerFunc {
 			Order: json.Order,
 		}
 		if b := appG.Validate(reqValidate); !b {
-			fmt.Println(reqValidate, json)
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
@@ -43,16 +41,17 @@ func (lv *LinkStoreV) MyValidate() gin.HandlerFunc {
 
 type LinkStore struct {
 	Name  string `valid:"Required;MaxSize(100)"`
-	Link  string `valid:"Required;MaxSize(100)"`
-	Order int    `valid:"Min(0)"`
+	Link  string `valid:"Required;MaxSize(1000)"`
+	Order int    `valid:"Min(0);Max(1000000000)"`
 }
 
-func (c *LinkStore) Message() map[string]int {
-	return map[string]int{
-		"Name.Required": 406000000,
-		"Name.MaxSize":  406000001,
-		"Link.Required": 406000002,
-		"Link.MaxSize":  406000003,
-		"Order.Min":     406000004,
+func (c *LinkStore) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Name.Required.": {Code: 406000000, Message: "请输入外链名称"},
+		"Name.MaxSize.":  {Code: 406000001, Message: "请输入外链名称不超过100个字符"},
+		"Link.Required.": {Code: 406000002, Message: "请输入连接地址"},
+		"Link.MaxSize.":  {Code: 406000003, Message: "链接地址不超过1000个字符"},
+		"Order.Min.":     {Code: 406000004, Message: "排序值不能小于0"},
+		"Order.Max.":     {Code: 406000004, Message: "排序值不能大于1000000000"},
 	}
 }

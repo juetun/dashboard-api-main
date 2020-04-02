@@ -4,12 +4,14 @@ import (
 	"html/template"
 
 	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/models"
 )
 
 type PostStore struct {
 	Title    string `json:"title"`
-	Category int    `json:"category"`
+	Category string `json:"category"`
 	Tags     []int  `json:"tags"`
 	Summary  string `json:"summary"`
 	Content  string `json:"content"`
@@ -23,15 +25,15 @@ type CateStore struct {
 }
 
 // 传参校验用
-func (c *CateStore) Message() map[string]int {
-	return map[string]int{
-		"Name.Required":        402000002,
-		"Name.MaxSize":         402000006,
-		"DisplayName.Required": 402000003,
-		"DisplayName.MaxSize":  402000007,
-		"ParentId.Min":         402000004,
-		"SeoDesc.Required":     402000005,
-		"SeoDesc.MaxSize":      402000008,
+func (c *CateStore) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Name.Required.":        {Code: 402000002, Message: "请输入分类名称"},
+		"Name.MaxSize.":         {Code: 402000006, Message: "分类名称不超过100个字符"},
+		"DisplayName.Required.": {Code: 402000003, Message: "请输入分类别名"},
+		"DisplayName.MaxSize.":  {Code: 402000007, Message: "分类别名不超过100个字符"},
+		"ParentId.Min.":         {Code: 402000004, Message: "上级类型不能小于0"},
+		"SeoDesc.Required.":     {Code: 402000005, Message: "请填写SEO描述"},
+		"SeoDesc.MaxSize.":      {Code: 402000008, Message: "SEO描述不超过250个字符"},
 	}
 }
 
@@ -118,16 +120,7 @@ type ConsoleView struct {
 
 type IndexPostList struct {
 	PostListArr *[]ConsolePostList
-	Paginate    Paginate
-}
-
-type Paginate struct {
-	Limit   int `json:"limit"`
-	Count   int `json:"count"`
-	Total   int `json:"total"`
-	Last    int `json:"last"`
-	Current int `json:"current"`
-	Next    int `json:"next"`
+	Paginate    utils.Paginate
 }
 
 type IndexPost struct {

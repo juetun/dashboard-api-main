@@ -81,6 +81,11 @@ var Permissions = []HttpPermit{
 		Method: []string{"DELETE"},
 		Uri:    `^console\/post\/[^\/]+\/trash$`,
 	},
+	{
+		Method: []string{"GET"},
+		Uri:    `console/link`,
+	},
+
 }
 
 // 需要验证权限的配置列表

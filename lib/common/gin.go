@@ -8,6 +8,7 @@
 package common
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/astaxie/beego/validation"
@@ -16,8 +17,12 @@ import (
 	"github.com/juetun/app-dashboard/lib/base"
 )
 
+type ValidationMessage struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
 type validate interface {
-	Message() map[string]int
+	Message() map[string]ValidationMessage
 }
 type Gin struct {
 	C *gin.Context
@@ -45,10 +50,10 @@ func (r *Gin) Validate(obj validate) bool {
 		errorMaps := obj.Message()
 		field := valid.Errors[0].Key
 		if v, ok := errorMaps[field]; ok {
-			r.C.JSON(http.StatusOK, base.Result{Data: v, Code: 100000001, Msg: err.Error()})
+			r.C.JSON(http.StatusOK, base.Result{Data: v, Code: errorMaps[field].Code, Msg: errorMaps[field].Message})
 			return b
 		}
-		r.C.JSON(http.StatusOK, base.Result{Data: nil, Code: 100000001, Msg: err.Error()})
+		r.C.JSON(http.StatusOK, base.Result{Data: nil, Code: 100000001, Msg: fmt.Sprintf("参数校验异常(%s)", field)})
 		return b
 	}
 	return true

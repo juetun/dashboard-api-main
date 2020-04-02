@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
@@ -36,13 +36,12 @@ func (r *ControllerLink) Index(c *gin.Context) {
 	links, cnt, err := srv.LinkList(offset, limit)
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Index", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	data := make(map[string]interface{})
 	data["list"] = links
-	data["page"] = common.MyPaginate(cnt, limit, pager.PageNo)
-
+	data["page"] = utils.MyPaginate(cnt, limit, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }
@@ -96,30 +95,30 @@ func (r *ControllerLink) Update(c *gin.Context) {
 
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Update", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, "链接数据格式异常")
 		return
 	}
 
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Errorln("message", "Link.Update", "error", "get request_params from context fail")
-		r.Response(c, 400001003, nil)
+		r.Response(c, 400001003, nil, "您输入的数据格式错误")
 		return
 	}
 	ls, ok := requestJson.(pojos.LinkStore)
 	if !ok {
 		r.Log.Errorln("message", "Link.Update", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "您输入的数据格式错误")
 		return
 	}
 	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	err = srv.LinkUpdate(ls, linkIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "Link.Update", "error", err.Error())
-		r.Response(c, 406000007, nil)
+		r.Response(c, 406000007, nil, err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil,"操作成功")
 	return
 }
 func (r *ControllerLink) Destroy(c *gin.Context) {

@@ -4,7 +4,7 @@ import (
 	"github.com/juetun/app-dashboard/lib/app_start"
 	_ "github.com/juetun/app-dashboard/lib/init" // 加载公共插件项
 	. "github.com/juetun/app-dashboard/lib/plugins"
-	_ "github.com/juetun/app-dashboard/router" // 加载路由信息
+	_ "github.com/juetun/app-dashboard/web/router" // 加载路由信息
 )
 
 // https://github.com/izghua/go-blog

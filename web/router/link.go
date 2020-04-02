@@ -8,14 +8,13 @@ import (
 
 func init() {
 	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
-		link := r.Group(urlPrefix + "/console/link")
-
+		link := r.Group(urlPrefix + "/console")
 		consoleLink := console.NewControllerLink()
 		linkV := validate.NewValidate().NewLinkV.MyValidate()
-		link.GET("/", consoleLink.Index)
-		link.POST("/", linkV, consoleLink.Store)
-		link.GET("/edit/:id", consoleLink.Edit)
-		link.PUT("/:id", linkV, consoleLink.Update)
-		link.DELETE("/:id", consoleLink.Destroy)
+		link.GET("/link", consoleLink.Index)
+		link.POST("/link", linkV, consoleLink.Store)
+		link.GET("/link/edit/:id", consoleLink.Edit)
+		link.PUT("/link/:id", linkV, consoleLink.Update)
+		link.DELETE("/link/:id", consoleLink.Destroy)
 	}, )
 }

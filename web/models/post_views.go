@@ -6,7 +6,7 @@ import (
 
 type ZPostViews struct {
 	base.Model
-	PostId int `gorm:"column:post_id;" json:"post_id"`
+	PostId string `gorm:"column:post_id;" json:"post_id"`
 	Num    int `gorm:"column:num;" json:"num"`
 }
 

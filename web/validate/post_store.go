@@ -21,7 +21,8 @@ func (pv *PostStoreV) MyValidate() gin.HandlerFunc {
 		var json pojos.PostStore
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response(400001000, nil)
+			appG.Response(400001000, err.Error())
+			c.Abort()
 			return
 		}
 
@@ -31,6 +32,7 @@ func (pv *PostStoreV) MyValidate() gin.HandlerFunc {
 			Summary: json.Summary,
 		}
 		if b := appG.Validate(reqValidate); !b {
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
@@ -45,9 +47,9 @@ type PostStore struct {
 	Summary string `valid:"Required;"`
 }
 
-func (c *PostStore) Message() map[string]int {
-	return map[string]int{
-		"Title.Required":   401000000,
-		"Summary.Required": 401000003,
+func (c *PostStore) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Title.Required.":   {Code: 401000000, Message: "请输入标题"},
+		"Summary.Required.": {Code: 401000003, Message: "请输入摘要"},
 	}
 }

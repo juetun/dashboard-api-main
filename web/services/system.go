@@ -31,7 +31,10 @@ func NewSystemService(context ...*base.Context) (p *SystemService) {
 }
 func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 	system = new(models.ZBaseSys)
-	err = r.Context.Db.Table(system.TableName()).Find(system).Error
+	err = r.Context.Db.
+		Table(system.TableName()).
+		Find(system).
+		Error
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) { // 如果没有查询到数据
 			err = nil
@@ -40,32 +43,10 @@ func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 		r.Context.Log.Errorln("message", "service.GetSystemList", "err", err.Error())
 		return
 	}
-	if system.Id <= 0 {
-		return
-	}
-	systemInsert := models.ZBaseSys{
-		Theme:        1,
-		Title:        "汽车家",
-		Keywords:     "汽车信息",
-		Description:  "阿斯顿发生",
-		RecordNumber: "京ICP-0001",
-	}
-	dba := r.Context.Db.Table((&models.ZBaseSys{}).TableName())
-	err = dba.Create(&systemInsert).Error
-	if err != nil {
-		r.Context.Log.Errorln("message", "service.GetSystemList", "err", err.Error())
-		return
-	}
-	err = dba.Find(system).Error
-	if err != nil {
-		r.Context.Log.Errorln("message", "service.GetSystemList", "err", err.Error())
-		return
-	}
-
 	return
 }
 
-func (r *SystemService) SystemUpdate(sId int, ss pojos.ConsoleSystem) error {
+func (r *SystemService) SystemUpdate(sId int, ss pojos.ConsoleSystem) (err error) {
 	systemUpdate := models.ZBaseSys{
 		Title:        ss.Title,
 		Keywords:     ss.Keywords,
@@ -73,7 +54,11 @@ func (r *SystemService) SystemUpdate(sId int, ss pojos.ConsoleSystem) error {
 		RecordNumber: ss.RecordNumber,
 		Theme:        ss.Theme,
 	}
-	err := r.Context.Db.Where("id=?", sId).
+	if sId == 0 {
+		err = r.Context.Db.Table((&models.ZBaseSys{}).TableName()).Create(&systemUpdate).Error
+		return
+	}
+	err = r.Context.Db.Table((&models.ZBaseSys{}).TableName()).Where("id=?", sId).
 		Update(&systemUpdate).
 		Error
 	return err

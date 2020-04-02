@@ -20,9 +20,19 @@ func NewControllerHome() inter.System {
 	return controller
 }
 
+type Themes struct {
+	Key   int    `json:"key"`
+	Label string `json:"label"`
+}
+
 func (r *ControllerHome) Index(c *gin.Context) {
-	themes := make(map[int]interface{})
-	themes[1] = 1
+	themes := []Themes{
+		{
+			Key:   1,
+			Label: "默认模板",
+		},
+	}
+
 	srv := services.NewSystemService(&base.Context{Log: r.Log})
 	system, err := srv.GetSystemList()
 	if err != nil {
@@ -43,30 +53,30 @@ func (r *ControllerHome) Update(c *gin.Context) {
 
 	if err != nil {
 		r.Log.Errorln("message", "console.Update", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, "数据ID格式不正确")
 		return
 	}
 
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Errorln("message", "system.Update", "error", "get request_params from context fail")
-		r.Response(c, 400001003, nil)
+		r.Response(c, 400001003, nil, "参数异常")
 		return
 	}
 	// var ss common.ConsoleSystem
 	ss, ok := requestJson.(pojos.ConsoleSystem)
 	if !ok {
 		r.Log.Errorln("message", "system.Update", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "参数异常")
 		return
 	}
 	srv := services.NewSystemService(&base.Context{Log: r.Log})
 	err = srv.SystemUpdate(systemIdInt, ss)
 	if err != nil {
 		r.Log.Errorln("message", "system.Update", "error", err.Error())
-		r.Response(c, 405000000, nil)
+		r.Response(c, 405000000, nil, err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }

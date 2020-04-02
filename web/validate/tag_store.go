@@ -22,7 +22,8 @@ func (tv *TagStoreV) MyValidate() gin.HandlerFunc {
 		var json pojos.TagStore
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response(400001000, nil)
+			appG.Response(400001000, err.Error())
+			c.Abort()
 			return
 		}
 
@@ -32,6 +33,7 @@ func (tv *TagStoreV) MyValidate() gin.HandlerFunc {
 			SeoDesc:     json.SeoDesc,
 		}
 		if b := appG.Validate(reqValidate); !b {
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
@@ -45,13 +47,13 @@ type TagStore struct {
 	SeoDesc     string `valid:"Required;MaxSize(250)"`
 }
 
-func (c *TagStore) Message() map[string]int {
-	return map[string]int{
-		"Name.Required":        403000000,
-		"Name.MaxSize":         403000001,
-		"DisplayName.Required": 403000002,
-		"DisplayName.MaxSize":  403000003,
-		"SeoDesc.Required":     403000004,
-		"SeoDesc.MaxSize":      403000005,
+func (c *TagStore) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Name.Required.":        {Code: 403000000, Message: "请输入标签"},
+		"Name.MaxSize.":         {Code: 403000001, Message: "标签不超过100个字符"},
+		"DisplayName.Required.": {Code: 403000002, Message: "请输入标签别名"},
+		"DisplayName.MaxSize.":  {Code: 403000003, Message: "标签别名不超过100个字符"},
+		"SeoDesc.Required.":     {Code: 403000004, Message: "请输入seo描述"},
+		"SeoDesc.MaxSize.":      {Code: 403000005, Message: "seo描述不超过250个字符"},
 	}
 }

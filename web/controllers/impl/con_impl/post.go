@@ -14,6 +14,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
@@ -45,7 +46,7 @@ func (r *ControllerPost) Index(c *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }
@@ -127,7 +128,7 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 		r.Response(c, 500000005, nil)
 		return
 	}
-	var postCate *map[int]models.ZPostCate
+	var postCate *map[string]models.ZPostCate
 	postCate, err = srvCate.GetPostCates(&[]int{postIdInt})
 	if err != nil {
 		r.Log.Errorln("message", "console.Edit(12)", "err", err.Error())
@@ -138,8 +139,8 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 	posts := make(map[string]interface{})
 	posts["post"] = post
 	posts["postCate"] = 0
-	if _, ok := (*postCate)[postIdInt]; ok {
-		posts["postCate"] = (*postCate)[postIdInt].CateId
+	if _, ok := (*postCate)[postIdStr]; ok {
+		posts["postCate"] = (*postCate)[postIdStr].CateId
 	}
 
 	posts["postTag"] = postTags
@@ -237,7 +238,7 @@ func (r *ControllerPost) TrashIndex(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = common.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return

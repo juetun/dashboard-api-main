@@ -16,6 +16,7 @@ import (
 	"github.com/juetun/app-dashboard/lib/app_log"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
 )
@@ -172,7 +173,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		}
 	}
 
-	paginate := common.MyPaginate(postCount, limit, queryPageInt)
+	paginate := utils.MyPaginate(postCount, limit, queryPageInt)
 
 	res = pojos.IndexPostList{
 		PostListArr: postList,

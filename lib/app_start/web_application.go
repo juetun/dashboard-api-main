@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/common"
 	"github.com/juetun/app-dashboard/lib/middlewares"
-	"github.com/juetun/app-dashboard/router"
+	"github.com/juetun/app-dashboard/web/router"
 )
 
 type WebApplication struct {
@@ -20,7 +20,7 @@ type WebApplication struct {
 }
 
 func NewWebApplication() *WebApplication {
-	if common.GetAppConfig().AppEnv == "release" {
+	if false&&common.GetAppConfig().AppEnv == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)

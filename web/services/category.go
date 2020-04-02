@@ -9,6 +9,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -46,7 +47,7 @@ func (r *CategoryService) GetCateByParentId(parentId int) (cate *models.ZCategor
 
 func (r *CategoryService) DelCateRel(cateId int) {
 	session := r.Context.Db.Begin()
-	defer session.Close()
+	defer session.Commit()
 	postCate := new(models.ZPostCate)
 	err := session.Where("cate_id = ?", cateId).Delete(postCate).Error
 	if err != nil {
@@ -61,7 +62,6 @@ func (r *CategoryService) DelCateRel(cateId int) {
 		r.Error("message", "service.DelCateRel", "err", err.Error())
 		return
 	}
-	session.Commit()
 	r.Context.CacheClient.Del(common.Conf.CateListKey)
 	return
 }
@@ -182,8 +182,8 @@ func (r *CategoryService) GetSimilar(beginId []int, resIds []int, level int) (be
 }
 
 // 根据文章ID获取文章的分类
-func (r *CategoryService) GetPostCateByPostIds(postIds *[]int) (res *map[int]pojos.PostShow, err error) {
-	res = &map[int]pojos.PostShow{}
+func (r *CategoryService) GetPostCateByPostIds(postIds *[]string) (res *map[string]pojos.PostShow, err error) {
+	res = &map[string]pojos.PostShow{}
 	if len(*postIds) == 0 {
 		return
 	}
@@ -208,8 +208,8 @@ func (r *CategoryService) GetPostCateByPostIds(postIds *[]int) (res *map[int]poj
 	return
 }
 
-func (r *CategoryService) GetCategoryByIds(ids *[]int) (res *map[int]models.ZCategories, err error) {
-	res = &map[int]models.ZCategories{}
+func (r *CategoryService) GetCategoryByIds(ids *[]string) (res *map[string]models.ZCategories, err error) {
+	res = &map[string]models.ZCategories{}
 	if len(*ids) == 0 {
 		return
 	}
@@ -220,14 +220,14 @@ func (r *CategoryService) GetCategoryByIds(ids *[]int) (res *map[int]models.ZCat
 	}
 
 	for _, value := range dt {
-		(*res)[value.Id] = value
+		(*res)[strconv.Itoa(value.Id)] = value
 	}
 	return
 }
 
-func (r *CategoryService) uniqueCateId(dt *[]models.ZPostCate) *[]int {
-	cateIds := make([]int, 0)
-	mapCateIds := make(map[int]int)
+func (r *CategoryService) uniqueCateId(dt *[]models.ZPostCate) *[]string {
+	cateIds := make([]string, 0)
+	mapCateIds := make(map[string]string)
 	for _, value := range *dt {
 		if _, ok := mapCateIds[value.CateId]; !ok {
 			cateIds = append(cateIds, value.CateId)
@@ -267,7 +267,7 @@ func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCatego
 
 }
 
-func (r *CategoryService) PostCate(postId int) (res int, err error) {
+func (r *CategoryService) PostCate(postId int) (res string, err error) {
 	postCate := new(models.ZPostCate)
 	err = r.Context.Db.Table(postCate.TableName()).
 		Where("post_id = ?", postId).
@@ -282,8 +282,8 @@ func (r *CategoryService) PostCate(postId int) (res int, err error) {
 	}
 	return postCate.CateId, err
 }
-func (r *CategoryService) GetPostCates(postId *[]int) (res *map[int]models.ZPostCate, err error) {
-	res = &map[int]models.ZPostCate{}
+func (r *CategoryService) GetPostCates(postId *[]int) (res *map[string]models.ZPostCate, err error) {
+	res = &map[string]models.ZPostCate{}
 	if len(*postId) == 0 {
 		return
 	}

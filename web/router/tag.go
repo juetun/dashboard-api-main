@@ -8,13 +8,13 @@ import (
 
 func init() {
 	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
-		tag := r.Group(urlPrefix + "/console/tag")
+		tag := r.Group(urlPrefix + "/console")
 		consoleTag := con_impl.NewControllerTag()
 		tagV := validate.NewValidate().NewTagV.MyValidate()
-		tag.GET("/", consoleTag.Index)
-		tag.POST("/", tagV, consoleTag.Store)
-		tag.GET("/edit/:id", consoleTag.Edit)
-		tag.PUT("/:id", tagV, consoleTag.Update)
-		tag.DELETE("/:id", consoleTag.Destroy)
+		tag.GET("/tag", consoleTag.Index)
+		tag.POST("/tag", tagV, consoleTag.Store)
+		tag.GET("/tag/edit/:id", consoleTag.Edit)
+		tag.PUT("/tag/:id", tagV, consoleTag.Update)
+		tag.DELETE("/tag/:id", consoleTag.Destroy)
 	})
 }

@@ -17,10 +17,11 @@ type AuthLoginV struct {
 
 func (av *AuthLoginV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		appG:=common.NewGin(c)
+		appG := common.NewGin(c)
 		var json pojos.AuthLogin
 		if err := c.ShouldBindJSON(&json); err != nil {
-			appG.Response(400001000, nil)
+			appG.Response(400001000, err.Error())
+			c.Abort()
 			return
 		}
 
@@ -31,6 +32,7 @@ func (av *AuthLoginV) MyValidate() gin.HandlerFunc {
 			CaptchaKey: json.CaptchaKey,
 		}
 		if b := appG.Validate(reqValidate); !b {
+			c.Abort()
 			return
 		}
 		c.Set("json", json)
@@ -40,20 +42,21 @@ func (av *AuthLoginV) MyValidate() gin.HandlerFunc {
 
 type AuthLogin struct {
 	Email      string `valid:"Required;Email"`
-	Password   string `valid:"Required;MaxSize(30)"`
+	Password   string `valid:"Required;MinSize(6);MaxSize(30)"`
 	Captcha    string `valid:"Required;MaxSize(5)"`
 	CaptchaKey string `valid:"Required;MaxSize(30)"`
 }
 
-func (av *AuthLogin) Message() map[string]int {
-	return map[string]int{
-		"Email.Required":      407000000,
-		"Email.Email":         407000001,
-		"Password.Required":   407000002,
-		"Password.MaxSize":    407000003,
-		"Captcha.Required":    407000004,
-		"Captcha.MaxSize":     407000005,
-		"CaptchaKey.Required": 407000006,
-		"CaptchaKey.MaxSize":  407000007,
+func (av *AuthLogin) Message() map[string]common.ValidationMessage {
+	return map[string]common.ValidationMessage{
+		"Email.Required.":      {Code: 407000000, Message: "请输入邮箱"},
+		"Email.Email.":         {Code: 407000001, Message: "您输入的邮箱格式不正确"},
+		"Password.Required.":   {Code: 407000002, Message: "请输入密码"},
+		"Password.MaxSize.":    {Code: 407000003, Message: "密码不超过30个字符"},
+		"Password.MinSize.":    {Code: 407000003, Message: "密码不少于6个字符"},
+		"Captcha.Required.":    {Code: 407000004, Message: "请输入验证码"},
+		"Captcha.MaxSize.":     {Code: 407000005, Message: "验证码格式不正确"},
+		"CaptchaKey.Required.": {Code: 407000006, Message: "数据异常，验证校验码"},
+		"CaptchaKey.MaxSize.":  {Code: 407000007, Message: "校验参数不超过30个字符"},
 	}
 }

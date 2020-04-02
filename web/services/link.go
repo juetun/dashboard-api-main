@@ -29,10 +29,10 @@ func NewLinkService(context ...*base.Context) (p *LinkService) {
 }
 func (r *LinkService) LinkList(offset int, limit int) (links []models.ZLinks, cnt int64, err error) {
 	links = make([]models.ZLinks, 0)
-	dba := r.Context.Db
+	dba := r.Context.Db.Table((&models.ZLinks{}).TableName())
 	err = dba.Count(&cnt).Error
 	if cnt > 0 {
-		err = dba.Order("order asc").Limit(limit).
+		err = dba.Order("`order` asc").Limit(limit).
 			Offset(offset).
 			Find(&links).Error
 	}
@@ -50,6 +50,7 @@ func (r *LinkService) LinkSore(ls pojos.LinkStore) (err error) {
 }
 
 func (r *LinkService) LinkDetail(linkId int) (link *models.ZLinks, err error) {
+	link = &models.ZLinks{}
 	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
 		Where("id=?", linkId).
 		Find(link).Error
@@ -62,7 +63,9 @@ func (r *LinkService) LinkUpdate(ls pojos.LinkStore, linkId int) (err error) {
 		Name:  ls.Name,
 		Order: ls.Order,
 	}
-	err = r.Context.Db.Where("id=?", linkId).Update(&linkUpdate).Error
+	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
+		Where("id=?", linkId).
+		Update(&linkUpdate).Error
 	return
 }
 

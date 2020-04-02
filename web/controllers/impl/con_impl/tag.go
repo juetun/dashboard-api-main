@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/lib/utils"
 	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"
@@ -36,7 +36,7 @@ func (r *ControllerTag) Index(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = tags
-	data["page"] = common.MyPaginate(count, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(count, limit, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -50,24 +50,24 @@ func (r *ControllerTag) Store(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Errorln("message", "Tag.Store", "error", "get request_params from context fail")
-		r.Response(c, 400001003, nil)
+		r.Response(c, 400001003, nil, "请求参数异常")
 		return
 	}
 	var ts pojos.TagStore
 	ts, ok := requestJson.(pojos.TagStore)
 	if !ok {
 		r.Log.Errorln("message", "Tag.Store", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, "请求参数异常")
 		return
 	}
 	srv := services.NewTagService(&base.Context{Log: r.Log})
 	err := srv.TagStore(ts)
 	if err != nil {
 		r.Log.Errorln("message", "console.Cate.Store", "err", err.Error())
-		r.Response(c, 403000006, nil)
+		r.Response(c, 403000006, err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 

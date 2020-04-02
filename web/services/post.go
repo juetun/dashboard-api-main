@@ -9,6 +9,7 @@ package services
 import (
 	"errors"
 	"html/template"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
@@ -71,7 +72,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	srvTag := NewTagService(r.Context)
 	srvUser := NewUserService(r.Context)
 	ids, userId := r.uniquePostId(&dt)
-	var mapCates *map[int]pojos.PostShow
+	var mapCates *map[string]pojos.PostShow
 	mapCates, err = srv.GetPostCateByPostIds(ids)
 	if err != nil {
 		return
@@ -86,7 +87,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapView *map[int]models.ZPostViews
+	var mapView *map[string]models.ZPostViews
 	mapView, err = r.PostView(ids)
 	if err != nil {
 		return
@@ -110,12 +111,13 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 			View:     pojos.ConsoleView{},
 			Author:   pojos.ConsoleUser{},
 		}
-		if _, ok := (*mapCates)[post.Id]; ok {
+		pid := strconv.Itoa(post.Id)
+		if _, ok := (*mapCates)[pid]; ok {
 			postList.Category = pojos.ConsoleCate{
-				Id:          (*mapCates)[post.Id].ZCategories.Id,
-				Name:        (*mapCates)[post.Id].ZCategories.Name,
-				DisplayName: (*mapCates)[post.Id].ZCategories.DisplayName,
-				SeoDesc:     (*mapCates)[post.Id].ZCategories.SeoDesc,
+				Id:          (*mapCates)[pid].ZCategories.Id,
+				Name:        (*mapCates)[pid].ZCategories.Name,
+				DisplayName: (*mapCates)[pid].ZCategories.DisplayName,
+				SeoDesc:     (*mapCates)[pid].ZCategories.SeoDesc,
 			}
 		}
 		if _, ok := (*mapUser)[post.UserId]; ok {
@@ -126,8 +128,8 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 				Status: (*mapUser)[post.UserId].Status,
 			}
 		}
-		if _, ok := (*mapView)[post.Id]; ok {
-			postList.View = pojos.ConsoleView{Num: (*mapView)[post.Id].Num}
+		if _, ok := (*mapView)[pid]; ok {
+			postList.View = pojos.ConsoleView{Num: (*mapView)[pid].Num}
 		}
 		if _, ok := (*mapTags)[post.Id]; ok {
 			postList.Tags = (*mapTags)[post.Id]
@@ -137,31 +139,35 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	}
 	return
 }
-func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (*[]int, *[]int) {
-	ids := make([]int, 0)
-	userId := make([]int, 0)
+func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (ids *[]string, userId *[]int) {
+	ids = &[]string{}
+	userId = &[]int{}
 	mUid := make(map[int]int)
-	mId := make(map[int]int)
+	mId := make(map[string]string)
 	for _, post := range *dt {
 		if _, ok := mUid[post.UserId]; !ok {
-			userId = append(userId, post.UserId)
+			*userId = append(*userId, post.UserId)
 			mUid[post.UserId] = post.UserId
 		}
-		if _, ok := mId[post.Id]; !ok {
-			ids = append(ids, post.Id)
-			mId[post.Id] = post.Id
+		pid := strconv.Itoa(post.Id)
+		if _, ok := mId[pid]; !ok {
+			*ids = append(*ids, pid)
+			mId[pid] = pid
 		}
 	}
-	return &ids, &userId
+	return
 }
 
 func (r *ConsolePostService) getZPostViewsDbaTable() *gorm.DB {
 	return r.Context.Db.Table((&models.ZPostViews{}).TableName())
 }
 
-func (r *ConsolePostService) PostView(postId *[]int) (postV *map[int]models.ZPostViews, err error) {
-	postV = &map[int]models.ZPostViews{}
+func (r *ConsolePostService) PostView(postId *[]string) (postV *map[string]models.ZPostViews, err error) {
+	postV = &map[string]models.ZPostViews{}
 	var views []models.ZPostViews
+	if len(*postId) == 0 {
+		return
+	}
 	err = r.getZPostViewsDbaTable().Where("post_id in (?)", *postId).
 		Find(&views).Error
 	if err != nil {
@@ -188,7 +194,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId int) {
 	postCreate.Content = string(html)
 
 	session := r.getDbaTable().Begin()
-	defer session.Close()
+	defer session.Commit()
 	err := session.Create(postCreate).Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
@@ -205,9 +211,9 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId int) {
 		return
 	}
 
-	if ps.Category > 0 {
+	if ps.Category != "0" && ps.Category != "" {
 		postCateCreate := models.ZPostCate{
-			PostId: postCreate.Id,
+			PostId: strconv.Itoa(postCreate.Id),
 			CateId: ps.Category,
 		}
 		err := session.Create(postCateCreate).Error
@@ -265,7 +271,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId int) {
 	}
 
 	postView := models.ZPostViews{
-		PostId: postCreate.Id,
+		PostId: strconv.Itoa(postCreate.Id),
 		Num:    1,
 	}
 
@@ -389,7 +395,8 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	}
 
 	// view
-	view, err := r.PostView(&[]int{post.Id})
+	pid := strconv.Itoa(post.Id)
+	view, err := r.PostView(&[]string{pid})
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.IndexPostDetailDao",
@@ -398,8 +405,8 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 		return
 	}
 	View := pojos.ConsoleView{}
-	if _, ok := (*view)[post.Id]; ok {
-		View.Num = (*view)[post.Id].Num
+	if _, ok := (*view)[pid]; ok {
+		View.Num = (*view)[pid].Num
 	}
 	srvUser := NewUserService()
 	// user
@@ -542,7 +549,7 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	postUpdate.Content = string(html)
 	session := r.Context.Db.Begin()
-	defer session.Close()
+	defer session.Commit()
 	err = session.Table((&models.ZPosts{}).TableName()).Where("id = ?", postId).Update(postUpdate).Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
@@ -563,9 +570,9 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 		return
 	}
 
-	if ps.Category > 0 {
+	if ps.Category != "" && ps.Category != "0" {
 		postCateCreate := models.ZPostCate{
-			PostId: postId,
+			PostId: strconv.Itoa(postId),
 			CateId: ps.Category,
 		}
 

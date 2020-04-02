@@ -38,7 +38,7 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 		Where("name = ?", ts.Name).
 		Find(tag).
 		Error
-	if err != nil {
+	if err != nil && !gorm.IsRecordNotFoundError(err) {
 		r.Context.Log.Errorln("message", "service.TagStore", "error", err.Error())
 		return err
 	}
@@ -58,7 +58,7 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
-func (r *TagService) GetPostTagsByPostIds(postIds *[]int) (res *map[int][]pojos.ConsoleTag, err error) {
+func (r *TagService) GetPostTagsByPostIds(postIds *[]string) (res *map[int][]pojos.ConsoleTag, err error) {
 	res = &map[int][]pojos.ConsoleTag{}
 	if len(*postIds) == 0 {
 		return
@@ -127,7 +127,10 @@ func (r *TagService) uniqueTagId(dt *[]models.ZPostTag) *[]int {
 }
 
 func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) {
-	rows, err := r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id = ?", postId).Select("tag_id").Rows()
+	rows, err := r.Context.Db.Table((&models.ZPostTag{}).TableName()).
+		Where("post_id = ?", postId).
+		Select("tag_id").
+		Rows()
 	if err != nil {
 		r.Context.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
 		return nil, nil
@@ -177,7 +180,7 @@ func (r *TagService) GetTagsByIds(tagIds []int) (tags []*models.ZTags, err error
 
 func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models.ZTags, err error) {
 	tags = make([]*models.ZTags, 0)
-	dba := r.getTableDb()
+	dba := r.getTableDb().Table((&models.ZTags{}).TableName()).Unscoped().Where("deleted_at IS NULL" )
 	err = dba.Count(&num).Error
 	if err != nil {
 		return
@@ -194,7 +197,7 @@ func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models
 
 func (r *TagService) DelTagRel(tagId int) {
 	session := r.Context.Db.Begin().Table((&models.ZPostTag{}).TableName())
-	defer session.Close()
+	defer session.Commit()
 	postTag := new(models.ZPostTag)
 	err := session.Where("tag_id = ?", tagId).Delete(postTag).Error
 	if err != nil {
@@ -209,8 +212,7 @@ func (r *TagService) DelTagRel(tagId int) {
 		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
-	session.Commit()
-	r.Context.CacheClient.Del(common.Conf.TagListKey)
+ 	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
 func (r *TagService) CommonData() (h gin.H, err error) {
