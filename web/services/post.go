@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/app-dashboard/web/daos"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"

@@ -11,13 +11,13 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type DaoPostTag struct {
-	base.ServiceDao
+ 	base.ServiceDao
 }
 
 func NewDaoPostTag(context ...*base.Context) (p *DaoPostTag) {

@@ -5,11 +5,12 @@ import (
 	"github.com/juetun/app-dashboard/web/controllers/impl/auth_impl"
 	"github.com/juetun/app-dashboard/web/controllers/impl/home_impl"
 	"github.com/juetun/app-dashboard/web/validate"
+	"github.com/juetun/base-wrapper/lib/app_start"
 )
 
 func init() {
 
-	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
+	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		consoleAuth := auth_impl.NewControllerAuth()
 		// 不需要登录状态权限
 		al := r.Group(urlPrefix + "/console")

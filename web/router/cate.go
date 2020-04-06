@@ -4,10 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/app-dashboard/web/controllers/impl/con_impl"
 	"github.com/juetun/app-dashboard/web/validate"
+	"github.com/juetun/base-wrapper/lib/app_start"
 )
 
 func init() {
-	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
+	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		cate := r.Group(urlPrefix + "/console")
 		consoleCate := con_impl.NewControllerCategory()
 		cateV := validate.NewValidate().NewCateV.MyValidate()

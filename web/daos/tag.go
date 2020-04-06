@@ -8,7 +8,7 @@
 package daos
 
 import (
-	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
 )

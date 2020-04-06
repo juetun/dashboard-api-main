@@ -13,10 +13,10 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/app-dashboard/lib/app_log"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/lib/utils"
+	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
 )

@@ -10,8 +10,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/app-dashboard/web/pojos"
 )
 

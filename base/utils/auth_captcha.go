@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/juetun/app-dashboard/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/mojocn/base64Captcha"
 )
 

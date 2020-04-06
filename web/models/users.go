@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type ZUsers struct {

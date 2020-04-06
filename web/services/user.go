@@ -7,7 +7,7 @@
 package services
 
 import (
-	"github.com/juetun/app-dashboard/lib/base"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/app-dashboard/web/models"
 )
 

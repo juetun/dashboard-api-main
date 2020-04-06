@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app_log"
 	"github.com/juetun/app-dashboard/web"
 )
 

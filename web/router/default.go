@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/app_start"
 )
 
 func init() {
-	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
+	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		// web := web_impl.NewControllerWeb()
 		r.SetFuncMap(template.FuncMap{
 			"rem":    rem,

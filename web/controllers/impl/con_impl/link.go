@@ -10,8 +10,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/utils"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/app-dashboard/web/controllers/inter"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/juetun/app-dashboard/web/services"

@@ -5,10 +5,11 @@ import (
 	"github.com/juetun/app-dashboard/web/controllers/impl/con_impl"
 	"github.com/juetun/app-dashboard/web/controllers/impl/img_impl"
 	"github.com/juetun/app-dashboard/web/validate"
+	"github.com/juetun/base-wrapper/lib/app_start"
 )
 
 func init() {
-	HandleFunc = append(HandleFunc, func(r *gin.Engine, urlPrefix string) {
+	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		post := con_impl.NewControllerPost()
 		trash := con_impl.NewControllerTrash()
 		img := img_impl.NewControllerImg()

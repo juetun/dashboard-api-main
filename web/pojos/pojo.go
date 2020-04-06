@@ -3,9 +3,9 @@ package pojos
 import (
 	"html/template"
 
-	"github.com/juetun/app-dashboard/lib/base"
-	"github.com/juetun/app-dashboard/lib/common"
-	"github.com/juetun/app-dashboard/lib/utils"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/app-dashboard/web/models"
 )
 
