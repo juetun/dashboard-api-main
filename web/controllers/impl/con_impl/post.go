@@ -57,21 +57,21 @@ func (r *ControllerPost) Create(c *gin.Context) {
 
 	if err != nil {
 		r.Log.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	srvTag := services.NewTagService(&base.Context{Log: r.Log})
 	tags, err := srvTag.AllTags()
 	if err != nil {
 		r.Log.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	data := make(map[string]interface{})
 	data["cates"] = cates
 	data["tags"] = tags
 	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
-	r.Response(c, 0, data)
+	r.Response(c, 0, data, "添加成功")
 	return
 }
 
@@ -80,26 +80,26 @@ func (r *ControllerPost) Store(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
-		r.Response(c, 401000004, nil)
+		r.Response(c, 401000004, nil, "参数异常")
 		return
 	}
 	var ps pojos.PostStore
 	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
 		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "参数异常")
 		return
 	}
 
 	userId, exist := c.Get("userId")
 	if !exist || userId.(int) == 0 {
 		r.Log.Errorln("message", "post.Store", "error", "Can not get user")
-		r.Response(c, 400001004, nil)
+		r.Response(c, 400001004, nil, "获取用户信息失败")
 		return
 	}
 	srvPost := services.NewConsolePostService(&base.Context{Log: r.Log})
 	srvPost.PostStore(ps, userId.(int))
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 
@@ -160,7 +160,7 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 	data["cates"] = cates
 	data["tags"] = tags
 	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
-	r.Response(c, 0, data)
+	r.Response(c, 0, data, "操作成功")
 	return
 }
 
@@ -177,7 +177,7 @@ func (r *ControllerPost) Update(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
-		r.Response(c, 400001003, nil)
+		r.Response(c, 400001003, nil, "参数格式异常")
 		return
 	}
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
@@ -185,11 +185,11 @@ func (r *ControllerPost) Update(c *gin.Context) {
 	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
 		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "参数格式异常")
 		return
 	}
 	srv.PostUpdate(postIdInt, ps)
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
 

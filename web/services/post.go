@@ -10,10 +10,12 @@ import (
 	"errors"
 	"html/template"
 	"strconv"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/app-dashboard/lib/base"
 	"github.com/juetun/app-dashboard/lib/common"
+	"github.com/juetun/app-dashboard/web/daos"
 	"github.com/juetun/app-dashboard/web/models"
 	"github.com/juetun/app-dashboard/web/pojos"
 	"github.com/microcosm-cc/bluemonday"
@@ -538,6 +540,9 @@ func (r *ConsolePostService) PostCates(postId int) (cate *models.ZCategories, er
 }
 
 func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err error) {
+	session := r.Context.Db.Begin()
+	defer session.Commit()
+
 	postUpdate := &models.ZPosts{
 		Title:    ps.Title,
 		UserId:   1,
@@ -548,9 +553,11 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 	unsafe := blackfriday.Run([]byte(ps.Content))
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	postUpdate.Content = string(html)
-	session := r.Context.Db.Begin()
-	defer session.Commit()
-	err = session.Table((&models.ZPosts{}).TableName()).Where("id = ?", postId).Update(postUpdate).Error
+
+	err = session.Table((&models.ZPosts{}).TableName()).
+		Where("id = ?", postId).
+		Update(postUpdate).
+		Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.PostUpdate",
@@ -559,8 +566,12 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 		_ = session.Rollback()
 		return
 	}
-	postCate := new(models.ZPostCate)
-	err = session.Where("post_id = ?", postId).Delete(postCate).Error
+
+	// 删除之前的类型
+	err = session.Where("post_id = ?", postId).
+		Unscoped().
+		Delete(&models.ZPostCate{}).
+		Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.PostUpdate",
@@ -570,107 +581,95 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 		return
 	}
 
+	// 重新添加类型
 	if ps.Category != "" && ps.Category != "0" {
-		postCateCreate := models.ZPostCate{
-			PostId: strconv.Itoa(postId),
-			CateId: ps.Category,
-		}
-
-		err = session.Create(postCateCreate).Error
+		err = r.postCategoryLogic(postId, &ps, session)
 		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.PostUpdate",
-				"err":     err.Error(),
-			})
-			_ = session.Rollback()
-			return
-		}
-
-		if postCateCreate.Id < 1 {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.PostUpdate",
-				"err":     "post cate update no succeed",
-			})
 			_ = session.Rollback()
 			return
 		}
 	}
-
-	postTag := make([]models.ZPostTag, 0)
-	err = session.Where("post_id = ?", postId).
-		Find(&postTag).
-		Error
-
+	err = r.postTagLogic(postId, &ps, session)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
-			"message": "service.PostUpdate",
-			"err":     "get post tag  no succeed",
-		})
 		_ = session.Rollback()
 		return
 	}
-
-	if len(postTag) > 0 {
-		for _, v := range postTag {
-			err = session.Where("id=?", v.TagId).
-				Update("num", gorm.Expr("num  + ?", 1)).
-				Error
-			if err != nil {
-				r.Context.Log.Error(map[string]string{
-					"message": "service.PostUpdate post tag decr  err",
-					"err":     err.Error(),
-				})
-				_ = session.Rollback()
-				return
-			}
-
-		}
-
-		err = session.Where("post_id = ?", postId).Delete(new(models.ZPostTag)).Error
-
-		if err != nil {
-			r.Context.Log.Error(map[string]string{
-				"message": "service.PostUpdate",
-				"err":     "delete post tag  no succeed",
-			})
-			_ = session.Rollback()
-			return
-		}
-	}
-
-	if len(ps.Tags) > 0 {
-		for _, v := range ps.Tags {
-			postTagCreate := models.ZPostTag{
-				PostId: postId,
-				TagId:  v,
-			}
-			err = session.Create(postTagCreate).Error
-			if err != nil {
-				r.Context.Log.Error(map[string]string{
-					"message": "service.PostUpdate post tag insert err",
-					"err":     err.Error(),
-				})
-				session.Rollback()
-				return
-			}
-
-			err = session.Where("id=?", v).
-				Update("num", gorm.Expr("price  + ?", 1)).
-				Error
-			if err != nil {
-				r.Context.Log.Error(map[string]string{
-					"message": "service.PostStore post tag incr err",
-					"err":     err.Error(),
-				})
-				session.Rollback()
-				return
-			}
-		}
-	}
-	session.Commit()
 	return
 }
 
+func (r *ConsolePostService) postTagLogic(postId int, ps *pojos.PostStore, session *gorm.DB) (err error) {
+	dao := daos.NewDaoPostTag(r.Context)
+	dao.Context.Db = session
+	var postTag *[]models.ZPostTag
+	postTag, err = dao.GetListByPostId(postId)
+	if err != nil {
+		return
+	}
+	tagId := ps.Tags
+	for _, value := range *postTag {
+		tagId = append(tagId, value.TagId)
+	}
+	err = dao.DeleteDataByPostId(postId)
+	if err != nil {
+		return
+	}
+
+	// 添加当前帖子加入的话题
+	insertTagRelation := make([]map[string]interface{}, 0)
+	for _, value := range ps.Tags {
+		insertTagRelation = append(insertTagRelation,
+			map[string]interface{}{
+				"post_id":    postId,
+				"tag_id":     value,
+				"created_at": base.TimeNormal{Time: time.Now()},
+				"updated_at": base.TimeNormal{Time: time.Now()},
+				"deleted_at": nil,
+			},
+		)
+	}
+	err = dao.InsertPostTag(&insertTagRelation)
+	if err != nil {
+		return
+	}
+
+	var countList *[]pojos.TagCount
+	countList, err = dao.GetEveryTagCountByTagIds(postId, &tagId)
+	if err != nil {
+		return
+	}
+	daoTag := daos.NewDaoTag(r.Context)
+	daoTag.Context.Db = session
+	for _, value := range *countList {
+		err = daoTag.UpdateTagNumById(&value)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+// 帖子分类 逻辑
+func (r *ConsolePostService) postCategoryLogic(postId int, ps *pojos.PostStore, session *gorm.DB) (err error) {
+	postCateCreate := models.ZPostCate{
+		PostId: strconv.Itoa(postId),
+		CateId: ps.Category,
+		Model: base.Model{
+			Id:        0,
+			CreatedAt: base.TimeNormal{Time: time.Now()},
+			UpdatedAt: base.TimeNormal{Time: time.Now()},
+			DeletedAt: nil,
+		},
+	}
+
+	err = session.Create(&postCateCreate).Error
+	if err != nil {
+		r.Context.Log.Error(map[string]string{
+			"message": "service.PostUpdate",
+			"err":     err.Error(),
+		})
+	}
+	return
+}
 func (r *ConsolePostService) PostDestroy(postId int) (res bool, err error) {
 	post := new(models.ZPosts)
 

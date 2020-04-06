@@ -29,7 +29,7 @@ func NewLinkService(context ...*base.Context) (p *LinkService) {
 }
 func (r *LinkService) LinkList(offset int, limit int) (links []models.ZLinks, cnt int64, err error) {
 	links = make([]models.ZLinks, 0)
-	dba := r.Context.Db.Table((&models.ZLinks{}).TableName())
+	dba := r.Context.Db.Table((&models.ZLinks{}).TableName()).Unscoped().Where("deleted_at IS NULL")
 	err = dba.Count(&cnt).Error
 	if cnt > 0 {
 		err = dba.Order("`order` asc").Limit(limit).
@@ -71,8 +71,8 @@ func (r *LinkService) LinkUpdate(ls pojos.LinkStore, linkId int) (err error) {
 
 func (r *LinkService) LinkDestroy(linkId int) (err error) {
 	link := new(models.ZLinks)
-	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
-		Where("id=?", link).
+	err = r.Context.Db.Table(link.TableName()).
+		Where("id=?", linkId).
 		Delete(link).Error
 	return
 }

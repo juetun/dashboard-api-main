@@ -57,9 +57,10 @@ type AuthLogin struct {
 }
 
 type AuthRegister struct {
-	UserName string `json:"userName"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	Captcha    string `json:"captcha"`
+	CaptchaKey string `json:"captchaKey"`
 }
 
 type ConsolePostList struct {
@@ -163,4 +164,11 @@ type Category struct {
 type IndexCategory struct {
 	Cates models.ZCategories `json:"cates"`
 	Html  template.HTML      `json:"html"`
+}
+
+//
+type TagCount struct {
+	PostId int `gorm:"column:post_id;" json:"post_id"`
+	TagId  int `gorm:"column:tag_id;" json:"tag_id"`
+	Count  int `gorm:"column:count;" json:"count"`
 }

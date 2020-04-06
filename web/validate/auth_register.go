@@ -27,9 +27,10 @@ func (r *AuthRegisterV) MyValidate() gin.HandlerFunc {
 		}
 
 		reqValidate := &AuthRegister{
-			Email:    json.Email,
-			Password: json.Password,
-			UserName: json.UserName,
+			Email:      json.Email,
+			Password:   json.Password,
+			Captcha:    json.Captcha,
+			CaptchaKey: json.CaptchaKey,
 		}
 		if b := appG.Validate(reqValidate); !b {
 			c.Abort()
@@ -41,19 +42,22 @@ func (r *AuthRegisterV) MyValidate() gin.HandlerFunc {
 }
 
 type AuthRegister struct {
-	UserName string `valid:"Required;MaxSize(30)"`
-	Email    string `valid:"Required;Email"`
-	Password string `valid:"Required;MaxSize(30)"`
+	Email      string `valid:"Required;Email"`
+	Password   string `valid:"Required;MaxSize(30)"`
+	Captcha    string `valid:"Required;MaxSize(5)"`
+	CaptchaKey string `valid:"Required;MaxSize(30)"`
 }
 
 func (r *AuthRegister) Message() map[string]common.ValidationMessage {
 	return map[string]common.ValidationMessage{
-		"Email.Required.":    {Code: 407000000, Message: "请输入邮箱"},
-		"Email.Email.":       {Code: 407000001, Message: "您输入的邮箱格式不正确"},
-		"Password.Required.": {Code: 407000002, Message: "请输入密码"},
-		"Password.MaxSize.":  {Code: 407000003, Message: "密码不超过30个字符"},
-		"UserName.Required.": {Code: 407000012, Message: "请输入用户名"},
-		"UserName.MaxSize.":  {Code: 407000013, Message: "用户名不超过30个字符"},
+		"Email.Required.":      {Code: 407000000, Message: "请输入邮箱"},
+		"Email.Email.":         {Code: 407000001, Message: "您输入的邮箱格式不正确"},
+		"Password.Required.":   {Code: 407000002, Message: "请输入密码"},
+		"Password.MaxSize.":    {Code: 407000003, Message: "密码不超过30个字符"},
+		"Captcha.Required.":    {Code: 407000004, Message: "请输入验证码"},
+		"Captcha.MaxSize.":     {Code: 407000005, Message: "验证码格式不正确"},
+		"CaptchaKey.Required.": {Code: 407000006, Message: "数据异常，验证校验码"},
+		"CaptchaKey.MaxSize.":  {Code: 407000007, Message: "校验参数不超过30个字符"},
 	}
 
 }

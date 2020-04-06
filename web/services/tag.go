@@ -44,8 +44,8 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 	}
 
 	if tag.Id > 0 {
-		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag has exists")
-		return errors.New("Tag has exists")
+		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag name has exists")
+		return errors.New("您输入的标签名已存在")
 	}
 
 	tagInsert := &models.ZTags{
@@ -157,6 +157,21 @@ func (r *TagService) getTableDb() *gorm.DB {
 }
 
 func (r *TagService) TagUpdate(tagId int, ts pojos.TagStore) (err error) {
+	var tag = &models.ZTags{}
+	dba := r.getTableDb()
+	err = dba.
+		Where("name = ? AND id!=?", ts.Name, tagId).
+		Find(tag).
+		Error
+	if err != nil && !gorm.IsRecordNotFoundError(err) {
+		r.Context.Log.Errorln("message", "service.TagStore", "error", err.Error())
+		return err
+	}
+	if tag.Id > 0 {
+		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag name has exists")
+		return errors.New("您输入的标签名已存在")
+	}
+
 	tagUpdate := &models.ZTags{
 		Name:        ts.Name,
 		DisplayName: ts.DisplayName,
@@ -180,7 +195,7 @@ func (r *TagService) GetTagsByIds(tagIds []int) (tags []*models.ZTags, err error
 
 func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models.ZTags, err error) {
 	tags = make([]*models.ZTags, 0)
-	dba := r.getTableDb().Table((&models.ZTags{}).TableName()).Unscoped().Where("deleted_at IS NULL" )
+	dba := r.getTableDb().Table((&models.ZTags{}).TableName()).Unscoped().Where("deleted_at IS NULL")
 	err = dba.Count(&num).Error
 	if err != nil {
 		return
@@ -212,7 +227,7 @@ func (r *TagService) DelTagRel(tagId int) {
 		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
- 	r.Context.CacheClient.Del(common.Conf.TagListKey)
+	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
 func (r *TagService) CommonData() (h gin.H, err error) {

@@ -127,16 +127,16 @@ func (r *ControllerLink) Destroy(c *gin.Context) {
 
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Destroy", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil,err.Error())
 		return
 	}
 	srv := services.NewLinkService(&base.Context{Log: r.Log})
 	err = srv.LinkDestroy(linkIdInt)
 	if err != nil {
 		r.Log.Errorln("message", "console.Link.Destroy", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil,err.Error())
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil,"操作成功")
 	return
 }
