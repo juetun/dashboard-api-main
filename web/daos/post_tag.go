@@ -11,8 +11,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/juetun/app-dashboard/web/models"
-	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/pojos"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 

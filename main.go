@@ -1,10 +1,10 @@
 package main
 
 import (
-	_ "github.com/juetun/app-dashboard/web/router" // 加载路由信息
 	"github.com/juetun/base-wrapper/lib/app_start"
 	_ "github.com/juetun/base-wrapper/lib/init" // 加载公共插件项
 	. "github.com/juetun/base-wrapper/lib/plugins"
+	_ "github.com/juetun/dashboard-api-main/web/router" // 加载路由信息
 )
 
 // https://github.com/izghua/go-blog

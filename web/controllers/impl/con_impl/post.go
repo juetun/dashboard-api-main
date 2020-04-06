@@ -15,10 +15,10 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/app-dashboard/web/controllers/inter"
-	"github.com/juetun/app-dashboard/web/models"
-	"github.com/juetun/app-dashboard/web/pojos"
-	"github.com/juetun/app-dashboard/web/services"
+	"github.com/juetun/dashboard-api-main/web/controllers/inter"
+	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/services"
 )
 
 type ControllerPost struct {

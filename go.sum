@@ -131,6 +131,7 @@ github.com/json-iterator/go v1.1.9 h1:9yzud/Ht36ygwatGx56VwCZtlI/2AD15T1X2sjSuGn
 github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
+github.com/juetun/dashboard-api-main v0.0.29 h1:Ky2lxCZL6miEY4N6M3h+8RciGxdX+aneJQfsRTK+SQc=
 github.com/juetun/base-wrapper v0.0.1 h1:Me6Ol1+6a8TJ9JECW2zi0tpNqNCE6Aey+7ocI33Q5ws=
 github.com/juetun/base-wrapper v0.0.1/go.mod h1:yzUfMnQ/N/mfHxEl4DmGh4D4S91yvj43sPw5QVGUPaE=
 github.com/juetun/base-wrapper v0.0.2 h1:cp8GX96jlT11q+uuorenVoWVg5Rq+KqzXCVv2tsJhGA=

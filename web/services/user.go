@@ -8,7 +8,7 @@ package services
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 type UserService struct {

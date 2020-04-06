@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/app-dashboard/web/services"
+	"github.com/juetun/dashboard-api-main/web/services"
 )
 
 type ControllerImg struct {

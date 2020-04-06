@@ -10,7 +10,7 @@ package validate
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/pojos"
 )
 
 type TagStoreV struct {

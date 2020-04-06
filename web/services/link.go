@@ -12,8 +12,8 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/app-dashboard/web/models"
-	"github.com/juetun/app-dashboard/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/pojos"
 
 	"time"
 )

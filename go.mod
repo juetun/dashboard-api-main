@@ -1,4 +1,4 @@
-module github.com/juetun/app-dashboard
+module github.com/juetun/dashboard-api-main
 
 go 1.13
 

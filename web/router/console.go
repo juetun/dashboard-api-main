@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/app-dashboard/web/controllers/impl/auth_impl"
+	"github.com/juetun/dashboard-api-main/web/controllers/impl/auth_impl"
 	"github.com/juetun/base-wrapper/lib/app_start"
 )
 

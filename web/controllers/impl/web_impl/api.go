@@ -16,7 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app_log"
-	"github.com/juetun/app-dashboard/web"
+	"github.com/juetun/dashboard-api-main/web"
 )
 
 type ApiController struct {

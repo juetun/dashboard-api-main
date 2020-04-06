@@ -8,7 +8,7 @@
 package pojos
 
 import (
-	"github.com/juetun/app-dashboard/web/models"
+	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 type PostShow struct {
