@@ -9,13 +9,13 @@ package services
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/dashboard-api-main/base/utils"
+	"github.com/juetun/dashboard-api-main/basic/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
 	"github.com/mojocn/base64Captcha"
@@ -67,8 +67,12 @@ func (r *AuthService) AuthLogin(logArg *pojos.AuthLogin) (user *models.ZUsers, t
 		err = fmt.Errorf("您要登录的账号或密码错误")
 		return
 	}
-	userIdStr := strconv.Itoa(user.Id)
-	token, err = common.CreateToken(userIdStr)
+
+	token, err = common.CreateToken(app_obj.JwtUserMessage{
+		UserId: user.UserHid,
+		Name:   user.Name,
+		Status: user.Status,
+	})
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "auth.AuthLogin",
@@ -170,7 +174,7 @@ func (r *AuthService) UserStore(ar *pojos.AuthRegister) (user *models.ZUsers, er
 	if err != nil && !gorm.IsRecordNotFoundError(err) { // 如果出异常了且异常不为没查到数据。
 		return
 	}
-	if user.Id != 0 {
+	if user.UserHid != "" {
 		err = errors.New("您输入的手机号或邮箱已注册")
 		return
 	}

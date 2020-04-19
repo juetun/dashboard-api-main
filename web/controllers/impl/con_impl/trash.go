@@ -84,15 +84,9 @@ func (r *ControllerTrash) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-
-	userId, exist := c.Get("userId")
-	if !exist || userId.(int) == 0 {
-		r.Log.Errorln("message", "post.Store", "error", "Can not get user")
-		r.Response(c, 400001004, nil)
-		return
-	}
+	userId := r.GetUser(c).UserId
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
-	srv.PostStore(ps, userId.(int))
+	srv.PostStore(ps, userId)
 	r.Response(c, 0, nil)
 	return
 }

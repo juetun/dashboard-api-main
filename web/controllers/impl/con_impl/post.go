@@ -90,15 +90,9 @@ func (r *ControllerPost) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil, "参数异常")
 		return
 	}
-
-	userId, exist := c.Get("userId")
-	if !exist || userId.(int) == 0 {
-		r.Log.Errorln("message", "post.Store", "error", "Can not get user")
-		r.Response(c, 400001004, nil, "获取用户信息失败")
-		return
-	}
+	userId:=r.GetUser(c).UserId
 	srvPost := services.NewConsolePostService(&base.Context{Log: r.Log})
-	srvPost.PostStore(ps, userId.(int))
+	srvPost.PostStore(ps,userId)
 	r.Response(c, 0, nil, "操作成功")
 	return
 }

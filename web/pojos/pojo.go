@@ -101,10 +101,10 @@ type ConsoleCate struct {
 }
 
 type ConsoleUser struct {
-	Id     int    `json:"id"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	Status int    `json:"status"`
+	UserHid string `json:"id"`
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Status  int    `json:"status"`
 }
 
 type ConsoleSystem struct {

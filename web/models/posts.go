@@ -7,7 +7,7 @@ import (
 type ZPosts struct {
 	base.Model
 	Uid      string `gorm:"column:uid;" json:"uid"`
-	UserId   int    `gorm:"column:user_id;" json:"user_id"`
+	UserHId  string `gorm:"column:user_hid;" json:"user_id"`
 	Title    string `gorm:"column:title;" json:"title"`
 	Summary  string `gorm:"column:summary;" json:"summary"`
 	Original string `gorm:"column:original;" json:"original"`

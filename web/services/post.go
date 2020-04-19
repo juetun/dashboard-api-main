@@ -84,7 +84,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapUser *map[int]models.ZUsers
+	var mapUser *map[string]models.ZUsers
 	mapUser, err = srvUser.GetUserMapByIds(userId)
 	if err != nil {
 		return
@@ -122,12 +122,12 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 				SeoDesc:     (*mapCates)[pid].ZCategories.SeoDesc,
 			}
 		}
-		if _, ok := (*mapUser)[post.UserId]; ok {
+		if _, ok := (*mapUser)[post.UserHId]; ok {
 			postList.Author = pojos.ConsoleUser{
-				Id:     (*mapUser)[post.UserId].Id,
-				Name:   (*mapUser)[post.UserId].Name,
-				Email:  (*mapUser)[post.UserId].Email,
-				Status: (*mapUser)[post.UserId].Status,
+				UserHid: (*mapUser)[post.UserHId].UserHid,
+				Name:    (*mapUser)[post.UserHId].Name,
+				Email:   (*mapUser)[post.UserHId].Email,
+				Status:  (*mapUser)[post.UserHId].Status,
 			}
 		}
 		if _, ok := (*mapView)[pid]; ok {
@@ -141,15 +141,15 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	}
 	return
 }
-func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (ids *[]string, userId *[]int) {
+func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (ids *[]string, userId *[]string) {
 	ids = &[]string{}
-	userId = &[]int{}
-	mUid := make(map[int]int)
+	userId = &[]string{}
+	mUid := make(map[string]string)
 	mId := make(map[string]string)
 	for _, post := range *dt {
-		if _, ok := mUid[post.UserId]; !ok {
-			*userId = append(*userId, post.UserId)
-			mUid[post.UserId] = post.UserId
+		if _, ok := mUid[post.UserHId]; !ok {
+			*userId = append(*userId, post.UserHId)
+			mUid[post.UserHId] = post.UserHId
 		}
 		pid := strconv.Itoa(post.Id)
 		if _, ok := mId[pid]; !ok {
@@ -183,10 +183,10 @@ func (r *ConsolePostService) PostView(postId *[]string) (postV *map[string]model
 	return
 }
 
-func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId int) {
+func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 	postCreate := &models.ZPosts{
 		Title:    ps.Title,
-		UserId:   userId,
+		UserHId:  userId,
 		Summary:  ps.Summary,
 		Original: ps.Content,
 	}
@@ -412,7 +412,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	}
 	srvUser := NewUserService()
 	// user
-	user, err := srvUser.GetUserById(post.UserId)
+	user, err := srvUser.GetUserById(post.UserHId)
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.IndexPostDetailDao",
@@ -421,10 +421,10 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 		return
 	}
 	Author := pojos.ConsoleUser{
-		Id:     user.Id,
-		Name:   user.Name,
-		Email:  user.Email,
-		Status: user.Status,
+		UserHid: user.UserHid,
+		Name:    user.Name,
+		Email:   user.Email,
+		Status:  user.Status,
 	}
 
 	// last post
@@ -545,7 +545,7 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 
 	postUpdate := &models.ZPosts{
 		Title:    ps.Title,
-		UserId:   1,
+		UserHId:  "",
 		Summary:  ps.Summary,
 		Original: ps.Content,
 	}
