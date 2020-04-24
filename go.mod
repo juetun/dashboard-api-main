@@ -13,7 +13,7 @@ require (
 	github.com/go-xorm/xorm v0.7.9
 	github.com/golang/protobuf v1.4.0 // indirect
 	github.com/jinzhu/gorm v1.9.12
-	github.com/juetun/base-wrapper v0.0.7
+	github.com/juetun/base-wrapper v0.0.8
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
