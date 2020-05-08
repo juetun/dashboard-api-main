@@ -18,8 +18,8 @@ type SomeValidate struct {
 	NewTagV         V
 	NewSystemV      V
 	NewLinkV        V
-	NewAuthLoginV   V
-	NewAuthRegister V
+	// NewAuthLoginV   V
+	// NewAuthRegister V
 }
 
 func NewValidate() *SomeValidate {
@@ -29,7 +29,7 @@ func NewValidate() *SomeValidate {
 		NewTagV:         &TagStoreV{},
 		NewSystemV:      &SystemUpdateV{},
 		NewLinkV:        &LinkStoreV{},
-		NewAuthLoginV:   &AuthLoginV{},
-		NewAuthRegister: &AuthRegisterV{},
+		// NewAuthLoginV:   &AuthLoginV{},
+		// NewAuthRegister: &AuthRegisterV{},
 	}
 }

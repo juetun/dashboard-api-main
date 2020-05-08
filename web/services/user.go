@@ -20,6 +20,7 @@ func NewUserService(context ...*base.Context) (p *UserService) {
 	p.SetContext(context)
 	return
 }
+
 func (r *UserService) GetUserById(userId string) (user *models.ZUsers, err error) {
 	user = new(models.ZUsers)
 	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
@@ -33,6 +34,7 @@ func (r *UserService) GetUserById(userId string) (user *models.ZUsers, err error
 	}
 	return user, nil
 }
+
 func (r *UserService) GetUserMapByIds(userId *[]string) (user *map[string]models.ZUsers, err error) {
 	user = &map[string]models.ZUsers{}
 	if len(*userId) == 0 {
@@ -40,7 +42,7 @@ func (r *UserService) GetUserMapByIds(userId *[]string) (user *map[string]models
 	}
 	var users []models.ZUsers
 	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
-		Where("id in (?)", *userId).
+		Where("user_hid in (?)", *userId).
 		Find(&users).
 		Error
 	if err != nil {
@@ -55,10 +57,11 @@ func (r *UserService) GetUserMapByIds(userId *[]string) (user *map[string]models
 	return
 }
 
-func (r *UserService) UserCnt() (cnt int64, err error) {
-	err = r.Context.Db.
-		Table((&models.ZUsers{}).TableName()).
-		Count(&cnt).
-		Error
-	return
-}
+//
+// func (r *UserService) UserCnt() (cnt int64, err error) {
+// 	err = r.Context.Db.
+// 		Table((&models.ZUsers{}).TableName()).
+// 		Count(&cnt).
+// 		Error
+// 	return
+// }
