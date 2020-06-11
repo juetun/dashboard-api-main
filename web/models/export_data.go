@@ -16,12 +16,15 @@ import (
 type ZExportData struct {
 	base.Model
 	Hid           string `gorm:"column:hid;" json:"hid"`
-	Name          string `json:"name"`
-	Progress      int    `json:"progress"`
-	Type          string `json:"type"`
-	Arguments     string `json:"arguments"`
-	DownloadLink  string `json:"download_link"`
-	CreateUserHid string `json:"create_user_hid"`
+	Name          string `gorm:"column:name;" json:"name"`
+	Progress      int    `gorm:"column:progress;" json:"progress"`
+	Status        int    `gorm:"column:status;" json:"status"`
+	Type          string `gorm:"column:type;" json:"type"`
+	Arguments     string `gorm:"column:arguments;" json:"arguments"`
+	DownloadLink  string `gorm:"column:download_link;" json:"download_link"`
+	Domain        string `gorm:"column:domain;" json:"domain"`
+	FilePath      string `gorm:"column:file_path;" json:"file_path"`
+	CreateUserHid string `gorm:"column:create_user_hid;" json:"create_user_hid"`
 }
 
 func (r *ZExportData) TableName() string {

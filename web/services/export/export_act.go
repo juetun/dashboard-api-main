@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/dashboard-api-main/web"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
@@ -51,8 +52,28 @@ func (r *AsyncExport) Run() {
 		cancel()
 	}
 }
+
+// 将导出生成的文件上传到阿里云
+func (r *AsyncExport) uploadFileToTarget(excel *ExcelOperate, exportData *models.ZExportData) (err error) {
+	fileUpload := NewNewFileUpload()
+	fileUpload.SetFile(excel.FileName).
+		Run()
+	err = fileUpload.Err
+	if err != nil {
+		r.Context.Log.Errorln(
+			"message", fmt.Sprintf("文件（ %s）上传文件到阿里云失败 ", excel.FileName),
+			"content:", err.Error())
+		return
+	}
+	exportData.DownloadLink = fileUpload.DownloadUrl
+	exportData.Domain = fileUpload.Endpoint
+	exportData.FilePath = fileUpload.ObjectName
+	return
+}
+
 func (r *AsyncExport) Act(ctx context.Context) {
 
+	var err error
 	defer func() {
 		<-ctx.Done()
 	}()
@@ -60,6 +81,15 @@ func (r *AsyncExport) Act(ctx context.Context) {
 	excel := NewExcelOperate(r.Context)
 	defer func() {
 		excel.Close() // excel文件生成
+
+		// 上传EXCEL文件到指定路径
+		err = r.uploadFileToTarget(excel, &r.model)
+		if err != nil {
+			r.Context.Log.Errorln("message", fmt.Sprintf("上传文件(%s)到指定路径错误 ", excel.FileName), "content:", err.Error())
+			r.model.Status = web.ExportFailure
+		} else {
+			r.model.Status = web.ExportSuccess
+		}
 		r.model.Progress = 100
 		err := daos.NewDaoExport(r.Context).Update(&r.model)
 		if err != nil {
@@ -69,7 +99,11 @@ func (r *AsyncExport) Act(ctx context.Context) {
 
 	excel.FileName = r.args.FileName + ".xlsx"
 	sheetNames := make([]string, 0)
-	for _, value := range r.args.Program {
+	for key, value := range r.args.Program {
+		if value.SheetName == "" {
+			value.SheetName = "sheet" + strconv.Itoa(key+1)
+			r.args.Program[key] = value
+		}
 		sheetNames = append(sheetNames, value.SheetName)
 	}
 	excel = excel.SetSheet(&sheetNames) // 生成Excel的sheet
