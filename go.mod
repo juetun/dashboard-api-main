@@ -3,6 +3,7 @@ module github.com/juetun/dashboard-api-main
 go 1.13
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/astaxie/beego v1.12.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9
@@ -12,6 +13,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-xorm/xorm v0.7.9
 	github.com/golang/protobuf v1.4.0 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/jinzhu/gorm v1.9.12
 	github.com/juetun/base-wrapper v0.0.8
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect

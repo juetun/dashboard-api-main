@@ -20,6 +20,10 @@ import (
 
 func PluginUser() (err error) {
 	middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, func(c *gin.Context) {
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
 		var res bool
 		// apiG := common.NewGin(c)
 		s := middlewares.GetRUri(c)
@@ -29,6 +33,12 @@ func PluginUser() (err error) {
 			c.Next()
 			return
 		}
+		app_log.GetLog().Info(map[string]string{
+			"method":      "PluginUser",
+			"info":        "user message",
+			"router name": c.Request.RequestURI,
+			"httpMethod":  c.Request.Method,
+		})
 
 		// 用户登录信息验证
 		if exitStatus := middlewares.Auth(c); exitStatus {
