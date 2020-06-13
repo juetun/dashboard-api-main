@@ -78,7 +78,12 @@ func (r *ServiceExport) Progress(args *pojos.ArgumentsExportProgress) (res pojos
 		return
 	}
 	for _, value := range *list {
-		res.Data[value.Hid] = value.Progress
+		progress, _ := r.Context.CacheClient.Get(value.GetCacheKey()).Int()
+		if progress <= 0 {
+			res.Data[value.Hid] = value.Progress
+		} else {
+			res.Data[value.Hid] = progress
+		}
 	}
 	// 更新超时数据
 	err = r.UpdateExpireData(dao, list)
