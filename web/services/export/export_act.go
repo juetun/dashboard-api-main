@@ -141,15 +141,15 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	}
 }
 
-func (r *AsyncExport) getFileName() (pathFileName string) {
-	pathFileName = r.getSysTmp() + r.args.FileName + "_" + strconv.Itoa(r.model.Id) + ".xlsx"
+func (r *AsyncExport) PathFileName() (pathFileName string) {
+	pathFileName = r.getSysTmp() + "/" + r.args.FileName + "_" + strconv.Itoa(r.model.Id) + ".xlsx"
 	return
 }
 
 // 获得操作系统的临时目录文件夹
 func (r *AsyncExport) getSysTmp() (res string) {
-	res = os.TempDir()
-	r.Context.Log.Error(map[string]string{
+	res = strings.TrimSuffix(os.TempDir(), "/")
+	r.Context.Log.Info(map[string]string{
 		"临时目录:": res,
 	})
 	return
@@ -186,7 +186,7 @@ func (r *AsyncExport) work() {
 	defer r.getDataFinishAct(excel)
 
 	// 获取生成文件的名字
-	excel.PathFileName = r.getFileName()
+	excel.PathFileName = r.PathFileName()
 
 	sheetNames := r.defaultSheetName()
 
