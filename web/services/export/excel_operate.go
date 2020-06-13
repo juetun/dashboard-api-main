@@ -20,7 +20,8 @@ type ExcelOperate struct {
 	Context      *base.Context
 	FileHandler  *excelize.File
 	NowSheetName string                `json:"now_sheet_name"`
-	FileName     string                `json:"file_name"` // excel文件的名称
+	PathFileName string                `json:"path_file_name"` // excel文件的名称(linux的绝对路径)
+	FileNameBase string                `json:"file_name_base"` // 标准文件名称
 	SheetNames   []string              `json:"sheet_name"`
 	SheetNameMap map[string]ExcelSheet `json:"sheet_name_map"`
 	TotalLine    int                   `json:"total_line"` // 当前文件已写入多少行
@@ -43,7 +44,7 @@ func NewExcelOperate(context *base.Context) (r *ExcelOperate) {
 				Index:  0,
 			},
 		},
-		FileName:  "export.xlsx",
+		PathFileName:  "export.xlsx",
 		TotalLine: 0,
 	}
 	r.FileHandler = excelize.NewFile()
@@ -66,14 +67,13 @@ func (r *ExcelOperate) SetHeader(sheetName string, header []pojos.ExcelHeader) (
 }
 
 func (r *ExcelOperate) Init() (p *ExcelOperate) {
-	r.TotalLine = 0
 	return r
 }
 func (r *ExcelOperate) Close() (err error) {
 	for _, sheetName := range r.SheetNames {
 		r.FileHandler.SetActiveSheet(r.SheetNameMap[sheetName].Index)
 	}
-	err = r.FileHandler.SaveAs(r.FileName)
+	err = r.FileHandler.SaveAs(r.PathFileName)
 	return
 }
 
@@ -82,7 +82,7 @@ func (r *ExcelOperate) getLocKey(line, columnIndex int) (res string) {
 	var collection = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	length := len(collection)
 	cCount := int(math.Floor(float64(columnIndex) / float64(length)))
-	y:=columnIndex%length
+	y := columnIndex % length
 	if cCount > 0 { // 当前导出最多支持 26*26列 （26个英文字符）
 		res += string(collection[cCount]) + string(collection[y])
 	} else {

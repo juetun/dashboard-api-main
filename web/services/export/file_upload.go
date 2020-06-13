@@ -18,8 +18,9 @@ import (
 type FileUpload struct {
 	FilePath    string `json:"file_path"` // <yourLocalFileName>由本地文件路径加文件名包括后缀组成，例如/users/local/myfile.txt。
 	DownloadUrl string `json:"download_url"`
-	Endpoint    string `json:"endpoint"`
+	BucketUrl   string `json:"endpoint"`
 	ObjectName  string `json:"object_name"`
+	FileName    string `json:"file_name"`
 	Err         error
 }
 
@@ -43,20 +44,21 @@ func (r *FileUpload) Run() {
 	var client *oss.Client
 	var bucket *oss.Bucket
 
-	r.Endpoint = data.Endpoint
+	r.BucketUrl = data.BucketUrl
 	// 创建OSSClient实例。
-	client, r.Err = oss.New(r.Endpoint, data.AccessKeyId, data.AccessKeySecret)
+	client, r.Err = oss.New(data.Endpoint, data.AccessKeyId, data.AccessKeySecret)
 	if r.Err != nil {
 		return
 	}
-
+	
 	// 获取存储空间。
 	bucket, r.Err = client.Bucket(data.BucketName)
 	if r.Err != nil {
 		return
 	}
 	rulePrefix := data.DirName + "/export/"
-	r.ObjectName = rulePrefix + strings.TrimPrefix(r.FilePath, filepath.Dir(r.FilePath))
+	r.FileName = strings.TrimPrefix(r.FilePath, filepath.Dir(r.FilePath)+"/")
+	r.ObjectName = rulePrefix + r.FileName
 
 	// 设置导出 文件14天过期
 	rule1 := oss.BuildLifecycleRuleByDays("rule1", rulePrefix, true, 14)
@@ -71,7 +73,7 @@ func (r *FileUpload) Run() {
 	if r.Err != nil {
 		return
 	}
-	r.DownloadUrl = r.Endpoint + "/" + r.ObjectName
+	r.DownloadUrl = r.BucketUrl + "/" + r.ObjectName
 }
 
 func (r *FileUpload) SetFile(fileName string) *FileUpload {

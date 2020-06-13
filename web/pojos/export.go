@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/app_obj"
-	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 type ArgumentsExportList struct {
@@ -20,7 +19,16 @@ type ArgumentsExportList struct {
 	Limit int                    `json:"limit"`
 }
 type ResultExportList struct {
-	List []models.ZExportData `json:"list"`
+	List []ExportShowObject `json:"list"`
+}
+type ExportShowObject struct {
+	Hid            string `gorm:"column:hid;" json:"hid"`
+	Name           string `gorm:"column:name;" json:"name"`
+	Progress       int    `gorm:"column:progress;" json:"progress"`
+	Status         int    `gorm:"column:status;" json:"status"`
+	Type           string `gorm:"column:type;" json:"type"`
+	DownloadLink   string `gorm:"column:download_link;" json:"download_link"`
+	CreateAtString string `json:"create_at"`
 }
 
 type ArgumentsExportCancel struct {

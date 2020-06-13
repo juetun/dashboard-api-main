@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
 )
@@ -37,6 +38,7 @@ func (r *ZAppPath) GetRandomDomain() (res string, err error) {
 	}
 	rNum := len(domain) - 1
 	if rNum > 0 {
+		rand.Seed(time.Now().UnixNano())
 		rNum = rand.Intn(rNum)
 	}
 	res = domain[rNum]

@@ -13,9 +13,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"math"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web"
@@ -44,110 +46,231 @@ func (r *AsyncExport) SetExportData(args *pojos.ArgumentsExportInit, model model
 }
 
 func (r *AsyncExport) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
+
+	// 设置导出到时的时间为3天
+	ctx, cancel := context.WithTimeout(context.Background(), 3*86400*time.Second)
+
 	go r.Act(ctx)
 
 	// 如果是外部取消任务，任务结束状态实现
-	if !r.IsFinish {
+	if r.IsFinish {
+		r.Context.Log.Error(
+			map[string]string{
+				"message": fmt.Sprintf("外部命令中止导出任务(ID:%d) ", r.model.Id),
+			},
+		)
 		cancel()
 	}
+
 }
 
 // 将导出生成的文件上传到阿里云
 func (r *AsyncExport) uploadFileToTarget(excel *ExcelOperate, exportData *models.ZExportData) (err error) {
 	fileUpload := NewNewFileUpload()
-	fileUpload.SetFile(excel.FileName).
+	fileUpload.SetFile(excel.PathFileName).
 		Run()
 	err = fileUpload.Err
 	if err != nil {
 		r.Context.Log.Errorln(
-			"message", fmt.Sprintf("文件（ %s）上传文件到阿里云失败 ", excel.FileName),
+			"message", fmt.Sprintf("文件（%s）上传文件到阿里云失败 ", excel.PathFileName),
 			"content:", err.Error())
 		return
 	}
 	exportData.DownloadLink = fileUpload.DownloadUrl
-	exportData.Domain = fileUpload.Endpoint
+	exportData.Domain = fileUpload.BucketUrl
 	exportData.FilePath = fileUpload.ObjectName
+	exportData.Name = fileUpload.FileName
 	return
 }
 
-func (r *AsyncExport) Act(ctx context.Context) {
+// 更新导出的进度
+func (r *AsyncExport) UpdateProgress(progress int) {
+
+	// 正常进度更新不会超过98 超过98默认就是完成 ，完成的逻辑单独处理
+	if progress >= web.RunProgressMax {
+		progress = web.RunProgressMax
+	}
+	r.model.Progress = progress
+
+	// 更新Redis进度
+	r.UpdateRedisProgressValue()
+}
+
+// 更新Redis进度
+func (r *AsyncExport) UpdateRedisProgressValue() {
+	r.Context.CacheClient.Set(r.model.GetCacheKey(), r.model.Progress, 86400*time.Second)
+}
+
+// 获取生成数据完成后的动作，如：将Excel生成文件，更新导出进度等
+func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
+
+	r.UpdateProgress(web.RunProgressMax) // 获取数据完成后更新进度
 
 	var err error
-	defer func() {
-		<-ctx.Done()
-	}()
+	r.Context.Log.Info(
+		map[string]string{
+			"message": fmt.Sprintf("文件（ %s）生成成功 ", excel.PathFileName),
+		},
+	)
+	excel.Close() // excel文件生成
 
-	excel := NewExcelOperate(r.Context)
-	defer func() {
-		excel.Close() // excel文件生成
+	// 上传EXCEL文件到指定路径
+	err = r.uploadFileToTarget(excel, &r.model)
+	if err != nil {
+		r.Context.Log.Error(map[string]string{
+			"message":  fmt.Sprintf("上传文件(%s)到指定路径错误 ", excel.PathFileName),
+			"content:": err.Error(),
+		})
+		r.model.Status = web.ExportFailure
+	} else {
+		r.model.Status = web.ExportSuccess
+	}
 
-		// 上传EXCEL文件到指定路径
-		err = r.uploadFileToTarget(excel, &r.model)
-		if err != nil {
-			r.Context.Log.Errorln("message", fmt.Sprintf("上传文件(%s)到指定路径错误 ", excel.FileName), "content:", err.Error())
-			r.model.Status = web.ExportFailure
-		} else {
-			r.model.Status = web.ExportSuccess
-		}
-		r.model.Progress = 100
-		err := daos.NewDaoExport(r.Context).Update(&r.model)
-		if err != nil {
-			r.Context.Log.Errorln("message", "update export progress to database is error ", "content:", err.Error())
-		}
-	}()
+	// 修改任务进度
+	r.model.Progress = 100
 
-	excel.FileName = r.args.FileName + ".xlsx"
-	sheetNames := make([]string, 0)
+	// 更新Redis任务进度
+	r.UpdateRedisProgressValue()
+
+	err = daos.NewDaoExport(r.Context).Update(&r.model)
+	if err != nil {
+		r.Context.Log.Error(map[string]string{
+			"message":  "update export progress to database is error ",
+			"content:": err.Error(),
+		})
+	}
+}
+
+func (r *AsyncExport) getFileName() (pathFileName string) {
+	pathFileName = r.getSysTmp() + r.args.FileName + "_" + strconv.Itoa(r.model.Id) + ".xlsx"
+	return
+}
+
+// 获得操作系统的临时目录文件夹
+func (r *AsyncExport) getSysTmp() (res string) {
+	res = os.TempDir()
+	r.Context.Log.Error(map[string]string{
+		"临时目录:": res,
+	})
+	return
+}
+
+// 生成excel sheet名称,没有就使用默认
+func (r *AsyncExport) defaultSheetName() (sheetNames *[]string) {
+	sheetNames = &[]string{}
 	for key, value := range r.args.Program {
 		if value.SheetName == "" {
 			value.SheetName = "sheet" + strconv.Itoa(key+1)
 			r.args.Program[key] = value
 		}
-		sheetNames = append(sheetNames, value.SheetName)
+		*sheetNames = append(*sheetNames, value.SheetName)
 	}
-	excel = excel.SetSheet(&sheetNames) // 生成Excel的sheet
+	return
+}
+func (r *AsyncExport) Act(ctx context.Context) {
 
-	httpHeader := r.orgRequestHttpHeader(r.args.HttpHeader)
+	defer func() {
+		<-ctx.Done()
+	}()
+
+	r.work()
+}
+
+func (r *AsyncExport) work() {
+
+	// 设置导出任务开始的进度
+	r.UpdateProgress(web.RunProgressInit)
+
+	excel := NewExcelOperate(r.Context)
+
+	defer r.getDataFinishAct(excel)
+
+	// 获取生成文件的名字
+	excel.PathFileName = r.getFileName()
+
+	sheetNames := r.defaultSheetName()
+
+	excel = excel.SetSheet(sheetNames) // 生成Excel的sheet对象
+
 	for _, value := range r.args.Program {
-		value.HttpHeader = httpHeader
+
+		value.HttpHeader = r.args.HttpHeader
+
 		// 设置每个sheet的第一行数据及字段映射信息
 		excel = excel.SetHeader(value.SheetName, value.Header).
 			Init()
+		r.UpdateProgress(web.RunProgressStart)
 
 		// 处理第一页数据，目的为获取数据的格式 总条数或判断什么时候 获取数据可以结束
-		firstPage, _ := r.doOnePage(excel, &value)
+		firstPage, err := r.doOnePage(excel, &value)
 
+		r.UpdateProgress(web.RunProgressFistPage)
+
+		if err != nil {
+			return
+		}
 		// 获取除第一页外的数据
-		r.doOtherPage(excel, &firstPage, &value)
-
+		err = r.doOtherPage(excel, &firstPage, &value)
+		if err != nil {
+			return
+		}
 	}
 }
 
 // 将本次HTTP请求的header传递到后台 调用获取数据接口
-func (r *AsyncExport) orgRequestHttpHeader(header http.Header) (resHeader http.Header) {
-	resHeader = header
+// func (r *AsyncExport) orgRequestHttpHeader(header http.Header) (resHeader http.Header) {
+// 	resHeader = header
+// 	return
+// }
+func (r *AsyncExport) doOtherPage(excel *ExcelOperate, page *Pager, artSheet *pojos.ArgumentExportSheet) (err error) {
+	var pageIndex = 1
+	var progressStep float64 = 1
+	for {
+		if page.IsFinish { // 如果获取数据未结束
+			return
+		}
+		pageIndex++
+		// 如果没有获取到数据了或者取到10万页了，则说明取完了
+		if page.List == nil || len(page.List) < 1 || pageIndex > 100000 {
+			break
+		}
+
+		artSheet.Query["page_no"] = r.getPageNoFormat(artSheet.Query["page_no"], page.PageNo+1)
+
+		// 更新导出进度
+		r.UpdateProgress(int(math.Floor(float64(r.model.Progress) + progressStep)))
+
+		// 处理第一页数据，目的为获取数据的格式 总条数或判断什么时候 获取数据可以结束
+		*page, err = r.doOnePage(excel, artSheet)
+	}
+
 	return
 }
-func (r *AsyncExport) doOtherPage(excel *ExcelOperate, page *Pager, artSheet *pojos.ArgumentExportSheet) {
-	if !page.IsNotFinish { // 如果获取数据未结束
-		return
-	}
 
-	// 处理第一页数据，目的为获取数据的格式 总条数或判断什么时候 获取数据可以结束
-	r.doOnePage(excel, artSheet)
+func (r *AsyncExport) getPageNoFormat(pageInter interface{}, pageNo int) (res interface{}) {
+	switch pageInter.(type) {
+	case int:
+		res = pageNo
+		break
+	case string:
+		res = strconv.Itoa(pageNo)
+		break
+	default:
+		res = pageNo
+	}
+	return
 }
-
-func (r *AsyncExport) doOnePage(excel *ExcelOperate, artSheet *pojos.ArgumentExportSheet) (firstPageData Pager, err error) {
-
+func (r *AsyncExport) doOnePage(excel *ExcelOperate, artSheet *pojos.ArgumentExportSheet) (pageData Pager, err error) {
 	// 获取第一页数据
-	firstPageData, err = r.getData(artSheet)
-	r.Context.Log.Infoln("first page return:", firstPageData)
+	pageData, err = r.getData(artSheet)
 	if err != nil {
-		r.Context.Log.Errorln("message", "export get first page data exception ", "content:", err.Error())
+		r.Context.Log.Error(map[string]string{
+			"message":  "数据获取异常",
+			"content:": err.Error()})
 		return
 	}
-	r.WritePageData(&firstPageData, excel)
+	r.Context.Log.Info(map[string]string{"desc": fmt.Sprintf("first page return:%v", pageData)})
+	r.WritePageData(&pageData, excel)
 	return
 
 }
@@ -168,11 +291,11 @@ func (r *AsyncExport) WritePageData(page *Pager, excel *ExcelOperate) {
 
 // 支持导出的分页数据最终生成的结构
 type Pager struct {
-	IsNotFinish bool                     `json:"is_not_finish"` // 用于特殊数据判断
-	PageNo      int                      `json:"page_no"`
-	PageSize    int                      `json:"page_size"`
-	List        []map[string]interface{} `json:"list"`
-	TotalCount  int                      `json:"total_count"`
+	IsFinish   bool                     `json:"is_not_finish"` // 用于特殊数据判断
+	PageNo     int                      `json:"page_no"`
+	PageSize   int                      `json:"page_size"`
+	List       []map[string]interface{} `json:"list"`
+	TotalCount int                      `json:"total_count"`
 }
 
 type ServerConfig struct {
@@ -228,6 +351,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 		args := r.getArgString(r.dealDefaultQuery(artSheet.Query))
 		r.Context.Log.Errorln("message", fmt.Sprintf("the params: %s ", string(*args)))
 		request = RequestObject{
+			ReSendTimes:        3,
 			Uri:                "",
 			ContentType:        "application/json",
 			Body:               bytes.NewBuffer(*args),
@@ -242,6 +366,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 		break
 	case "GET":
 		request = RequestObject{
+			ReSendTimes:        3,
 			Uri:                "",
 			ContentType:        "application/json",
 			Body:               nil,
@@ -250,8 +375,13 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 			HttpRequestContent: artSheet.HttpRequestContent,
 		}
 		request.Uri = Uri
-
 		break
+	default:
+		err = fmt.Errorf("当前不支持%s方法", artSheet.HttpMethod)
+		r.Context.Log.Error(map[string]string{
+			"desc": err.Error(),
+		}, )
+		return
 	}
 
 	result, err := httpRequest.Send(&request)
@@ -263,6 +393,15 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 		Code int    `json:"code"`
 		Data Pager  `json:"data"`
 		Msg  string `json:"msg"`
+	}
+
+	// 如果没有获取到数据
+	if len(*result) == 0 {
+		r.Context.Log.Error(map[string]string{
+			"message": "请求接口返回数据为空",
+			"request": fmt.Sprintf("%v", request),
+		})
+		return
 	}
 	err = json.Unmarshal(*result, &dt)
 	resString := string(*result)

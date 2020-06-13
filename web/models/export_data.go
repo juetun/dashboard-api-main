@@ -11,6 +11,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	utils2 "github.com/juetun/dashboard-api-main/basic/utils"
 	"github.com/juetun/dashboard-api-main/basic/utils/hashid"
+	"github.com/juetun/dashboard-api-main/web"
 )
 
 type ZExportData struct {
@@ -35,6 +36,9 @@ func (r *ZExportData) SaltForHID() string {
 	return r.TableName()
 }
 
+func (r *ZExportData) GetCacheKey() string {
+	return web.RedisCacheKeyPrefixExport + r.Hid
+}
 func (r *ZExportData) GetID() int {
 	return r.Id
 }

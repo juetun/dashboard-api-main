@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/dashboard-api-main/web"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
@@ -25,13 +26,18 @@ type ServiceActExport struct {
 
 func (r *ServiceActExport) Run() (res pojos.ResultExportInit, err error) {
 	res = pojos.ResultExportInit{}
+
+	// 在数据库中添加任务数据
 	dt, err := r.InsertDataToDb()
 	if err != nil {
 		return
 	}
 
 	// 异步执行导出任务动作,后续修改成rpc生成实现
-	NewAsyncExport(r.Context).SetExportData(r.args, *dt).Run()
+	NewAsyncExport(r.Context).
+		SetExportData(r.args, *dt).
+		Run()
+
 	res.ExportHid = dt.Hid
 	return
 }
@@ -41,7 +47,7 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 	extFileName := "xlsx"
 	dt = &models.ZExportData{
 		Name:          r.args.FileName + "." + extFileName,
-		Progress:      0,
+		Progress:      web.ExportLoading,
 		Type:          extFileName,
 		Arguments:     r.argsString,
 		DownloadLink:  "",

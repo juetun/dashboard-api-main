@@ -31,6 +31,17 @@ func (r DaoExport) Update(model *models.ZExportData) (err error) {
 		Error
 	return
 }
+func (r DaoExport) UpdateByHIds(data map[string]interface{}, hIds *[]string) (err error) {
+	if len(*hIds) < 1 {
+		return
+	}
+	var m models.ZExportData
+	err = r.Context.Db.Table(m.TableName()).
+		Where("hid in(?)", *hIds).
+		Update(data).
+		Error
+	return
+}
 func (r DaoExport) Create(model *models.ZExportData) (res bool, err error) {
 	res = true
 	err = utils.CreateForHID(r.Context.Db, model)
