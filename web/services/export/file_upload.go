@@ -50,14 +50,14 @@ func (r *FileUpload) Run() {
 	if r.Err != nil {
 		return
 	}
-	
+
 	// 获取存储空间。
 	bucket, r.Err = client.Bucket(data.BucketName)
 	if r.Err != nil {
 		return
 	}
 	rulePrefix := data.DirName + "/export/"
-	r.FileName = strings.TrimPrefix(r.FilePath, filepath.Dir(r.FilePath)+"/")
+	r.FileName = strings.TrimPrefix(strings.TrimPrefix(r.FilePath, filepath.Dir(r.FilePath)), "/")
 	r.ObjectName = rulePrefix + r.FileName
 
 	// 设置导出 文件14天过期
