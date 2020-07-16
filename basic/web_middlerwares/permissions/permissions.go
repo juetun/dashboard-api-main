@@ -27,6 +27,10 @@ var PermissionsWhite = []HttpPermit{
 		Method: []string{"GET", "POST"},
 		Uri:    "console/register",
 	},
+	{
+		Method: []string{"GET"},
+		Uri:    `init_data`,
+	},
 }
 
 // 用户登录后 具备的接口访问权限
@@ -85,6 +89,8 @@ var Permissions = []HttpPermit{
 		Method: []string{"GET"},
 		Uri:    `console/link`,
 	},
+
+
 }
 
 // 需要验证权限的配置列表
