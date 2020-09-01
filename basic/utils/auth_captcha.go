@@ -50,7 +50,7 @@ type CustomizeRdsStore struct {
 func (r *CustomizeRdsStore) Set(id string, value string) {
 	err := r.RedisClient.Set(id, value, time.Minute*10).Err()
 	if err != nil {
-		r.Log.Errorln("message", "auth.AuthLogin", "error", err.Error())
+		r.Log.Logger.Errorln("message", "auth.AuthLogin", "error", err.Error())
 	}
 }
 
@@ -58,7 +58,7 @@ func (r *CustomizeRdsStore) Set(id string, value string) {
 func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
 	val, err := r.RedisClient.Get(id).Result()
 	if err != nil {
-		r.Log.Errorln("message", "auth.AuthLogin", "error", err.Error())
+		r.Log.Logger.Errorln("message", "auth.AuthLogin", "error", err.Error())
 		return
 	}
 	if !clear {
@@ -66,7 +66,7 @@ func (r *CustomizeRdsStore) Get(id string, clear bool) (value string) {
 	}
 	err = r.RedisClient.Del(id).Err()
 	if err != nil {
-		r.Log.Errorln("message", "auth.AuthLogin", "error", err.Error())
+		r.Log.Logger.Errorln("message", "auth.AuthLogin", "error", err.Error())
 		return
 	}
 	return val

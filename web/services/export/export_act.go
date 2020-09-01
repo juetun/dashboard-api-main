@@ -71,7 +71,7 @@ func (r *AsyncExport) uploadFileToTarget(excel *ExcelOperate, exportData *models
 		Run()
 	err = fileUpload.Err
 	if err != nil {
-		r.Context.Log.Errorln(
+		r.Context.Log.Logger.Errorln(
 			"message", fmt.Sprintf("文件（%s）上传文件到阿里云失败 ", excel.PathFileName),
 			"content:", err.Error())
 		return
@@ -319,7 +319,7 @@ func (r *AsyncExport) getAccessUrl(argSheet *pojos.ArgumentExportSheet) (res str
 		if value.Key == argSheet.AppName {
 			domain, err = value.GetRandomDomain()
 			if err != nil {
-				r.Context.Log.Errorln("message", fmt.Sprintf("the app_name %s(%s) config domain is err ", value.Name, value.Key), "content:", err.Error())
+				r.Context.Log.Logger.Errorln("message", fmt.Sprintf("the app_name %s(%s) config domain is err ", value.Name, value.Key), "content:", err.Error())
 				return
 			}
 			serverMessage = ServerConfig{
@@ -349,7 +349,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 	switch strings.ToUpper(artSheet.HttpMethod) {
 	case "POST":
 		args := r.getArgString(r.dealDefaultQuery(artSheet.Query))
-		r.Context.Log.Errorln("message", fmt.Sprintf("the params: %s ", string(*args)))
+		r.Context.Log.Logger.Errorln("message", fmt.Sprintf("the params: %s ", string(*args)))
 		request = RequestObject{
 			ReSendTimes:        3,
 			Uri:                "",
@@ -360,7 +360,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 		}
 		request.Uri = Uri
 		if err != nil {
-			r.Context.Log.Errorln("message", " getData", "content:", err.Error())
+			r.Context.Log.Logger.Errorln("message", " getData", "content:", err.Error())
 			return
 		}
 		break
@@ -386,7 +386,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 
 	result, err := httpRequest.Send(&request)
 	if err != nil {
-		r.Context.Log.Errorln("message", " getData", "content:", err.Error())
+		r.Context.Log.Logger.Errorln("message", " getData", "content:", err.Error())
 		return
 	}
 	var dt struct {
@@ -406,9 +406,9 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 	err = json.Unmarshal(*result, &dt)
 	resString := string(*result)
 	if err != nil {
-		r.Context.Log.Errorln("message", " Unmarshal JSON  Exception", "content:", resString)
+		r.Context.Log.Logger.Errorln("message", " Unmarshal JSON  Exception", "content:", resString)
 	} else {
-		r.Context.Log.Infoln("message", "request return ", "content:", resString)
+		r.Context.Log.Logger.Infoln("message", "request return ", "content:", resString)
 	}
 	res = dt.Data
 	return

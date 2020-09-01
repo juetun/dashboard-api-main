@@ -28,7 +28,7 @@ type ConsolePostService struct {
 
 func NewConsolePostService(context ...*base.Context) (p *ConsolePostService) {
 	p = &ConsolePostService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 

@@ -20,7 +20,7 @@ type DaoExport struct {
 
 func NewDaoExport(context ...*base.Context) (p *DaoExport) {
 	p = &DaoExport{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r DaoExport) Update(model *models.ZExportData) (err error) {

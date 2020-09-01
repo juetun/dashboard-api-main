@@ -24,7 +24,7 @@ type LinkService struct {
 
 func NewLinkService(context ...*base.Context) (p *LinkService) {
 	p = &LinkService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *LinkService) LinkList(offset int, limit int) (links []models.ZLinks, cnt int64, err error) {
@@ -92,21 +92,21 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 	if err == redis.Nil {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Context.Log.Infoln("message", "service.AllLink", "err", err.Error())
+			r.Context.Log.Logger.Infoln("message", "service.AllLink", "err", err.Error())
 			return links, err
 		}
 		return links, nil
 	} else if err != nil {
-		r.Context.Log.Infoln("message", "service.AllLink", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.AllLink", "err", err.Error())
 		return nil, err
 	}
 
 	err = json.Unmarshal([]byte(cacheRes), &links)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.AllLink", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.AllLink", "err", err.Error())
 		links, err = r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Context.Log.Errorln("message", "service.AllLink", "err", err.Error())
+			r.Context.Log.Logger.Errorln("message", "service.AllLink", "err", err.Error())
 			return nil, err
 		}
 		return links, nil
@@ -120,17 +120,17 @@ func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, e
 		Find(&links).
 		Error
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return links, err
 	}
 	jsonRes, err := json.Marshal(&links)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return nil, err
 	}
 	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
 		return nil, err
 	}
 	return links, nil

@@ -25,7 +25,7 @@ func (r ControllerExportData) Cancel(c *gin.Context) {
 
 	err = c.Bind(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Cancel", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Cancel", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -34,7 +34,7 @@ func (r ControllerExportData) Cancel(c *gin.Context) {
 	var res pojos.ResultExportCancel
 	res, err = srv.Cancel(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Cancel", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Cancel", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -47,7 +47,7 @@ func (r ControllerExportData) Init(c *gin.Context) {
 
 	err = c.Bind(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Init", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Init", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -57,7 +57,7 @@ func (r ControllerExportData) Init(c *gin.Context) {
 	var res pojos.ResultExportInit
 	res, err = srv.Init(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Init", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Init", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -70,7 +70,7 @@ func (r ControllerExportData) Progress(c *gin.Context) {
 
 	err = c.BindQuery(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Progress", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Progress", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -81,7 +81,7 @@ func (r ControllerExportData) Progress(c *gin.Context) {
 	var res pojos.ResultExportProgress
 	res, err = srv.Progress(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.Progress", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.Progress", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -94,7 +94,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 
 	err = c.Bind(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.list", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.list", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -103,7 +103,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 	var res pojos.ResultExportList
 	res, err = srv.List(&args)
 	if err != nil {
-		r.Log.Errorln("message", "export.list", "err", err.Error())
+		r.Log.Logger.Errorln("message", "export.list", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}

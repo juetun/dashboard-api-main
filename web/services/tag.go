@@ -27,7 +27,7 @@ type TagService struct {
 
 func NewTagService(context ...*base.Context) (p *TagService) {
 	p = &TagService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
@@ -39,12 +39,12 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 		Find(tag).
 		Error
 	if err != nil && !gorm.IsRecordNotFoundError(err) {
-		r.Context.Log.Errorln("message", "service.TagStore", "error", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.TagStore", "error", err.Error())
 		return err
 	}
 
 	if tag.Id > 0 {
-		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag name has exists")
+		r.Context.Log.Logger.Errorln("message", "service.TagStore", "error", "Tag name has exists")
 		return errors.New("您输入的标签名已存在")
 	}
 
@@ -67,7 +67,7 @@ func (r *TagService) GetPostTagsByPostIds(postIds *[]string) (res *map[int][]poj
 	err = r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id in (?)", *postIds).
 		Find(&dt).Error
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
 		return
 	}
 	tagIds := r.uniqueTagId(&dt)
@@ -132,7 +132,7 @@ func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) 
 		Select("tag_id").
 		Rows()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())
 		return nil, nil
 	}
 	defer rows.Close()
@@ -164,11 +164,11 @@ func (r *TagService) TagUpdate(tagId int, ts pojos.TagStore) (err error) {
 		Find(tag).
 		Error
 	if err != nil && !gorm.IsRecordNotFoundError(err) {
-		r.Context.Log.Errorln("message", "service.TagStore", "error", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.TagStore", "error", err.Error())
 		return err
 	}
 	if tag.Id > 0 {
-		r.Context.Log.Errorln("message", "service.TagStore", "error", "Tag name has exists")
+		r.Context.Log.Logger.Errorln("message", "service.TagStore", "error", "Tag name has exists")
 		return errors.New("您输入的标签名已存在")
 	}
 
@@ -217,14 +217,14 @@ func (r *TagService) DelTagRel(tagId int) {
 	err := session.Where("tag_id = ?", tagId).Delete(postTag).Error
 	if err != nil {
 		_ = session.Rollback()
-		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
 	tag := new(models.ZTags)
 	err = session.Where("id=?", tagId).Delete(tag).Error
 	if err != nil {
 		_ = session.Rollback()
-		r.Context.Log.Errorln("message", "service.DelTagRel", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.DelTagRel", "err", err.Error())
 		return
 	}
 	r.Context.CacheClient.Del(common.Conf.TagListKey)
@@ -255,7 +255,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 	srv := NewCategoryService()
 	cates, err := srv.CateListBySort()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	var catess []pojos.IndexCategory
@@ -269,21 +269,21 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 	tags, err := r.AllTags()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 
 	srvLink := NewLinkService()
 	links, err := srvLink.AllLink()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	srvSystem := NewSystemService()
 
 	system, err := srvSystem.IndexSystem()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.Index.CommonData", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.Index.CommonData", "err", err.Error())
 		return
 	}
 	h["cates"] = catess
@@ -299,23 +299,23 @@ func (r *TagService) AllTags() ([]models.ZTags, error) {
 	if err == redis.Nil {
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
-			r.Context.Log.Infoln("message", "service.AllTags", "err", err.Error())
+			r.Context.Log.Logger.Infoln("message", "service.AllTags", "err", err.Error())
 			return tags, err
 		}
 		return tags, nil
 	}
 	if err != nil {
-		r.Context.Log.Infoln("message", "service.AllTags", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.AllTags", "err", err.Error())
 		return nil, err
 	}
 
 	var cacheTag []models.ZTags
 	err = json.Unmarshal([]byte(cacheRes), &cacheTag)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.AllTags", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.AllTags", "err", err.Error())
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
-			r.Context.Log.Errorln("message", "service.AllTags", "err", err.Error())
+			r.Context.Log.Logger.Errorln("message", "service.AllTags", "err", err.Error())
 			return nil, err
 		}
 		return tags, nil
@@ -326,17 +326,17 @@ func (r *TagService) AllTags() ([]models.ZTags, error) {
 func (r *TagService) doCacheTagList(cacheKey string) ([]models.ZTags, error) {
 	tags, err := r.tags()
 	if err != nil {
-		r.Context.Log.Infoln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.doCacheTagList", "err", err.Error())
 		return tags, err
 	}
 	jsonRes, err := json.Marshal(&tags)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheTagList", "err", err.Error())
 		return nil, err
 	}
 	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheTagList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheTagList", "err", err.Error())
 		return nil, err
 	}
 	return tags, nil
@@ -346,7 +346,7 @@ func (r *TagService) tags() ([]models.ZTags, error) {
 	tags := make([]models.ZTags, 0)
 	err := r.getTableDb().Find(&tags).Error
 	if err != nil {
-		r.Context.Log.Infoln("message", "service.Tags", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.Tags", "err", err.Error())
 		return tags, err
 	}
 

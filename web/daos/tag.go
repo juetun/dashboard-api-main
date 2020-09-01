@@ -19,7 +19,7 @@ type DaoTag struct {
 
 func NewDaoTag(context ...*base.Context) (p *DaoTag) {
 	p = &DaoTag{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *DaoTag) UpdateTagNumById(tagCount *pojos.TagCount) (err error) {

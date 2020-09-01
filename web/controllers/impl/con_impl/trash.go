@@ -34,7 +34,7 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 	if postCount > 0 {
 		postList, err = srv.ConsolePostIndex(dba, limit, offset, false)
 		if err != nil {
-			r.Log.Errorln("message", "console.Index", "err", err.Error())
+			r.Log.Logger.Errorln("message", "console.Index", "err", err.Error())
 			r.Response(c, 500000000, nil)
 			return
 		}
@@ -52,14 +52,14 @@ func (r *ControllerTrash) Create(c *gin.Context) {
 	cates, err := srv.CateListBySort()
 
 	if err != nil {
-		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	srvTag := services.NewTagService(&base.Context{Log: r.Log})
 	tags, err := srvTag.AllTags()
 	if err != nil {
-		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -73,14 +73,14 @@ func (r *ControllerTrash) Create(c *gin.Context) {
 func (r *ControllerTrash) Store(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
-		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
+		r.Log.Logger.Errorln("message", "post.Store", "error", "get request_params from context fail")
 		r.Response(c, 401000004, nil)
 		return
 	}
 	var ps pojos.PostStore
 	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
-		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
+		r.Log.Logger.Errorln("message", "post.Store", "error", "request_params turn to error")
 		r.Response(c, 400001001, nil)
 		return
 	}
@@ -94,7 +94,7 @@ func (r *ControllerTrash) Edit(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
 	if err != nil {
-		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -104,19 +104,19 @@ func (r *ControllerTrash) Edit(c *gin.Context) {
 
 	post, err := srv.PostDetail(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	postTags, err := srv.PostIdTag(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	postCate, err := srvCate.PostCate(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "console.Edit", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -128,13 +128,13 @@ func (r *ControllerTrash) Edit(c *gin.Context) {
 	data["post"] = posts
 	cates, err := srvCate.CateListBySort()
 	if err != nil {
-		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	tags, err := srvTag.AllTags()
 	if err != nil {
-		r.Log.Errorln("message", "console.Create", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -149,21 +149,21 @@ func (r *ControllerTrash) Update(c *gin.Context) {
 	postIdInt, err := strconv.Atoi(postIdStr)
 
 	if err != nil {
-		r.Log.Errorln("message", "console.Update", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Update", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 
 	requestJson, exists := c.Get("json")
 	if !exists {
-		r.Log.Errorln("message", "post.Store", "error", "get request_params from context fail")
+		r.Log.Logger.Errorln("message", "post.Store", "error", "get request_params from context fail")
 		r.Response(c, 400001003, nil)
 		return
 	}
 	var ps pojos.PostStore
 	ps, ok := requestJson.(pojos.PostStore)
 	if !ok {
-		r.Log.Errorln("message", "post.Store", "error", "request_params turn to error")
+		r.Log.Logger.Errorln("message", "post.Store", "error", "request_params turn to error")
 		r.Response(c, 400001001, nil)
 		return
 	}
@@ -177,14 +177,14 @@ func (r *ControllerTrash) Destroy(c *gin.Context) {
 	postIdInt, err := strconv.Atoi(postIdStr)
 
 	if err != nil {
-		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Destroy", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	_, err = srv.PostDestroy(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Destroy", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -198,7 +198,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	dba, postCount, err := srv.ConsolePostCount(limit, offset, true)
 	if err != nil {
-		r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -206,7 +206,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	if postCount > 0 {
 		postList, err = srv.ConsolePostIndex(dba, limit, offset, true)
 		if err != nil {
-			r.Log.Errorln("message", "console.TrashIndex", "err", err.Error())
+			r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
 			r.Response(c, 500000000, nil)
 			return
 		}
@@ -223,14 +223,14 @@ func (r *ControllerTrash) UnTrash(c *gin.Context) {
 	postIdInt, err := strconv.Atoi(postIdStr)
 
 	if err != nil {
-		r.Log.Errorln("message", "console.Destroy", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.Destroy", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
 	srv := services.NewConsolePostService(&base.Context{Log: r.Log})
 	_, err = srv.PostUnTrash(postIdInt)
 	if err != nil {
-		r.Log.Errorln("message", "console.UnTrash", "err", err.Error())
+		r.Log.Logger.Errorln("message", "console.UnTrash", "err", err.Error())
 		r.Response(c, 500000000, nil)
 		return
 	}
@@ -241,7 +241,7 @@ func (r *ControllerTrash) ImgUpload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		r.Log.Infoln("message", "post.ImgUpload", "err", err.Error())
+		r.Log.Logger.Infoln("message", "post.ImgUpload", "err", err.Error())
 		r.Response(c, 401000004, nil)
 		return
 	}
@@ -249,7 +249,7 @@ func (r *ControllerTrash) ImgUpload(c *gin.Context) {
 	filename := filepath.Base(file.Filename)
 	dst := common.Conf.ImgUploadDst + filename
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		r.Log.Infoln("message", "post.ImgUpload", "error", err.Error())
+		r.Log.Logger.Infoln("message", "post.ImgUpload", "error", err.Error())
 		r.Response(c, 401000005, nil)
 		return
 	}

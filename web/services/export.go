@@ -26,7 +26,7 @@ type ServiceExport struct {
 
 func NewServiceExport(context ...*base.Context) (p *ServiceExport) {
 	p = &ServiceExport{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	p.Context.CacheClient = app_obj.GetRedisClient()
 	return
 

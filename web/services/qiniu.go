@@ -25,7 +25,7 @@ type QiuNiuService struct {
 
 func NewQiuNiuService(context ...*base.Context) (p *QiuNiuService) {
 	p = &QiuNiuService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 // Upload file to Qiniu
@@ -72,12 +72,12 @@ func (r *QiuNiuService) Qiniu(localFile string, fileName string) {
 	}
 	err := formUploader.PutFile(context.Background(), &ret, upToken, key, localFile, &putExtra)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.QiNiu upload file", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.QiNiu upload file", "err", err.Error())
 		utils.Alarm("文件上传七牛失败了,文件名是" + fileName)
 		return
 	}
 	// fmt.Println("234222",ret,"最后是谁啥")
 	// fmt.Println(ret.Key,"234222", ret.Hash,"最后是谁啥")
-	r.Context.Log.Infoln("message", "service.QiNiu upload file", "end", "succeed")
+	r.Context.Log.Logger.Infoln("message", "service.QiNiu upload file", "end", "succeed")
 	return
 }

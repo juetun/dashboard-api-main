@@ -26,7 +26,7 @@ type CategoryService struct {
 
 func NewCategoryService(context ...*base.Context) (p *CategoryService) {
 	p = &CategoryService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *CategoryService) GetCateById(cateId int) (cate *models.ZCategories, err error) {

@@ -26,7 +26,7 @@ type SystemService struct {
 
 func NewSystemService(context ...*base.Context) (p *SystemService) {
 	p = &SystemService{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
@@ -40,7 +40,7 @@ func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 			err = nil
 			return
 		}
-		r.Context.Log.Errorln("message", "service.GetSystemList", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.GetSystemList", "err", err.Error())
 		return
 	}
 	return
@@ -70,13 +70,13 @@ func (r *SystemService) IndexSystem() (system *models.ZBaseSys, err error) {
 	if err == redis.Nil {
 		system, err := r.doCacheIndexSystem(cacheKey)
 		if err != nil {
-			r.Context.Log.Infoln("message", "service.IndexSystem", "err", err.Error())
+			r.Context.Log.Logger.Infoln("message", "service.IndexSystem", "err", err.Error())
 			return system, err
 		}
 		return system, nil
 	}
 	if err != nil {
-		r.Context.Log.Infoln("message", "service.IndexSystem", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.IndexSystem", "err", err.Error())
 		return system, err
 	}
 
@@ -84,10 +84,10 @@ func (r *SystemService) IndexSystem() (system *models.ZBaseSys, err error) {
 	if err == nil {
 		return system, nil
 	}
-	r.Context.Log.Errorln("message", "service.IndexSystem", "err", err.Error())
+	r.Context.Log.Logger.Errorln("message", "service.IndexSystem", "err", err.Error())
 	system, err = r.doCacheIndexSystem(cacheKey)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.IndexSystem", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.IndexSystem", "err", err.Error())
 		return nil, err
 	}
 	return system, nil
@@ -98,17 +98,17 @@ func (r *SystemService) doCacheIndexSystem(cacheKey string) (system *models.ZBas
 	system = new(models.ZBaseSys)
 	err = r.Context.Db.Table((&models.ZBaseSys{}).TableName()).Find(system).Error
 	if err != nil {
-		r.Context.Log.Infoln("message", "service.doCacheIndexSystem", "err", err.Error())
+		r.Context.Log.Logger.Infoln("message", "service.doCacheIndexSystem", "err", err.Error())
 		return system, err
 	}
 	jsonRes, err := json.Marshal(&system)
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheIndexSystem", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheIndexSystem", "err", err.Error())
 		return system, err
 	}
 	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Context.Log.Errorln("message", "service.doCacheIndexSystem", "err", err.Error())
+		r.Context.Log.Logger.Errorln("message", "service.doCacheIndexSystem", "err", err.Error())
 		return system, err
 	}
 	return system, nil

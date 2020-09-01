@@ -22,7 +22,7 @@ type DaoPostTag struct {
 
 func NewDaoPostTag(context ...*base.Context) (p *DaoPostTag) {
 	p = &DaoPostTag{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 

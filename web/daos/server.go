@@ -18,7 +18,7 @@ type DaoAppPath struct {
 
 func NewDaoAppPath(context ...*base.Context) (p *DaoAppPath) {
 	p = &DaoAppPath{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }
 

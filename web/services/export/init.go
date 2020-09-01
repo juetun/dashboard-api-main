@@ -64,13 +64,13 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 func (r *ServiceActExport) SetArgument(args *pojos.ArgumentsExportInit) (p *ServiceActExport) {
 	arg, _ := json.Marshal(args)
 	r.argsString = string(arg)
-	r.Context.Log.Errorln("message", "export argument", "content:", r.argsString)
+	r.Context.Log.Logger.Errorln("message", "export argument", "content:", r.argsString)
 	r.args = args
 	return r
 }
 
 func NewServiceActExport(context ...*base.Context) (p *ServiceActExport) {
 	p = &ServiceActExport{}
-	p.SetContext(context)
+	p.SetContext(context...)
 	return
 }

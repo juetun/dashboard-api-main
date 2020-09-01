@@ -37,7 +37,7 @@ func (r *ApiController) Response(httpCode, errCode int, data gin.H) {
 	r.C.Writer.Header().Set("X-Response-time", roundedStr)
 	requestUrl := r.C.Request.URL.String()
 	requestMethod := r.C.Request.Method
-	app_log.GetLog().Infoln("message", "Index Response", "Request Url",
+	app_log.GetLog().Logger.Infoln("message", "Index Response", "Request Url",
 		requestUrl, "Request method", requestMethod,
 		"code", errCode, "errMsg", msg,
 		"took", roundedStr)
