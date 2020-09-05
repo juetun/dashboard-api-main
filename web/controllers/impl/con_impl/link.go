@@ -32,7 +32,7 @@ func (r *ControllerLink) Index(c *gin.Context) {
 	pager := base.NewPager()
 	limit, offset := pager.InitPageBy(c, "GET")
 
-	srv := services.NewLinkService(&base.Context{Log: r.Log})
+	srv := services.NewLinkService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	links, cnt, err := srv.LinkList(offset, limit)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Link.Index", "err", err.Error())
@@ -60,7 +60,7 @@ func (r *ControllerLink) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := services.NewLinkService(&base.Context{Log: r.Log})
+	srv := services.NewLinkService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	err := srv.LinkSore(ls)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "link.Store", "error", err.Error())
@@ -79,7 +79,7 @@ func (r *ControllerLink) Edit(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := services.NewLinkService(&base.Context{Log: r.Log})
+	srv := services.NewLinkService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	link, err := srv.LinkDetail(linkIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Link.Edit", "err", err.Error())
@@ -111,7 +111,7 @@ func (r *ControllerLink) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil, "您输入的数据格式错误")
 		return
 	}
-	srv := services.NewLinkService(&base.Context{Log: r.Log})
+	srv := services.NewLinkService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	err = srv.LinkUpdate(ls, linkIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "Link.Update", "error", err.Error())
@@ -130,7 +130,7 @@ func (r *ControllerLink) Destroy(c *gin.Context) {
 		r.Response(c, 500000000, nil,err.Error())
 		return
 	}
-	srv := services.NewLinkService(&base.Context{Log: r.Log})
+	srv := services.NewLinkService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	err = srv.LinkDestroy(linkIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Link.Destroy", "err", err.Error())

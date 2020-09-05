@@ -33,7 +33,7 @@ func (r *ControllerHome) Index(c *gin.Context) {
 		},
 	}
 
-	srv := services.NewSystemService(&base.Context{Log: r.Log})
+	srv := services.NewSystemService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	system, err := srv.GetSystemList()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Home.Index", "err", err.Error())
@@ -70,7 +70,7 @@ func (r *ControllerHome) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil, "参数异常")
 		return
 	}
-	srv := services.NewSystemService(&base.Context{Log: r.Log})
+	srv := services.NewSystemService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	err = srv.SystemUpdate(systemIdInt, ss)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "system.Update", "error", err.Error())

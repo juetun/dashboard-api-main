@@ -35,8 +35,8 @@ func (r *ControllerWeb) Index(c *gin.Context) {
 	queryPage := c.DefaultQuery("page", "1")
 	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultIndexLimit)
 
-	srv := services.NewIndexService(&base.Context{Log: r.Log})
-	srcTag := services.NewTagService(&base.Context{Log: r.Log})
+	srv := services.NewIndexService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srcTag := services.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	h, err := srcTag.CommonData()
 	if err != nil {
 		r.Log.Errorln("message", "Index.Index", "err", err.Error())
@@ -64,14 +64,14 @@ func (r *ControllerWeb) IndexTag(c *gin.Context) {
 	queryPage := c.DefaultQuery("page", "1")
 	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultIndexLimit)
 	name := c.Param("name")
-	srcTag := services.NewTagService(&base.Context{Log: r.Log})
+	srcTag := services.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	h, err := srcTag.CommonData()
 	if err != nil {
 		r.Log.Errorln("message", "Index.Index", "err", err.Error())
 		r.Response(c, 404, h)
 		return
 	}
-	src := services.NewIndexService(&base.Context{Log: r.Log})
+	src := services.NewIndexService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	postData, err := src.IndexPost(queryPage, queryLimit, "tag", name)
 	if err != nil {
 		r.Log.Errorln("message", "Index.Index", "err", err.Error())
@@ -93,7 +93,7 @@ func (r *ControllerWeb) IndexCate(c *gin.Context) {
 	queryLimit := c.DefaultQuery("limit", common.Conf.DefaultIndexLimit)
 	name := c.Param("name")
 
-	srv := services.NewTagService(&base.Context{Log: r.Log})
+	srv := services.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	h, err := srv.CommonData()
 	if err != nil {
 		r.Log.Errorln("message", "Index.IndexCate", "err", err.Error())
@@ -101,7 +101,7 @@ func (r *ControllerWeb) IndexCate(c *gin.Context) {
 		return
 	}
 
-	srvIndex := services.NewIndexService(&base.Context{Log: r.Log})
+	srvIndex := services.NewIndexService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	postData, err := srvIndex.IndexPost(queryPage, queryLimit, "cate", name)
 	if err != nil {
 		r.Log.Errorln("message", "Index.IndexCate", "err", err.Error())
@@ -123,7 +123,7 @@ func (r *ControllerWeb) IndexCate(c *gin.Context) {
 func (r *ControllerWeb) Detail(c *gin.Context) {
 	postIdStr := c.Param("id")
 
-	srv := services.NewTagService(&base.Context{Log: r.Log})
+	srv := services.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	h, err := srv.CommonData()
 	if err != nil {
 		r.Log.Errorln("message", "Index.Detail", "err", err.Error())
@@ -131,7 +131,7 @@ func (r *ControllerWeb) Detail(c *gin.Context) {
 		return
 	}
 
-	srvIndex := services.NewIndexService(&base.Context{Log: r.Log})
+	srvIndex := services.NewIndexService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	postDetail, err := srvIndex.IndexPostDetail(postIdStr)
 	if err != nil {
 		r.Log.Errorln("message", "Index.Detail", "err", err.Error())
@@ -160,14 +160,14 @@ func (r *ControllerWeb) Detail(c *gin.Context) {
 
 func (r *ControllerWeb) Archives(c *gin.Context) {
 
-	srv := services.NewTagService(&base.Context{Log: r.Log})
+	srv := services.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	h, err := srv.CommonData()
 	if err != nil {
 		r.Log.Errorln("message", "Index.Archives", "err", err.Error())
 		r.Response(c, 404, h)
 		return
 	}
-	srvPost := services.NewConsolePostService(&base.Context{Log: r.Log})
+	srvPost := services.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	res, err := srvPost.PostArchives()
 	if err != nil {
 		r.Log.Errorln("message", "Index.Archives", "err", err.Error())
