@@ -8,7 +8,12 @@
 package services
 
 import (
+	"encoding/json"
+	"time"
+
+	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
@@ -23,6 +28,128 @@ func NewPermitService(context ...*base.Context) (p *PermitService) {
 	p.SetContext(context...)
 	return
 }
+func (r *PermitService) MenuAdd(arg *pojos.ArgMenuAdd) (res *pojos.ResultMenuAdd, err error) {
+	res = &pojos.ResultMenuAdd{}
+	dao := daos.NewDaoPermit(r.Context)
+	// timeNow:=time.Now().Format("2006-01-02 15:04:05")
+	t := time.Now()
+	err = dao.Add(&models.AdminMenu{
+		ParentId:   arg.ParentId,
+		AppName:    arg.AppName,
+		Label:      arg.Label,
+		Icon:       arg.Icon,
+		IsMenuShow: arg.IsMenuShow,
+		AppVersion: arg.AppVersion,
+		UrlPath:    arg.UrlPath,
+		PathType:   arg.PathType,
+		SortValue:  arg.SortValue,
+		OtherValue: arg.OtherValue,
+		CreatedAt:  t,
+		UpdatedAt:  t,
+		IsDel:      0,
+	})
+	return
+}
+func (r *PermitService) MenuDelete(arg *pojos.ArgMenuDelete) (res *pojos.ResultMenuDelete, err error) {
+	res = &pojos.ResultMenuDelete{}
+	dao := daos.NewDaoPermit(r.Context)
+	err = dao.DeleteByIds(arg.IdValue)
+	return
+}
+
+func (r *PermitService) MenuSave(arg *pojos.ArgMenuSave) (res *pojos.ResultMenuSave, err error) {
+	res = &pojos.ResultMenuSave{}
+	dao := daos.NewDaoPermit(r.Context)
+	t := time.Now()
+	err = dao.Save(arg.Id, &models.AdminMenu{
+		ParentId:   arg.ParentId,
+		AppName:    arg.AppName,
+		Label:      arg.Label,
+		Icon:       arg.Icon,
+		IsMenuShow: arg.IsMenuShow,
+		AppVersion: arg.AppVersion,
+		UrlPath:    arg.UrlPath,
+		PathType:   arg.PathType,
+		SortValue:  arg.SortValue,
+		OtherValue: arg.OtherValue,
+		UpdatedAt:  t,
+		IsDel:      0,
+	})
+	return
+}
+func (r *PermitService) AdminMenu(arg *pojos.ArgAdminMenu) (res *pojos.ResultAdminMenu, err error) {
+	res = &pojos.ResultAdminMenu{List: make([]pojos.AdminMenuObject, 0, 20)}
+	dao := daos.NewDaoPermit(r.Context)
+	var list []models.AdminMenu
+	list, err = dao.GetAdminMenuList(arg)
+	r.orgTree(list, 0, &res.List)
+	return
+}
+
+//
+func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]pojos.AdminMenuObject) () {
+	var tmp pojos.AdminMenuObject
+	for _, value := range list {
+		if value.ParentId != parentId {
+			continue
+		}
+		tmp = pojos.AdminMenuObject{Children: make([]pojos.AdminMenuObject, 0, 20),}
+
+		tmp.ResultAdminMenuSingle = pojos.ResultAdminMenuSingle{
+			Id:         value.Id,
+			ParentId:   value.ParentId,
+			AppName:    value.AppName,
+			Title:      value.Label,
+			Icon:       value.Icon,
+			IsMenuShow: value.IsMenuShow,
+			AppVersion: value.AppVersion,
+			UrlPath:    value.UrlPath,
+			PathType:   value.PathType,
+			SortValue:  value.SortValue,
+			IsDel:      value.IsDel,
+		}
+		if value.OtherValue != "" {
+			json.Unmarshal([]byte(value.OtherValue), &tmp.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
+		} else {
+			tmp.ResultAdminMenuSingle.ResultAdminMenuOtherValue = pojos.ResultAdminMenuOtherValue{Expand: true,}
+		}
+		r.orgTree(list, value.Id, &tmp.Children)
+		*res = append(*res, tmp)
+	}
+}
+
+func (r *PermitService) AdminGroup(arg *pojos.ArgAdminGroup) (res *pojos.ResultAdminGroup, err error) {
+
+	res = &pojos.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
+	var db *gorm.DB
+	dao := daos.NewDaoPermit(r.Context)
+	// 获取分页数据
+	res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
+		pagerObject.TotalCount, db, err = dao.GetAdminGroupCount(db, arg)
+		return
+	}, func(pagerObject *response.Pager) (err error) {
+		pagerObject.List, err = dao.GetAdminGroupList(db, arg)
+		return
+	})
+	return
+}
+
+func (r *PermitService) AdminUser(arg *pojos.ArgAdminUser) (res *pojos.ResultAdminUser, err error) {
+	res = &pojos.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
+	dao := daos.NewDaoPermit(r.Context)
+
+	var db *gorm.DB
+
+	// 分页获取数据
+	res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
+		pagerObject.TotalCount, db, err = dao.GetAdminUserCount(db, arg)
+		return
+	}, func(pagerObject *response.Pager) (err error) {
+		pagerObject.List, err = dao.GetAdminUserList(db, arg)
+		return
+	})
+	return
+}
 
 func (r *PermitService) Menu(arg *pojos.ArgPermitMenu) (res *pojos.ResultPermitMenu, err error) {
 	res = &pojos.ResultPermitMenu{}
@@ -31,7 +158,7 @@ func (r *PermitService) Menu(arg *pojos.ArgPermitMenu) (res *pojos.ResultPermitM
 	if err != nil {
 		return
 	}
-	menuIds, err := r.getPermitByGroupIds(dao, groupIds...)
+	menuIds, err := r.getPermitByGroupIds(dao, arg.PathType, groupIds...)
 	if err != nil {
 		return
 	}
@@ -39,14 +166,15 @@ func (r *PermitService) Menu(arg *pojos.ArgPermitMenu) (res *pojos.ResultPermitM
 	return
 }
 func (r *PermitService) getGroupMenu(dao *daos.DaoPermit, menuIds ...int) (res []models.AdminMenu, err error) {
+	res = []models.AdminMenu{}
 	if len(menuIds) == 0 {
 		return
 	}
 	res, err = dao.GetPermitMenuByIds(menuIds...)
 	return
 }
-func (r *PermitService) getPermitByGroupIds(dao *daos.DaoPermit, groupIds ...int) (menuIds []int, err error) {
-	res, err := dao.GetMenuIdsByPermitByGroupIds(groupIds...)
+func (r *PermitService) getPermitByGroupIds(dao *daos.DaoPermit, pathType string, groupIds ...int) (menuIds []int, err error) {
+	res, err := dao.GetMenuIdsByPermitByGroupIds(pathType, groupIds...)
 	if err != nil {
 		return
 	}

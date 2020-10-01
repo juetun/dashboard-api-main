@@ -24,22 +24,168 @@ func NewControllerPermit() inter.Permit {
 	controller.ControllerBase.Init()
 	return controller
 }
+func (r *ControllerPermit) MenuDelete(c *gin.Context) {
+	var arg pojos.ArgMenuDelete
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
 
+	srv := services.NewPermitService(context)
+
+	res, err := srv.MenuDelete(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) MenuSave(c *gin.Context) {
+	var arg pojos.ArgMenuSave
+	var err error
+	err = c.ShouldBind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.MenuSave(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) MenuAdd(c *gin.Context) {
+	var arg pojos.ArgMenuAdd
+	var err error
+	err = c.ShouldBind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.MenuAdd(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+func (r *ControllerPermit) AdminMenu(c *gin.Context) {
+	var arg pojos.ArgAdminMenu
+	err := c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	// context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminMenu(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) AdminUser(c *gin.Context) {
+	var arg pojos.ArgAdminUser
+	err := c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminUser(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) AdminGroup(c *gin.Context) {
+	var arg pojos.ArgAdminGroup
+	err := c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil)
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminGroup(&arg)
+	if err != nil {
+		r.Response(c, 500000002, nil)
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+// 获取权限菜单
 func (r *ControllerPermit) Menu(c *gin.Context) {
 	var arg pojos.ArgPermitMenu
 	err := c.Bind(&arg)
 	if err != nil {
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000001, nil)
 		return
 	}
-
+	arg.Default()
 	arg.JwtUserMessage = r.GetUser(c)
 
-	srv := services.NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
 
+	srv := services.NewPermitService(context)
 	res, err := srv.Menu(&arg)
+
 	if err != nil {
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000002, nil)
 		return
 	}
 	r.Response(c, 0, res)
