@@ -134,6 +134,14 @@ func (r *ArgAdminUser) Default() {
 type ResultAdminUser struct {
 	response.Pager
 }
+type AdminUserGroupName struct {
+	models.AdminUserGroup
+	GroupName string `json:"group_name"`
+}
+type ResultAdminUserList struct {
+	models.AdminUser
+	Group     []AdminUserGroupName `json:"group"`
+}
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage

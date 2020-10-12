@@ -10,7 +10,7 @@ package models
 type AdminUserGroup struct {
 	Id      int    `gorm:"primary_key" json:"id"`
 	GroupId int    `json:"group_id" gorm:"group_id"`
-	UserHid string `json:"user_hid"  gorm:"group_id"`
+	UserHid string `json:"user_hid"  gorm:"user_hid"`
 	IsDel   int    `json:"-" gorm:"is_del"`
 }
 

@@ -28,6 +28,28 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	return
 }
 
+func (r *DaoPermit) GetAdminGroupByIds(gIds []int) (res []models.AdminGroup, err error) {
+	if len(gIds) == 0 {
+		return
+	}
+	var m models.AdminGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Where("is_del=0 AND  id IN (?)", gIds).
+		Find(&res).
+		Error
+	return
+}
+func (r *DaoPermit) GetUserGroupByUIds(uIds []string) (res []models.AdminUserGroup, err error) {
+	if len(uIds) == 0 {
+		return
+	}
+	var m models.AdminUserGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Where("is_del=0 AND  user_hid IN (?)", uIds).
+		Find(&res).
+		Error
+	return
+}
 func (r *DaoPermit) Save(id int, data *models.AdminMenu) (err error) {
 	if id == 0 {
 		return
@@ -44,7 +66,7 @@ func (r *DaoPermit) DeleteByIds(ids []string) (err error) {
 	err = r.Context.Db.
 		Table(m.TableName()).
 		Where("id in (?)", ids).
-		Update(map[string]interface{}{"is_del":1,"updated_at":time.Now().Format("2006-01-02 15:04:05")}).
+		Update(map[string]interface{}{"is_del": 1, "updated_at": time.Now().Format("2006-01-02 15:04:05")}).
 		Error
 	return
 }

@@ -145,12 +145,80 @@ func (r *PermitService) AdminUser(arg *pojos.ArgAdminUser) (res *pojos.ResultAdm
 		pagerObject.TotalCount, db, err = dao.GetAdminUserCount(db, arg)
 		return
 	}, func(pagerObject *response.Pager) (err error) {
-		pagerObject.List, err = dao.GetAdminUserList(db, arg)
+		list, err := dao.GetAdminUserList(db, arg)
+		if err != nil {
+			return
+		}
+		pagerObject.List, err = r.leftAdminUser(list, dao)
 		return
 	})
 	return
 }
 
+func (r *PermitService) getUserGroup(list []models.AdminUser, dao *daos.DaoPermit) (res map[string][]pojos.AdminUserGroupName, err error) {
+	res = map[string][]pojos.AdminUserGroupName{}
+	uIds := make([]string, 0, len(list))
+	for _, value := range list {
+		uIds = append(uIds, value.UserHid)
+	}
+	listResult, err := dao.GetUserGroupByUIds(uIds)
+	if err != nil {
+		return
+	}
+	var tmp pojos.AdminUserGroupName
+	gIds := make([]int, 0, len(listResult))
+	gIdsMap := make(map[int]int, len(listResult))
+	for _, item := range listResult {
+		if _, ok := gIdsMap[item.GroupId]; !ok {
+			gIdsMap[item.GroupId] = item.GroupId
+			gIds = append(gIds, item.GroupId)
+		}
+		if _, ok := res[item.UserHid]; !ok {
+			res[item.UserHid] = []pojos.AdminUserGroupName{}
+		}
+	}
+	groupList, err := dao.GetAdminGroupByIds(gIds)
+	if err != nil {
+		return
+	}
+
+	groupMap := make(map[int]string, len(groupList))
+	for _, value := range groupList {
+		groupMap[value.Id] = value.Name
+	}
+
+	for _, item := range listResult {
+		tmp = pojos.AdminUserGroupName{
+			AdminUserGroup: item,
+		}
+		if _, ok := groupMap[item.GroupId]; ok {
+			tmp.GroupName = groupMap[item.GroupId]
+		}
+		res[item.UserHid] = append(res[item.UserHid], tmp)
+	}
+	return
+}
+
+func (r *PermitService) leftAdminUser(list []models.AdminUser, dao *daos.DaoPermit) (res []pojos.ResultAdminUserList, err error) {
+	res = []pojos.ResultAdminUserList{}
+	mapGroupPermit, err := r.getUserGroup(list, dao)
+	if err != nil {
+		return
+	}
+	var tmp pojos.ResultAdminUserList
+	for _, item := range list {
+		tmp = pojos.ResultAdminUserList{
+			AdminUser: item,
+		}
+		if _, ok := mapGroupPermit[item.UserHid]; ok {
+			tmp.Group = mapGroupPermit[item.UserHid]
+		}
+		res = append(res, tmp)
+	}
+
+	return
+
+}
 func (r *PermitService) Menu(arg *pojos.ArgPermitMenu) (res *pojos.ResultPermitMenu, err error) {
 	res = &pojos.ResultPermitMenu{}
 	dao := daos.NewDaoPermit(r.Context)
