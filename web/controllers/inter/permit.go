@@ -18,6 +18,12 @@ type Permit interface {
 	// 用户组
 	AdminGroup(c *gin.Context)
 
+	// 用户组编辑
+	AdminGroupEdit(c *gin.Context)
+
+	// 删除用户组
+	AdminGroupDelete(c *gin.Context)
+
 	// 菜单
 	AdminMenu(c *gin.Context)
 

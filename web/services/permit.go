@@ -9,6 +9,7 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -26,6 +27,50 @@ type PermitService struct {
 func NewPermitService(context ...*base.Context) (p *PermitService) {
 	p = &PermitService{}
 	p.SetContext(context...)
+	return
+}
+
+func (r *PermitService) AdminGroupDelete(arg *pojos.ArgAdminGroupDelete) (res pojos.ResultAdminGroupDelete, err error) {
+	res = pojos.ResultAdminGroupDelete{}
+	dao := daos.NewDaoPermit(r.Context)
+	err = dao.DeleteAdminGroupByIds(arg.IdString)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+func (r *PermitService) AdminGroupEdit(arg *pojos.ArgAdminGroupEdit) (res *pojos.ResultAdminGroupEdit, err error) {
+	res = &pojos.ResultAdminGroupEdit{}
+	dao := daos.NewDaoPermit(r.Context)
+	g, err := dao.FetchByName(arg.Name)
+	if err != nil {
+		return
+	}
+	if arg.Id == 0 {
+		if g.Name != "" {
+			err = fmt.Errorf("您输入的组名已存在")
+			return
+		}
+		err = dao.InsertAdminGroup(&models.AdminGroup{
+			Name:  arg.Name,
+			IsDel: 0,
+		})
+	} else {
+		if g.Name != "" && g.Id != arg.Id {
+			err = fmt.Errorf("您输入的组名已存在")
+			return
+		}
+		err = dao.UpdateAdminGroup(&models.AdminGroup{
+			Name:  arg.Name,
+			Id:    arg.Id,
+			IsDel: 0,
+		})
+	}
+	if err != nil {
+		return
+	}
+	res.Result = true
 	return
 }
 func (r *PermitService) MenuAdd(arg *pojos.ArgMenuAdd) (res *pojos.ResultMenuAdd, err error) {

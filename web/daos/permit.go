@@ -27,7 +27,46 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	p.Context.Db = app_obj.GetDbClient("admin")
 	return
 }
-
+func (r *DaoPermit) DeleteAdminGroupByIds(ids []string) (err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var m models.AdminGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?) ", ids).
+		Update(map[string]interface{}{
+			"is_del": 1,
+		}).
+		Error
+	return
+}
+func (r *DaoPermit) FetchByName(name string) (res models.AdminGroup, err error) {
+	var m models.AdminGroup
+	err1 := r.Context.Db.Table(m.TableName()).
+		Where("name = ?", name).
+		Find(&res).
+		Error
+	if gorm.IsRecordNotFoundError(err1) {
+		res = models.AdminGroup{}
+	} else {
+		err = err1
+	}
+	return
+}
+func (r *DaoPermit) InsertAdminGroup(group *models.AdminGroup) (err error) {
+	var m models.AdminGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Create(group).
+		Error
+	return
+}
+func (r *DaoPermit) UpdateAdminGroup(group *models.AdminGroup) (err error) {
+	var m models.AdminGroup
+	err = r.Context.Db.Table(m.TableName()).Where("id=?", group.Id).
+		Update(group).
+		Error
+	return
+}
 func (r *DaoPermit) GetAdminGroupByIds(gIds []int) (res []models.AdminGroup, err error) {
 	if len(gIds) == 0 {
 		return

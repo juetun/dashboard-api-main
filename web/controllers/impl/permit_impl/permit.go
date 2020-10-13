@@ -24,12 +24,60 @@ func NewControllerPermit() inter.Permit {
 	controller.ControllerBase.Init()
 	return controller
 }
+func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
+	var arg pojos.ArgAdminGroupDelete
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminGroupDelete(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
+	var arg pojos.ArgAdminGroupEdit
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.Default()
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminGroupEdit(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 	var arg pojos.ArgMenuDelete
 	var err error
 	err = c.Bind(&arg)
 	if err != nil {
-		r.Response(c, 500000001, err.Error())
+		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
 	arg.Default()

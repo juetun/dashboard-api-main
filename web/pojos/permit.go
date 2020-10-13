@@ -16,6 +16,40 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
+type ArgAdminGroupDelete struct {
+	app_obj.JwtUserMessage
+	Ids      string   `json:"ids"`
+	IdString []string `json:"-" form:"-"`
+}
+
+func (r *ArgAdminGroupDelete) Default() {
+	idString := strings.Split(r.Ids, ",")
+	r.IdString = []string{}
+	for _, v := range idString {
+		if v == "" {
+			continue
+		}
+		r.IdString = append(r.IdString, v)
+	}
+}
+
+type ResultAdminGroupDelete struct {
+	Result bool `json:"result"`
+}
+
+type ResultAdminGroupEdit struct {
+	Result bool `json:"result"`
+}
+type ArgAdminGroupEdit struct {
+	app_obj.JwtUserMessage
+	Name string `json:"name" form:"name"`
+	Id   int    `json:"id" form:"id"`
+}
+
+func (r *ArgAdminGroupEdit) Default() {
+
+}
+
 type ArgMenuAdd struct {
 	app_obj.JwtUserMessage
 	models.AdminMenu
@@ -140,7 +174,7 @@ type AdminUserGroupName struct {
 }
 type ResultAdminUserList struct {
 	models.AdminUser
-	Group     []AdminUserGroupName `json:"group"`
+	Group []AdminUserGroupName `json:"group"`
 }
 
 type ArgPermitMenu struct {
