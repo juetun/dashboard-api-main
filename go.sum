@@ -173,6 +173,10 @@ github.com/juetun/base-wrapper v0.0.24 h1:ap1IItXgwQYwp7wtS/ebvOZG8RU7GsdIENy96N
 github.com/juetun/base-wrapper v0.0.24/go.mod h1:1Pv4OkXjqu7cvwmI7cYFmhgUmr11GhSh92IcqNsf2bY=
 github.com/juetun/base-wrapper v0.0.25 h1:kMiUvJCQLGOl20Wkf8beuwgZHhQ2sJDgtbpgAtI169w=
 github.com/juetun/base-wrapper v0.0.25/go.mod h1:1Pv4OkXjqu7cvwmI7cYFmhgUmr11GhSh92IcqNsf2bY=
+github.com/juetun/base-wrapper v0.0.26 h1:roZpdO1vCgp9maTq8CFSysMz2JxCAfm6O9CbxhWaVAs=
+github.com/juetun/base-wrapper v0.0.26/go.mod h1:1Pv4OkXjqu7cvwmI7cYFmhgUmr11GhSh92IcqNsf2bY=
+github.com/juetun/base-wrapper v0.0.27 h1:JF5KoI2Or2+TKLiCmLcYQusWXDKpgU05vFasZMAPMrY=
+github.com/juetun/base-wrapper v0.0.27/go.mod h1:1Pv4OkXjqu7cvwmI7cYFmhgUmr11GhSh92IcqNsf2bY=
 github.com/juetun/dashboard-api-main v0.0.29 h1:Ky2lxCZL6miEY4N6M3h+8RciGxdX+aneJQfsRTK+SQc=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

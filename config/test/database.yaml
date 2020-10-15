@@ -2,3 +2,7 @@ default:
   maxidleconns: 1
   maxopenconns: 2
   addr: "root:123456@tcp(127.0.0.1:3306)/juetun_web?charset=utf8mb4&parseTime=True&loc=Local"
+admin:
+  maxidleconns: 1
+  maxopenconns: 2
+  addr: "root:123456@tcp(127.0.0.1:3306)/juetun_admin?charset=utf8mb4&parseTime=True&loc=Local"
