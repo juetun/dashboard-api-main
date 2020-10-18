@@ -8,6 +8,7 @@ package services
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/rpc"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -21,47 +22,59 @@ func NewUserService(context ...*base.Context) (p *UserService) {
 	return
 }
 
-func (r *UserService) GetUserById(userId string) (user *models.ZUsers, err error) {
-	user = new(models.ZUsers)
-	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
-		Where("id=?", userId).
-		Select("name,email").
-		Find(user).
-		Error
-	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.GetUserById", "error", err.Error())
-		return user, err
+// 根据用户HID获取用户信息
+func (r *UserService) GetUserById(userId string) (user *models.Users, err error) {
+	user = &models.Users{}
+	if userId == "" {
+		return
 	}
-	return user, nil
+
+	users, err := r.GetUserByIds([]string{userId})
+	if err != nil {
+		return
+	}
+	if len(users) > 0 {
+		*user = users[0]
+	}
+	if err != nil {
+		r.Context.Log.Error(map[string]string{
+			"message": "service.GetUserById",
+			"error":   err.Error(),
+		})
+
+	}
+	return
 }
 
-func (r *UserService) GetUserMapByIds(userId *[]string) (user *map[string]models.ZUsers, err error) {
-	user = &map[string]models.ZUsers{}
-	if len(*userId) == 0 {
+func (r *UserService) GetUserByIds(userId []string) (users []models.Users, err error) {
+	if len(userId) == 0 {
 		return
 	}
-	var users []models.ZUsers
-	err = r.Context.Db.Table((&models.ZUsers{}).TableName()).
-		Where("user_hid in (?)", *userId).
-		Find(&users).
+	type ResultUserHttpRpc struct {
+		users []models.Users `json:"list"`
+	}
+	var rpcUser ResultUserHttpRpc
+	request := &rpc.RequestOptions{}
+	err = rpc.NewHttpRpc(request).
+		Send().
+		GetBody().
+		Bind(&rpcUser).
 		Error
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.GetUserMapByIds",
-			"error",
-			err.Error())
-		return
+		r.Context.Log.Error(map[string]string{
+			"message": "service.GetUserMapByIds",
+			"error":   err.Error(),
+		})
 	}
+	users = rpcUser.users
+	return
+}
+
+func (r *UserService) GetUserMapByIds(userId []string) (user *map[string]models.Users, err error) {
+
+	users, err := r.GetUserByIds(userId)
 	for _, value := range users {
 		(*user)[value.UserHid] = value
 	}
 	return
 }
-
-//
-// func (r *UserService) UserCnt() (cnt int64, err error) {
-// 	err = r.Context.Db.
-// 		Table((&models.ZUsers{}).TableName()).
-// 		Count(&cnt).
-// 		Error
-// 	return
-// }

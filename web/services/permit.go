@@ -30,6 +30,70 @@ func NewPermitService(context ...*base.Context) (p *PermitService) {
 	return
 }
 
+func (r *PermitService) AdminUserGroupAdd(arg *pojos.ArgAdminUserGroupAdd) (res pojos.ResultAdminUserGroupAdd, err error) {
+	res = pojos.ResultAdminUserGroupAdd{}
+	dao := daos.NewDaoPermit(r.Context)
+
+	var args = make([]map[string]interface{}, 0)
+	for _, userHId := range arg.UserHIds {
+		for _, groupId := range arg.GroupIds {
+			args = append(args, map[string]interface{}{
+				"group_id": groupId,
+				"user_hid": userHId,
+				"is_del":   0,
+			})
+		}
+	}
+	err = dao.AdminUserGroupAdd(args)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+func (r *PermitService) AdminUserGroupRelease(arg *pojos.ArgAdminUserGroupRelease) (res pojos.ResultAdminUserGroupRelease, err error) {
+	res = pojos.ResultAdminUserGroupRelease{}
+	dao := daos.NewDaoPermit(r.Context)
+	err = dao.AdminUserGroupRelease(arg.IdString)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+func (r *PermitService) AdminUserDelete(arg *pojos.ArgAdminUserDelete) (res pojos.ResultAdminUserDelete, err error) {
+	res = pojos.ResultAdminUserDelete{}
+	dao := daos.NewDaoPermit(r.Context)
+	err = dao.AdminUserDelete(arg.IdString)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+
+func (r *PermitService) AdminUserAdd(arg *pojos.ArgAdminUserAdd) (res pojos.ResultAdminUserAdd, err error) {
+	res = pojos.ResultAdminUserAdd{}
+	if arg.UserHid == "" {
+		err = fmt.Errorf("您没有选择要添加的用户")
+		return
+	}
+	user, err := NewUserService().GetUserById(arg.UserHid)
+	if err != nil {
+		return
+	}
+	err = daos.NewDaoPermit(r.Context).
+		AdminUserAdd(&models.AdminUser{
+			UserHid:  arg.UserHid,
+			RealName: user.Name,
+			Mobile:   user.Mobile,
+		})
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
 func (r *PermitService) AdminGroupDelete(arg *pojos.ArgAdminGroupDelete) (res pojos.ResultAdminGroupDelete, err error) {
 	res = pojos.ResultAdminGroupDelete{}
 	dao := daos.NewDaoPermit(r.Context)
@@ -43,8 +107,8 @@ func (r *PermitService) AdminGroupDelete(arg *pojos.ArgAdminGroupDelete) (res po
 func (r *PermitService) AdminGroupEdit(arg *pojos.ArgAdminGroupEdit) (res *pojos.ResultAdminGroupEdit, err error) {
 	res = &pojos.ResultAdminGroupEdit{}
 	dao := daos.NewDaoPermit(r.Context)
-	g, err := dao.FetchByName(arg.Name)
-	if err != nil {
+	var g models.AdminGroup
+	if g, err = dao.FetchByName(arg.Name); err != nil {
 		return
 	}
 	if arg.Id == 0 {
@@ -52,22 +116,26 @@ func (r *PermitService) AdminGroupEdit(arg *pojos.ArgAdminGroupEdit) (res *pojos
 			err = fmt.Errorf("您输入的组名已存在")
 			return
 		}
-		err = dao.InsertAdminGroup(&models.AdminGroup{
+		if err = dao.InsertAdminGroup(&models.AdminGroup{
 			Name:  arg.Name,
 			IsDel: 0,
-		})
-	} else {
-		if g.Name != "" && g.Id != arg.Id {
-			err = fmt.Errorf("您输入的组名已存在")
+		}); err != nil {
 			return
 		}
-		err = dao.UpdateAdminGroup(&models.AdminGroup{
-			Name:  arg.Name,
-			Id:    arg.Id,
-			IsDel: 0,
-		})
+		res.Result = true
+		return
 	}
-	if err != nil {
+
+	if g.Name != "" && g.Id != arg.Id {
+		err = fmt.Errorf("您输入的组名已存在")
+		return
+	}
+
+	if dao.UpdateAdminGroup(&models.AdminGroup{
+		Name:  arg.Name,
+		Id:    arg.Id,
+		IsDel: 0,
+	}); err != nil {
 		return
 	}
 	res.Result = true

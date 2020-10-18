@@ -19,6 +19,11 @@ func init() {
 		h := r.Group(urlPrefix + "/permit")
 
 		h.POST("/admin_user", controller.AdminUser)
+		h.POST("/admin_user_add", controller.AdminUserAdd)
+		h.POST("/admin_user_delete", controller.AdminUserDelete)
+		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
+		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd)
+
 		h.POST("/admin_group", controller.AdminGroup)
 		h.POST("/edit_admin_group", controller.AdminGroupEdit)
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)

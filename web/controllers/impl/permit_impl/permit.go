@@ -24,6 +24,102 @@ func NewControllerPermit() inter.Permit {
 	controller.ControllerBase.Init()
 	return controller
 }
+
+func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
+	var arg pojos.ArgAdminUserAdd
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminUserAdd(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
+	var arg pojos.ArgAdminUserDelete
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminUserDelete(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
+	var arg pojos.ArgAdminUserGroupRelease
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminUserGroupRelease(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+
+func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
+	var arg pojos.ArgAdminUserGroupAdd
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	context := base.GetControllerBaseContext(&r.ControllerBase, c)
+	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+
+	srv := services.NewPermitService(context)
+	res, err := srv.AdminUserGroupAdd(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+
 func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 	var arg pojos.ArgAdminGroupDelete
 	var err error

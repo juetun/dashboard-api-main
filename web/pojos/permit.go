@@ -8,6 +8,7 @@
 package pojos
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/app_obj"
@@ -16,9 +17,80 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
-type ArgAdminGroupDelete struct {
+type ArgAdminUserAdd struct {
+	app_obj.JwtUserMessage
+	UserHid string `json:"user_hid"`
+}
+
+func (r *ArgAdminUserAdd) Default() {
+
+}
+
+type ResultAdminUserAdd struct {
+	Result bool `json:"result"`
+}
+type ArgAdminUserDelete struct {
 	app_obj.JwtUserMessage
 	Ids      string   `json:"ids"`
+	IdString []string `json:"-" form:"-"`
+}
+
+func (r *ArgAdminUserDelete) Default() {
+
+}
+
+type ResultAdminUserDelete struct {
+	Result bool `json:"result"`
+}
+
+type ArgAdminUserGroupRelease struct {
+	app_obj.JwtUserMessage
+	Ids      string   `json:"ids"`
+	IdString []string `json:"-" form:"-"`
+}
+
+func (r *ArgAdminUserGroupRelease) Default() {
+
+}
+
+type ResultAdminUserGroupRelease struct {
+	Result bool `json:"result"`
+}
+
+type ArgAdminUserGroupAdd struct {
+	app_obj.JwtUserMessage
+	GroupId      int    `json:"group_id" form:"group_id"`
+	UserHid      string `json:"user_hid" form:"user_hid"`
+	GroupIdBatch string `json:"group_id_batch" form:"group_id_batch"`
+	UserHidBatch string `json:"user_hid_batch" form:"user_hid_batch"`
+	GroupIds     []string
+	UserHIds     []string
+}
+
+func (r *ArgAdminUserGroupAdd) Default() {
+	r.GroupIds = []string{}
+	r.UserHIds = []string{}
+	if r.GroupIdBatch != "" {
+		r.GroupIds = strings.Split(r.GroupIdBatch, ",")
+	}
+	if r.UserHidBatch != "" {
+		r.UserHIds = strings.Split(r.UserHidBatch, ",")
+	}
+	if r.GroupId != 0 {
+		r.GroupIds = append(r.GroupIds, strconv.Itoa(r.GroupId))
+	}
+	if r.UserHid != "" {
+		r.UserHIds = append(r.UserHIds, r.UserHid)
+	}
+}
+
+type ResultAdminUserGroupAdd struct {
+	Result bool `json:"result"`
+}
+
+type ArgAdminGroupDelete struct {
+	app_obj.JwtUserMessage
+	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 

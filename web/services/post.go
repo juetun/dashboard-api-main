@@ -73,7 +73,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	srv := NewCategoryService(r.Context)
 	srvTag := NewTagService(r.Context)
 	srvUser := NewUserService(r.Context)
-	ids, userId := r.uniquePostId(&dt)
+	ids, userId := r.uniquePostId(dt)
 	var mapCates *map[string]pojos.PostShow
 	mapCates, err = srv.GetPostCateByPostIds(ids)
 	if err != nil {
@@ -84,7 +84,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapUser *map[string]models.ZUsers
+	var mapUser *map[string]models.Users
 	mapUser, err = srvUser.GetUserMapByIds(userId)
 	if err != nil {
 		return
@@ -141,19 +141,19 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	}
 	return
 }
-func (r *ConsolePostService) uniquePostId(dt *[]models.ZPosts) (ids *[]string, userId *[]string) {
-	ids = &[]string{}
-	userId = &[]string{}
+func (r *ConsolePostService) uniquePostId(dt []models.ZPosts) (ids []string, userId []string) {
+	ids = make([]string, 0, len(dt))
+	userId = make([]string, 0, len(dt))
 	mUid := make(map[string]string)
 	mId := make(map[string]string)
-	for _, post := range *dt {
+	for _, post := range dt {
 		if _, ok := mUid[post.UserHId]; !ok {
-			*userId = append(*userId, post.UserHId)
+			userId = append(userId, post.UserHId)
 			mUid[post.UserHId] = post.UserHId
 		}
 		pid := strconv.Itoa(post.Id)
 		if _, ok := mId[pid]; !ok {
-			*ids = append(*ids, pid)
+			ids = append(ids, pid)
 			mId[pid] = pid
 		}
 	}
@@ -164,13 +164,13 @@ func (r *ConsolePostService) getZPostViewsDbaTable() *gorm.DB {
 	return r.Context.Db.Table((&models.ZPostViews{}).TableName())
 }
 
-func (r *ConsolePostService) PostView(postId *[]string) (postV *map[string]models.ZPostViews, err error) {
+func (r *ConsolePostService) PostView(postId []string) (postV *map[string]models.ZPostViews, err error) {
 	postV = &map[string]models.ZPostViews{}
 	var views []models.ZPostViews
-	if len(*postId) == 0 {
+	if len(postId) == 0 {
 		return
 	}
-	err = r.getZPostViewsDbaTable().Where("post_id in (?)", *postId).
+	err = r.getZPostViewsDbaTable().Where("post_id in (?)", postId).
 		Find(&views).Error
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
@@ -398,7 +398,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 
 	// view
 	pid := strconv.Itoa(post.Id)
-	view, err := r.PostView(&[]string{pid})
+	view, err := r.PostView([]string{pid})
 	if err != nil {
 		r.Context.Log.Error(map[string]string{
 			"message": "service.IndexPostDetailDao",

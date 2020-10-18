@@ -182,14 +182,14 @@ func (r *CategoryService) GetSimilar(beginId []int, resIds []int, level int) (be
 }
 
 // 根据文章ID获取文章的分类
-func (r *CategoryService) GetPostCateByPostIds(postIds *[]string) (res *map[string]pojos.PostShow, err error) {
+func (r *CategoryService) GetPostCateByPostIds(postIds []string) (res *map[string]pojos.PostShow, err error) {
 	res = &map[string]pojos.PostShow{}
-	if len(*postIds) == 0 {
+	if len(postIds) == 0 {
 		return
 	}
 	var dt []models.ZPostCate
 	err = r.Context.Db.Table((&models.ZPostCate{}).TableName()).
-		Where("post_id in (?)", *postIds).
+		Where("post_id in (?)", postIds).
 		Find(&dt).Error
 	if err != nil {
 		return

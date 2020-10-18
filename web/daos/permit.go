@@ -8,6 +8,9 @@
 package daos
 
 import (
+	"bytes"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -25,6 +28,85 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	p = &DaoPermit{}
 	p.SetContext(context...)
 	p.Context.Db = app_obj.GetDbClient("admin")
+	return
+}
+
+func (r *DaoPermit) AdminUserGroupAdd(data []map[string]interface{}) (err error) {
+	field := make([]string, 0, 10)
+	dataMsg := make([]string, 0)
+	dataTmp := make([]interface{}, 0)
+	duplicate := make([]string, 0)
+	dataMsgA := make([]string, 0)
+	if len(data) == 0 {
+		return fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
+	}
+
+	for key, value := range data {
+		if key == 0 {
+			for fieldString, _ := range value {
+				field = append(field, fieldString)
+			}
+		}
+		for _, v := range field {
+			if key == 0 {
+				if v != "created_at" {
+					duplicate = append(duplicate, "`"+v+"`=VALUES(`"+v+"`)")
+				}
+				dataMsgA = append(dataMsgA, "?")
+			}
+			var v1 interface{}
+			if _, ok := value[v]; ok {
+				v1 = value[v]
+			}
+			dataTmp = append(dataTmp, v1)
+		}
+		dataMsg = append(dataMsg, "("+strings.Join(dataMsgA, ",")+")")
+	}
+	var m models.AdminUserGroup
+	sql := "INSERT INTO `" + m.TableName() + "`(`" + strings.Join(field, "`,`") +
+		"`) VALUES" + strings.Join(dataMsg, ",") + " ON DUPLICATE KEY UPDATE " + strings.Join(duplicate, ",")
+	return r.Context.Db.Exec(sql, dataTmp...).Error
+}
+func (r *DaoPermit) AdminUserGroupRelease(ids []string) (err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var m models.AdminUserGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?) ", ids).
+		Update(map[string]interface{}{
+			"is_del": 1,
+		}).
+		Error
+	return
+}
+func (r *DaoPermit) AdminUserAdd(arg *models.AdminUser) (err error) {
+
+	fields := []string{"user_hid", "real_name", "updated_at",}
+	var bt bytes.Buffer
+	bt.WriteString("ON DUPLICATE KEY UPDATE ")
+	for k, value := range fields {
+		if k == 0 {
+			bt.WriteString(fmt.Sprintf("%s=VALUES(%s)", value, value))
+			continue
+		}
+		bt.WriteString(fmt.Sprintf(",%s=VALUES(%s)", value, value))
+	}
+	err = r.Context.Db.Set("gorm:insert_option", bt.String()).
+		Create(arg).Error
+	return
+}
+func (r *DaoPermit) AdminUserDelete(ids []string) (err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var m models.AdminUser
+	err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?) ", ids).
+		Update(map[string]interface{}{
+			"is_del": 1,
+		}).
+		Error
 	return
 }
 func (r *DaoPermit) DeleteAdminGroupByIds(ids []string) (err error) {

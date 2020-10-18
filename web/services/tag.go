@@ -58,13 +58,13 @@ func (r *TagService) TagStore(ts pojos.TagStore) (err error) {
 	r.Context.CacheClient.Del(common.Conf.TagListKey)
 	return
 }
-func (r *TagService) GetPostTagsByPostIds(postIds *[]string) (res *map[int][]pojos.ConsoleTag, err error) {
+func (r *TagService) GetPostTagsByPostIds(postIds []string) (res *map[int][]pojos.ConsoleTag, err error) {
 	res = &map[int][]pojos.ConsoleTag{}
-	if len(*postIds) == 0 {
+	if len(postIds) == 0 {
 		return
 	}
 	var dt []models.ZPostTag
-	err = r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id in (?)", *postIds).
+	err = r.Context.Db.Table((&models.ZPostTag{}).TableName()).Where("post_id in (?)", postIds).
 		Find(&dt).Error
 	if err != nil {
 		r.Context.Log.Logger.Errorln("message", "service.GetPostTagsByPostId", "error", err.Error())

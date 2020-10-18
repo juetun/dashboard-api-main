@@ -14,6 +14,15 @@ import (
 type Permit interface {
 	// 用户
 	AdminUser(c *gin.Context)
+	// 用户添加
+	AdminUserAdd(c *gin.Context)
+	// 用户删除
+	AdminUserDelete(c *gin.Context)
+	// 用户所属用户权限组解除
+	AdminUserGroupRelease(c *gin.Context)
+
+	// 用户所属权限组添加
+	AdminUserGroupAdd(c *gin.Context)
 
 	// 用户组
 	AdminGroup(c *gin.Context)

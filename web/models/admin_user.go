@@ -15,6 +15,7 @@ type AdminUser struct {
 	Id        int             `gorm:"primary_key" json:"id"`
 	UserHid   string          `json:"user_hid" gorm:"user_hid"`
 	RealName  string          `json:"real_name" gorm:"real_name"`
+	Mobile    string          `json:"mobile" gorm:"mobile"`
 	CreatedAt base.TimeNormal `json:"created_at" gorm:"created_at" `
 	UpdatedAt base.TimeNormal `json:"updated_at" gorm:"updated_at" `
 	DeletedAt base.TimeNormal `json:"-" gorm:"deleted_at" `
