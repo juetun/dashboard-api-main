@@ -16,7 +16,7 @@ import (
 func init() {
 	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		controller := permit_impl.NewControllerPermit()
-		h := r.Group(urlPrefix + "/permit")
+		h := r.Group(urlPrefix + "/manage")
 
 		h.POST("/admin_user", controller.AdminUser)
 		h.POST("/admin_user_add", controller.AdminUserAdd)
