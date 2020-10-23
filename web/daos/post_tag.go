@@ -11,13 +11,13 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
-	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type DaoPostTag struct {
- 	base.ServiceDao
+	base.ServiceDao
 }
 
 func NewDaoPostTag(context ...*base.Context) (p *DaoPostTag) {
@@ -89,7 +89,7 @@ func (r *DaoPostTag) GetListByPostId(postId int) (postTag *[]models.ZPostTag, er
 		Error
 
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostUpdate",
 			"err":     "get post tag  no succeed",
 		})

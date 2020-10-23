@@ -9,6 +9,7 @@ package services
 import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/rpc"
+	"github.com/juetun/dashboard-api-main/basic/const_obj"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -37,7 +38,7 @@ func (r *UserService) GetUserById(userId string) (user *models.Users, err error)
 		*user = users[0]
 	}
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext,map[string]interface{}{
 			"message": "service.GetUserById",
 			"error":   err.Error(),
 		})
@@ -54,14 +55,23 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.Users, err e
 		users []models.Users `json:"list"`
 	}
 	var rpcUser ResultUserHttpRpc
-	request := &rpc.RequestOptions{}
+	request := &rpc.RequestOptions{
+		Method:      "POST",
+		AppName:     const_obj.MicroUser,
+		PathVersion: "v1",
+		URI:         "/user/list",
+	}
+	r.Context.Log.Info(r.Context.GinContext,map[string]interface{}{
+		"message": "service.GetUserMapByIds",
+		"request":   request,
+	})
 	err = rpc.NewHttpRpc(request).
 		Send().
 		GetBody().
 		Bind(&rpcUser).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext,map[string]interface{}{
 			"message": "service.GetUserMapByIds",
 			"error":   err.Error(),
 		})

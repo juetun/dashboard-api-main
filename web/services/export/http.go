@@ -70,7 +70,7 @@ func NewHttpRequest(context *base.Context) (r *HttpRequest) {
 
 func (r *HttpRequest) preReadySend(request *RequestObject, client *http.Client, req *http.Request, res *[]byte, timeStep int) {
 	timeStep--
-	r.Context.Log.Info(map[string]string{
+	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
 		"request:": fmt.Sprintf("%v", request),
 		"desc:":    fmt.Sprintf("尝试第%d次(共%d次)获取数据", request.ReSendTimes-timeStep, request.ReSendTimes),
 	})
@@ -80,7 +80,7 @@ func (r *HttpRequest) preReadySend(request *RequestObject, client *http.Client, 
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"request:": fmt.Sprintf("%v", request), "content:": err.Error(),
 		})
 
@@ -92,8 +92,8 @@ func (r *HttpRequest) preReadySend(request *RequestObject, client *http.Client, 
 	*res, _ = ioutil.ReadAll(resp.Body)
 }
 
-func (r *HttpRequest) orgParams(request *RequestObject) (logData map[string]string, urlVal string) {
-	logData = map[string]string{
+func (r *HttpRequest) orgParams(request *RequestObject) (logData map[string]interface{}, urlVal string) {
+	logData = map[string]interface{}{
 		"request content:": fmt.Sprintf("%v", request),
 		"Method":           request.RequestMethod,
 	}
@@ -108,13 +108,14 @@ func (r *HttpRequest) orgParams(request *RequestObject) (logData map[string]stri
 	len := len(urlArr)
 	if len == 1 {
 		urlVal = urlArr[0] + "?" + tp
-	} else if len == 2 {
-		urlVal = urlArr[0] + "?" + r.getParseParam(urlArr[1]) + tp
-	} else {
-		logData["request content:"] = fmt.Sprintf("发送HTTP请求 参数异常:%s", urlVal)
-		r.Context.Log.Info(logData)
 		return
 	}
+	if len == 2 {
+		urlVal = urlArr[0] + "?" + r.getParseParam(urlArr[1]) + tp
+		return
+	}
+	logData["request content:"] = fmt.Sprintf("发送HTTP请求 参数异常:%s", urlVal)
+	r.Context.Log.Info(r.Context.GinContext, logData)
 	return
 }
 
@@ -158,7 +159,7 @@ func (r *HttpRequest) Send(request *RequestObject) (res *[]byte, err error) {
 			req.Header.Add(headerKey, vc)
 		}
 	}
-	r.Context.Log.Info(logData)
+	r.Context.Log.Info(r.Context.GinContext, logData)
 	// 尝试获取数据，如果获取失败，则多次尝试
 	r.preReadySend(request, client, req, res, request.ReSendTimes)
 	return

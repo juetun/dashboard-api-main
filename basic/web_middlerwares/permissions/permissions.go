@@ -98,7 +98,7 @@ var Permissions = []HttpPermit{
 // 不需要验证权限的配置列表
 
 func CheckPermissions(c *gin.Context, s string) (res bool) {
-	app_log.GetLog().Error(map[string]string{
+	app_log.GetLog().Error(c,map[string]interface{}{
 		"request_Uri": s,
 		"info":        "web.permissions.go(CheckPermissions)",
 		"router name": c.Request.RequestURI,
@@ -157,7 +157,7 @@ func everyValidateTrueOrFalse(methodArea *[]string, method, uri, s string) bool 
 // 白名单验证。此部分的接口用户不需要登录即可访问
 func CheckWhite(c *gin.Context, s string) (res bool) {
 
-	app_log.GetLog().Info(map[string]string{
+	app_log.GetLog().Info(c,map[string]interface{}{
 		"request_Uri": s,
 		"info":        "web.permissions.go(CheckWhite)",
 		"router name": c.Request.RequestURI,

@@ -54,8 +54,8 @@ func (r *AsyncExport) Run() {
 
 	// 如果是外部取消任务，任务结束状态实现
 	if r.IsFinish {
-		r.Context.Log.Error(
-			map[string]string{
+		r.Context.Log.Error(r.Context.GinContext,
+			map[string]interface{}{
 				"message": fmt.Sprintf("外部命令中止导出任务(ID:%d) ", r.model.Id),
 			},
 		)
@@ -107,8 +107,8 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	r.UpdateProgress(web.RunProgressMax) // 获取数据完成后更新进度
 
 	var err error
-	r.Context.Log.Info(
-		map[string]string{
+	r.Context.Log.Info(r.Context.GinContext,
+		map[string]interface{}{
 			"message": fmt.Sprintf("文件（ %s）生成成功 ", excel.PathFileName),
 		},
 	)
@@ -117,7 +117,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	// 上传EXCEL文件到指定路径
 	err = r.uploadFileToTarget(excel, &r.model)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message":  fmt.Sprintf("上传文件(%s)到指定路径错误 ", excel.PathFileName),
 			"content:": err.Error(),
 		})
@@ -134,7 +134,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 
 	err = daos.NewDaoExport(r.Context).Update(&r.model)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message":  "update export progress to database is error ",
 			"content:": err.Error(),
 		})
@@ -149,7 +149,7 @@ func (r *AsyncExport) PathFileName() (pathFileName string) {
 // 获得操作系统的临时目录文件夹
 func (r *AsyncExport) getSysTmp() (res string) {
 	res = strings.TrimSuffix(os.TempDir(), "/")
-	r.Context.Log.Info(map[string]string{
+	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
 		"临时目录:": res,
 	})
 	return
@@ -264,12 +264,10 @@ func (r *AsyncExport) doOnePage(excel *ExcelOperate, artSheet *pojos.ArgumentExp
 	// 获取第一页数据
 	pageData, err = r.getData(artSheet)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
-			"message":  "数据获取异常",
-			"content:": err.Error()})
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"message": "数据获取异常", "content:": err.Error()})
 		return
 	}
-	r.Context.Log.Info(map[string]string{"desc": fmt.Sprintf("first page return:%v", pageData)})
+	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{"desc": fmt.Sprintf("first page return:%v", pageData)})
 	r.WritePageData(&pageData, excel)
 	return
 
@@ -378,9 +376,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 		break
 	default:
 		err = fmt.Errorf("当前不支持%s方法", artSheet.HttpMethod)
-		r.Context.Log.Error(map[string]string{
-			"desc": err.Error(),
-		}, )
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"desc": err.Error(),}, )
 		return
 	}
 
@@ -397,10 +393,7 @@ func (r *AsyncExport) getData(artSheet *pojos.ArgumentExportSheet) (res Pager, e
 
 	// 如果没有获取到数据
 	if len(*result) == 0 {
-		r.Context.Log.Error(map[string]string{
-			"message": "请求接口返回数据为空",
-			"request": fmt.Sprintf("%v", request),
-		})
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"message": "请求接口返回数据为空", "request": fmt.Sprintf("%v", request),})
 		return
 	}
 	err = json.Unmarshal(*result, &dt)

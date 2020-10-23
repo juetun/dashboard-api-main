@@ -19,12 +19,10 @@ import (
 
 type ArgAdminUserAdd struct {
 	app_obj.JwtUserMessage
-	UserHid string `json:"user_hid"`
+	UserHid string `json:"user_hid" form:"user_hid"`
 }
 
-func (r *ArgAdminUserAdd) Default() {
-
-}
+func (r *ArgAdminUserAdd) Default() {}
 
 type ResultAdminUserAdd struct {
 	Result bool `json:"result"`

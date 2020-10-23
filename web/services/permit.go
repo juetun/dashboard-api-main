@@ -10,6 +10,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -78,17 +79,20 @@ func (r *PermitService) AdminUserAdd(arg *pojos.ArgAdminUserAdd) (res pojos.Resu
 		err = fmt.Errorf("您没有选择要添加的用户")
 		return
 	}
-	user, err := NewUserService().GetUserById(arg.UserHid)
-	if err != nil {
+	var user *models.Users
+	if user, err = NewUserService().GetUserById(strings.TrimSpace(arg.UserHid)); err != nil {
+		return
+	} else if user.UserHid == "" {
+		err = fmt.Errorf("您要添加的用户信息不存在")
 		return
 	}
-	err = daos.NewDaoPermit(r.Context).
+
+	if daos.NewDaoPermit(r.Context).
 		AdminUserAdd(&models.AdminUser{
 			UserHid:  arg.UserHid,
 			RealName: user.Name,
 			Mobile:   user.Mobile,
-		})
-	if err != nil {
+		}); err != nil {
 		return
 	}
 	res.Result = true

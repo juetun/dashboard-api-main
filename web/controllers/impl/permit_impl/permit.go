@@ -37,9 +37,9 @@ func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
 	arg.Default()
 
 	// 记录日志
-	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	srv := services.NewPermitService(context)
-	res, err := srv.AdminUserAdd(&arg)
+	res, err := services.
+		NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
+		AdminUserAdd(&arg)
 
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())

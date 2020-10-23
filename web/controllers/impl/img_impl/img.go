@@ -23,7 +23,7 @@ func (r *ControllerImg) ImgUpload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		r.Log.Error(map[string]string{
+		r.Log.Error(c, map[string]interface{}{
 			"message": "post.ImgUpload",
 			"err":     err.Error(),
 		})
@@ -34,7 +34,7 @@ func (r *ControllerImg) ImgUpload(c *gin.Context) {
 	filename := filepath.Base(file.Filename)
 	dst := common.ConfigUpload.ImgUploadDst + filename
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		r.Log.Error(map[string]string{
+		r.Log.Error(c, map[string]interface{}{
 			"message": "post.ImgUpload",
 			"err":     err.Error(),
 		})

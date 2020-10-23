@@ -42,7 +42,7 @@ func (r *ConsolePostService) ConsolePostCount(limit int, offset int, isTrash boo
 	err = dba.Count(&count).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.ConsolePostCount", "err": err.Error(),
 		})
 	}
@@ -65,7 +65,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 		Find(&dt).Error
 
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.ConsolePostIndex", "err": err.Error(),
 		})
 		return
@@ -173,7 +173,7 @@ func (r *ConsolePostService) PostView(postId []string) (postV *map[string]models
 	err = r.getZPostViewsDbaTable().Where("post_id in (?)", postId).
 		Find(&views).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostView", "err": err.Error(),
 		})
 	}
@@ -199,14 +199,14 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 	defer session.Commit()
 	err := session.Create(postCreate).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore", "err": err.Error(),
 		})
 		_ = session.Rollback()
 		return
 	}
 	if postCreate.Id < 1 {
-		r.Context.Log.Info(map[string]string{
+		r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore", "err": "post store no succeed",
 		})
 		_ = session.Rollback()
@@ -220,7 +220,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 		}
 		err := session.Create(postCateCreate).Error
 		if err != nil {
-			r.Context.Log.Error(map[string]string{
+			r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 				"message": "service.PostStore", "err": err.Error(),
 			})
 			_ = session.Rollback()
@@ -228,7 +228,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 		}
 
 		if postCateCreate.Id < 1 {
-			r.Context.Log.Error(map[string]string{
+			r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 				"message": "service.PostStore", "err": "post cate store not succeed",
 			})
 			_ = session.Rollback()
@@ -244,14 +244,14 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 			}
 			err = session.Create(postTagCreate).Error
 			if err != nil {
-				r.Context.Log.Error(map[string]string{
+				r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 					"message": "service.PostStore post tag insert err", "err": err.Error(),
 				})
 				_ = session.Rollback()
 				return
 			}
 			if postTagCreate.Id < 1 {
-				r.Context.Log.Error(map[string]string{
+				r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 					"message": "service.PostStore", "err": "post tag store not succeed",
 				})
 				_ = session.Rollback()
@@ -262,7 +262,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 				Update("num", gorm.Expr("price + ?", 1)).
 				Error
 			if err != nil {
-				r.Context.Log.Error(map[string]string{
+				r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 					"message": "service.PostStore post tag incr err", "err": err.Error(),
 				})
 				_ = session.Rollback()
@@ -279,7 +279,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 
 	err = session.Create(postView).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore", "err": err.Error(),
 		})
 		_ = session.Rollback()
@@ -287,7 +287,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 	}
 
 	if postView.Id < 1 {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore", "err": "post view store no succeed",
 		})
 		_ = session.Rollback()
@@ -298,7 +298,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 
 	uid, err := common.ZHashId.Encode([]int{postCreate.Id})
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore create uid error", "err": err.Error(),
 		})
 		return
@@ -309,7 +309,7 @@ func (r *ConsolePostService) PostStore(ps pojos.PostStore, userId string) {
 	}
 	err = session.Where("id = ?", postCreate.Id).Update(newPostCreate).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostStore",
 			"err":     err.Error(),
 		})
@@ -323,7 +323,7 @@ func (r *ConsolePostService) PostDetail(postId int) (p *models.ZPosts, err error
 	post := new(models.ZPosts)
 	err = r.getDbaTable().Where("id = ?", postId).Find(post).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostDetail",
 			"err":     err.Error(),
 		})
@@ -340,7 +340,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 		Find(post).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -363,7 +363,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 
 	tags, err := r.PostIdTags(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -383,7 +383,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 
 	cate, err := r.PostCates(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -400,7 +400,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	pid := strconv.Itoa(post.Id)
 	view, err := r.PostView([]string{pid})
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -414,7 +414,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	// user
 	user, err := srvUser.GetUserById(post.UserHId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -430,7 +430,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	// last post
 	lastPost, err := r.LastPost(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -440,7 +440,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail pojos.In
 	// next post
 	nextPost, err := r.NextPost(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.IndexPostDetailDao",
 			"err":     err.Error(),
 		})
@@ -483,7 +483,7 @@ func (r *ConsolePostService) NextPost(postId int) (post *models.ZPosts, err erro
 func (r *ConsolePostService) PostIdTags(postId int) (tags []*models.ZTags, err error) {
 	tagIds, err := r.PostIdTag(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostIdTags",
 			"err":     err.Error(),
 		})
@@ -504,7 +504,7 @@ func (r *ConsolePostService) PostIdTag(postId int) (tagIds []int, err error) {
 		Find(&postTag).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostIdTag",
 			"err":     err.Error(),
 		})
@@ -521,7 +521,7 @@ func (r *ConsolePostService) PostCates(postId int) (cate *models.ZCategories, er
 	srv := NewCategoryService()
 	cateId, err := srv.PostCate(postId)
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostCates",
 			"err":     err.Error(),
 		})
@@ -530,7 +530,7 @@ func (r *ConsolePostService) PostCates(postId int) (cate *models.ZCategories, er
 	cate = new(models.ZCategories)
 	err = r.Context.Db.Where("id =?", cateId).Find(cate).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostCates",
 			"err":     err.Error(),
 		})
@@ -559,7 +559,7 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 		Update(postUpdate).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostUpdate",
 			"err":     err.Error(),
 		})
@@ -573,7 +573,7 @@ func (r *ConsolePostService) PostUpdate(postId int, ps pojos.PostStore) (err err
 		Delete(&models.ZPostCate{}).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostUpdate",
 			"err":     "post cate delete no succeed",
 		})
@@ -663,7 +663,7 @@ func (r *ConsolePostService) postCategoryLogic(postId int, ps *pojos.PostStore, 
 
 	err = session.Create(&postCateCreate).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostUpdate",
 			"err":     err.Error(),
 		})
@@ -675,7 +675,7 @@ func (r *ConsolePostService) PostDestroy(postId int) (res bool, err error) {
 
 	err = r.Context.Db.Where("id =?", postId).Delete(post).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostDestroy",
 			"err":     err.Error(),
 		})
@@ -692,7 +692,7 @@ func (r *ConsolePostService) PostUnTrash(postId int) (res bool, err error) {
 		// Delete(&models.ZPosts{}).
 		Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostUnTrash",
 			"err":     err.Error(),
 		})
@@ -714,7 +714,7 @@ func (r *ConsolePostService) PostTagListCount(tagId int, limit int, offset int) 
 		Offset(offset).
 		Count(&count).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostTagListCount",
 			"err":     err.Error(),
 		})
@@ -731,7 +731,7 @@ func (r *ConsolePostService) PostTagList(tagId int, limit int, offset int) (post
 		Offset(offset).Rows()
 
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.Index.PostTagList",
 			"err":     err.Error(),
 		})
@@ -744,7 +744,7 @@ func (r *ConsolePostService) PostTagList(tagId int, limit int, offset int) (post
 		postTag := new(models.ZPostTag)
 		err = rows.Scan(postTag)
 		if err != nil {
-			r.Context.Log.Error(map[string]string{
+			r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 				"message": "service.Index.PostTagList",
 				"err":     err.Error(),
 			})
@@ -781,7 +781,7 @@ func (r *ConsolePostService) PostCateListCount(cateId int, limit int, offset int
 	err = r.Context.Db.Table((&models.ZPostCate{}).TableName()).
 		Where("cate_id = ?", cateId).Order("id desc").Limit(limit).Offset(offset).Count(&count).Error
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.PostCateListCount",
 			"err":     err.Error(),
 		})
@@ -799,7 +799,7 @@ func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (po
 		Rows()
 
 	if err != nil {
-		r.Context.Log.Error(map[string]string{
+		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 			"message": "service.Index.PostCateList",
 			"err":     err.Error(),
 		})
@@ -812,7 +812,7 @@ func (r *ConsolePostService) PostCateList(cateId int, limit int, offset int) (po
 		postCate := new(models.ZPostCate)
 		err = rows.Scan(postCate)
 		if err != nil {
-			r.Context.Log.Error(map[string]string{
+			r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
 				"message": "service.Index.PostCateList",
 				"err":     err.Error(),
 			})
