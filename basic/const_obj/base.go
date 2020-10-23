@@ -8,5 +8,5 @@
 package const_obj
 
 const (
-	MicroUser = "api_user" // 用户操作对象
+	MicroUser = "api-user" // 用户操作对象
 )
