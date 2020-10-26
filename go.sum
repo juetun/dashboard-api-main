@@ -273,6 +273,14 @@ github.com/juetun/base-wrapper v0.0.30-0.20201023150317-d78eb1d2094d h1:xzAtNBIo
 github.com/juetun/base-wrapper v0.0.30-0.20201023150317-d78eb1d2094d/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
 github.com/juetun/base-wrapper v0.0.30 h1:0riTdyTj53j9Ir3rmkDcgvM4IFiVuOSb9twx+fcHvok=
 github.com/juetun/base-wrapper v0.0.30/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
+github.com/juetun/base-wrapper v0.0.31-0.20201026142233-8a72fb5ae890 h1:5PInMlnozl8SpU+WTTjX6HivTo3kXrLuOu7o/+mBKoU=
+github.com/juetun/base-wrapper v0.0.31-0.20201026142233-8a72fb5ae890/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
+github.com/juetun/base-wrapper v0.0.31-0.20201026153157-765b5c7a6c6f h1:hloFQ6+VZZ04zwB8/cB7cDuiWtT2UkXt0kAB2+9maj8=
+github.com/juetun/base-wrapper v0.0.31-0.20201026153157-765b5c7a6c6f/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
+github.com/juetun/base-wrapper v0.0.31-0.20201026154011-52913be6449d h1:VWpWjDjBeZ7x36jpmDNr7cRKsDz+c1bxGFMshZsxO7s=
+github.com/juetun/base-wrapper v0.0.31-0.20201026154011-52913be6449d/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
+github.com/juetun/base-wrapper v0.0.31-0.20201026155830-a2e9a15ce331 h1:forz6vEp9M/zLWQ6X6SIPZWbEO4sL/wyaU8remlo6QE=
+github.com/juetun/base-wrapper v0.0.31-0.20201026155830-a2e9a15ce331/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
 github.com/juetun/dashboard-api-main v0.0.29 h1:Ky2lxCZL6miEY4N6M3h+8RciGxdX+aneJQfsRTK+SQc=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

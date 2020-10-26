@@ -79,8 +79,9 @@ func (r *PermitService) AdminUserAdd(arg *pojos.ArgAdminUserAdd) (res pojos.Resu
 		err = fmt.Errorf("您没有选择要添加的用户")
 		return
 	}
-	var user *models.Users
-	if user, err = NewUserService().GetUserById(strings.TrimSpace(arg.UserHid)); err != nil {
+	var user *models.UserMain
+	if user, err = NewUserService(r.Context).
+		GetUserById(strings.TrimSpace(arg.UserHid)); err != nil {
 		return
 	} else if user.UserHid == "" {
 		err = fmt.Errorf("您要添加的用户信息不存在")

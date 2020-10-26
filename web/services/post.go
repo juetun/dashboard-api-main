@@ -84,7 +84,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapUser *map[string]models.Users
+	var mapUser *map[string]models.UserMain
 	mapUser, err = srvUser.GetUserMapByIds(userId)
 	if err != nil {
 		return
