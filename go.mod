@@ -17,7 +17,7 @@ require (
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/jinzhu/gorm v1.9.16
-	github.com/juetun/base-wrapper v0.0.31-0.20201026155830-a2e9a15ce331
+	github.com/juetun/base-wrapper v0.0.31-0.20201028153926-46bd00214fe0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible // indirect
 	github.com/magiconair/properties v1.8.4 // indirect

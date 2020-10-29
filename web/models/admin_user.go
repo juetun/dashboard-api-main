@@ -8,17 +8,18 @@
 package models
 
 import (
-	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/jinzhu/gorm"
 )
 
 type AdminUser struct {
-	Id        int             `gorm:"primary_key" json:"id"`
-	UserHid   string          `json:"user_hid" gorm:"user_hid"`
-	RealName  string          `json:"real_name" gorm:"real_name"`
-	Mobile    string          `json:"mobile" gorm:"mobile"`
-	CreatedAt base.TimeNormal `json:"created_at" gorm:"created_at" `
-	UpdatedAt base.TimeNormal `json:"updated_at" gorm:"updated_at" `
-	DeletedAt base.TimeNormal `json:"-" gorm:"deleted_at" `
+	// Id        int             `gorm:"primary_key" json:"id"`
+	UserHid  string `json:"user_hid" gorm:"user_hid"`
+	RealName string `json:"real_name" gorm:"real_name"`
+	Mobile   string `json:"mobile" gorm:"mobile"`
+	gorm.Model
+	// CreatedAt base.TimeNormal `json:"created_at" gorm:"created_at" `
+	// UpdatedAt base.TimeNormal `json:"updated_at" gorm:"updated_at" `
+	// DeletedAt *time.Time      `json:"-" gorm:"deleted_at" `
 }
 
 func (r *AdminUser) TableName() string {

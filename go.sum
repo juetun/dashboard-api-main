@@ -281,6 +281,8 @@ github.com/juetun/base-wrapper v0.0.31-0.20201026154011-52913be6449d h1:VWpWjDjB
 github.com/juetun/base-wrapper v0.0.31-0.20201026154011-52913be6449d/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
 github.com/juetun/base-wrapper v0.0.31-0.20201026155830-a2e9a15ce331 h1:forz6vEp9M/zLWQ6X6SIPZWbEO4sL/wyaU8remlo6QE=
 github.com/juetun/base-wrapper v0.0.31-0.20201026155830-a2e9a15ce331/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
+github.com/juetun/base-wrapper v0.0.31-0.20201028153926-46bd00214fe0 h1:p+z/h+Tf2M1PIlgWhzBW8S15rsoQnqNmfNnJnMuPovg=
+github.com/juetun/base-wrapper v0.0.31-0.20201028153926-46bd00214fe0/go.mod h1:MGGKGxyO2zPJUHYJW6xlDMLddPRYK1PcZIhZ/mRSADo=
 github.com/juetun/dashboard-api-main v0.0.29 h1:Ky2lxCZL6miEY4N6M3h+8RciGxdX+aneJQfsRTK+SQc=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

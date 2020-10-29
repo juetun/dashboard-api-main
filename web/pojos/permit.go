@@ -29,12 +29,14 @@ type ResultAdminUserAdd struct {
 }
 type ArgAdminUserDelete struct {
 	app_obj.JwtUserMessage
-	Ids      string   `json:"ids"`
+	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 
 func (r *ArgAdminUserDelete) Default() {
-
+	if r.Ids != "" {
+		r.IdString = strings.Split(r.Ids, ",")
+	}
 }
 
 type ResultAdminUserDelete struct {
@@ -43,12 +45,14 @@ type ResultAdminUserDelete struct {
 
 type ArgAdminUserGroupRelease struct {
 	app_obj.JwtUserMessage
-	Ids      string   `json:"ids"`
+	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 
 func (r *ArgAdminUserGroupRelease) Default() {
-
+	if r.Ids != "" {
+		r.IdString = strings.Split(r.Ids, ",")
+	}
 }
 
 type ResultAdminUserGroupRelease struct {

@@ -16,6 +16,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/pojos"
 )
@@ -82,7 +83,7 @@ func (r *DaoPermit) AdminUserGroupRelease(ids []string) (err error) {
 }
 func (r *DaoPermit) AdminUserAdd(arg *models.AdminUser) (err error) {
 
-	fields := []string{"user_hid", "real_name", "updated_at",}
+	fields := []string{"user_hid", "real_name", "updated_at", "deleted_at",}
 	var bt bytes.Buffer
 	bt.WriteString("ON DUPLICATE KEY UPDATE ")
 	for k, value := range fields {
@@ -102,9 +103,9 @@ func (r *DaoPermit) AdminUserDelete(ids []string) (err error) {
 	}
 	var m models.AdminUser
 	err = r.Context.Db.Table(m.TableName()).
-		Where("id IN (?) ", ids).
+		Where("user_hid IN (?) ", ids).
 		Update(map[string]interface{}{
-			"is_del": 1,
+			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
 		}).
 		Error
 	return
@@ -198,7 +199,7 @@ func (r *DaoPermit) Add(data *models.AdminMenu) (err error) {
 }
 func (r *DaoPermit) GetAdminUserCount(db *gorm.DB, arg *pojos.ArgAdminUser) (total int, dba *gorm.DB, err error) {
 	var m models.AdminUser
-	dba = r.Context.Db.Table(m.TableName()).Unscoped().Where("deleted_at = ?", "1970-01-02 08:00:00")
+	dba = r.Context.Db.Table(m.TableName())
 	if arg.Name != "" {
 		dba = dba.Where("real_name LIKE ?", "%"+arg.Name+"%")
 	}
@@ -208,9 +209,9 @@ func (r *DaoPermit) GetAdminUserCount(db *gorm.DB, arg *pojos.ArgAdminUser) (tot
 	err = dba.Count(&total).Error
 	return
 }
-func (r *DaoPermit) GetAdminUserList(db *gorm.DB, arg *pojos.ArgAdminUser) (res []models.AdminUser, err error) {
+func (r *DaoPermit) GetAdminUserList(db *gorm.DB, arg *pojos.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error) {
 	res = []models.AdminUser{}
-	err = db.Find(&res).Error
+	err = db.Offset(pager.GetFromAndLimit()).Limit(arg.PageSize).Find(&res).Error
 	return
 }
 
@@ -249,9 +250,12 @@ func (r *DaoPermit) GetAdminGroupCount(db *gorm.DB, arg *pojos.ArgAdminGroup) (t
 	err = dba.Count(&total).Error
 	return
 }
-func (r *DaoPermit) GetAdminGroupList(db *gorm.DB, arg *pojos.ArgAdminGroup) (res []models.AdminGroup, err error) {
+func (r *DaoPermit) GetAdminGroupList(db *gorm.DB, arg *pojos.ArgAdminGroup, pagerObject *response.Pager) (res []models.AdminGroup, err error) {
 	res = []models.AdminGroup{}
-	err = db.Find(&res).Error
+	err = db.Limit(pagerObject.PageSize).
+		Offset(pagerObject.GetFromAndLimit()).
+		Find(&res).
+		Error
 	return
 }
 func (r *DaoPermit) GetGroupByUserId(userId string) (res []models.AdminUserGroup, err error) {

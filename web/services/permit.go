@@ -88,11 +88,17 @@ func (r *PermitService) AdminUserAdd(arg *pojos.ArgAdminUserAdd) (res pojos.Resu
 		return
 	}
 
-	if daos.NewDaoPermit(r.Context).
+	if err = daos.NewDaoPermit(r.Context).
 		AdminUserAdd(&models.AdminUser{
 			UserHid:  arg.UserHid,
 			RealName: user.Name,
 			Mobile:   user.Mobile,
+			Model: gorm.Model{
+				ID:        0,
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+				DeletedAt: nil,
+			},
 		}); err != nil {
 		return
 	}
@@ -246,7 +252,7 @@ func (r *PermitService) AdminGroup(arg *pojos.ArgAdminGroup) (res *pojos.ResultA
 		pagerObject.TotalCount, db, err = dao.GetAdminGroupCount(db, arg)
 		return
 	}, func(pagerObject *response.Pager) (err error) {
-		pagerObject.List, err = dao.GetAdminGroupList(db, arg)
+		pagerObject.List, err = dao.GetAdminGroupList(db, arg, pagerObject)
 		return
 	})
 	return
@@ -263,7 +269,7 @@ func (r *PermitService) AdminUser(arg *pojos.ArgAdminUser) (res *pojos.ResultAdm
 		pagerObject.TotalCount, db, err = dao.GetAdminUserCount(db, arg)
 		return
 	}, func(pagerObject *response.Pager) (err error) {
-		list, err := dao.GetAdminUserList(db, arg)
+		list, err := dao.GetAdminUserList(db, arg, pagerObject)
 		if err != nil {
 			return
 		}

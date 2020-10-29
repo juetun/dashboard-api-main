@@ -59,12 +59,14 @@ func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
 	arg.JwtUserMessage = r.GetUser(c)
 	arg.Default()
 
+	if len(arg.IdString) == 0 {
+		r.Response(c, 500000001, nil, "您没有选择要删除的用户")
+		return
+	}
 	// 记录日志
-	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-
-	srv := services.NewPermitService(context)
-	res, err := srv.AdminUserDelete(&arg)
-
+	res, err := services.
+		NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
+		AdminUserDelete(&arg)
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -84,8 +86,7 @@ func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
 	arg.Default()
 
 	// 记录日志
-	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	srv := services.NewPermitService(context)
+	srv := services.NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c))
 	res, err := srv.AdminUserGroupRelease(&arg)
 
 	if err != nil {
