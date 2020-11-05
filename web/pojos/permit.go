@@ -17,6 +17,18 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
+type ArgAdminMenuSearch struct {
+	app_obj.JwtUserMessage
+	UserHid string `json:"user_hid" form:"user_hid"`
+}
+
+func (r *ArgAdminMenuSearch) Default() {
+
+}
+
+type ResAdminMenuSearch struct {
+	List []models.AdminMenu `json:"list"`
+}
 type ArgAdminUserAdd struct {
 	app_obj.JwtUserMessage
 	UserHid string `json:"user_hid" form:"user_hid"`

@@ -220,7 +220,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *pojos.ArgAdminMenu) (res []models.Admi
 	var m models.AdminMenu
 	dba := r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
 	if arg.Label != "" {
-		dba = dba.Where("label LIKE ?", "%"+arg.Name+"%")
+		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
 	}
 	if arg.ParentId != -1 {
 		dba = dba.Where("parent_id = ?", arg.ParentId)

@@ -28,6 +28,7 @@ func init() {
 		h.POST("/edit_admin_group", controller.AdminGroupEdit)
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 		h.POST("/admin_menu", controller.AdminMenu)         // 菜单列表
+		h.POST("/admin_menu_search",controller.AdminMenuSearch)
 		h.POST("/admin_menu_add", controller.MenuAdd)       // 添加菜单
 		h.POST("/admin_menu_save", controller.MenuSave)     // 修改菜单
 		h.POST("/admin_menu_delete", controller.MenuDelete) // 删除菜单

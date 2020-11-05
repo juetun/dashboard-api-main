@@ -23,8 +23,8 @@ type AdminMenu struct {
 	PathType   string    `json:"path_type" gorm:"path_type" form:"path_type"`
 	SortValue  int       `json:"sort_value" gorm:"sort_value" form:"sort_value"`
 	OtherValue string    `json:"other_value" gorm :"other_value" form:"other_value"`
-	CreatedAt  time.Time `json:"created_at" gorm :"created_at" `
-	UpdatedAt  time.Time `json:"updated_at" gorm :"updated_at" `
+	CreatedAt  time.Time `json:"-" gorm :"created_at" `
+	UpdatedAt  time.Time `json:"-" gorm :"updated_at" `
 	IsDel      int       `json:"-" gorm:"is_del" form:"is_del"`
 }
 

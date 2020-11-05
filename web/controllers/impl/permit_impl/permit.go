@@ -24,6 +24,28 @@ func NewControllerPermit() inter.Permit {
 	controller.ControllerBase.Init()
 	return controller
 }
+func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
+	var arg pojos.ArgAdminMenu
+	var err error
+	err = c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+	arg.Default()
+
+	// 记录日志
+	res, err := services.
+		NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
+		AdminMenuSearch(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
 
 func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
 	var arg pojos.ArgAdminUserAdd

@@ -36,6 +36,9 @@ type Permit interface {
 	// 菜单
 	AdminMenu(c *gin.Context)
 
+	// 菜单搜索
+	AdminMenuSearch(c *gin.Context)
+
 	MenuAdd(c *gin.Context)
 
 	MenuDelete(c *gin.Context)

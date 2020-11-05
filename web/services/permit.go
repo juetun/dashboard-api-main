@@ -31,6 +31,14 @@ func NewPermitService(context ...*base.Context) (p *PermitService) {
 	return
 }
 
+func (r *PermitService) AdminMenuSearch(arg *pojos.ArgAdminMenu) (res pojos.ResAdminMenuSearch, err error) {
+	res = pojos.ResAdminMenuSearch{
+		List: []models.AdminMenu{},
+	}
+	dao := daos.NewDaoPermit(r.Context)
+	res.List, err = dao.GetAdminMenuList(arg)
+	return
+}
 func (r *PermitService) AdminUserGroupAdd(arg *pojos.ArgAdminUserGroupAdd) (res pojos.ResultAdminUserGroupAdd, err error) {
 	res = pojos.ResultAdminUserGroupAdd{}
 	dao := daos.NewDaoPermit(r.Context)
