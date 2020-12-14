@@ -1,9 +1,9 @@
 /**
 * @Author:changjiang
 * @Description:
-* @File:admin_menu
+* @File:admin_import
 * @Version: 1.0.0
-* @Date 2020/9/16 10:37 下午
+* @Date 2020/12/9 11:08 下午
  */
 package models
 
@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-type AdminMenu struct {
+type AdminImport struct {
 	Id         int       `gorm:"primary_key" json:"id" form:"id"`
-	ParentId   int       `json:"parent_id" gorm:"parent_id" form:"parent_id"`
+	MenuId     int       `json:"menu_id" gorm:"menu_id" form:"menu_id"`
+	AppName    string    `json:"app_name" gorm:"app_name" form:"app_name"`
 	Label      string    `json:"label" gorm:"label" form:"label"`
-	Icon       string    `json:"icon" gorm:"icon" form:"icon"`
-	IsMenuShow int       `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
+	AppVersion string    `json:"app_version" gorm:"app_version" form:"app_version"`
 	UrlPath    string    `json:"url_path" gorm:"url_path" form:"url_path"`
 	SortValue  int       `json:"sort_value" gorm:"sort_value" form:"sort_value"`
 	OtherValue string    `json:"other_value" gorm :"other_value" form:"other_value"`
@@ -25,6 +25,6 @@ type AdminMenu struct {
 	IsDel      int       `json:"-" gorm:"is_del" form:"is_del"`
 }
 
-func (r *AdminMenu) TableName() string {
-	return "admin_menu"
+func (r *AdminImport) TableName() string {
+	return "admin_import"
 }

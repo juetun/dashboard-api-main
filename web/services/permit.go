@@ -167,13 +167,10 @@ func (r *PermitService) MenuAdd(arg *pojos.ArgMenuAdd) (res *pojos.ResultMenuAdd
 	t := time.Now()
 	err = dao.Add(&models.AdminMenu{
 		ParentId:   arg.ParentId,
-		AppName:    arg.AppName,
 		Label:      arg.Label,
 		Icon:       arg.Icon,
 		IsMenuShow: arg.IsMenuShow,
-		AppVersion: arg.AppVersion,
 		UrlPath:    arg.UrlPath,
-		PathType:   arg.PathType,
 		SortValue:  arg.SortValue,
 		OtherValue: arg.OtherValue,
 		CreatedAt:  t,
@@ -186,6 +183,7 @@ func (r *PermitService) MenuDelete(arg *pojos.ArgMenuDelete) (res *pojos.ResultM
 	res = &pojos.ResultMenuDelete{}
 	dao := daos.NewDaoPermit(r.Context)
 	err = dao.DeleteByIds(arg.IdValue)
+	res.Result = true
 	return
 }
 
@@ -195,13 +193,10 @@ func (r *PermitService) MenuSave(arg *pojos.ArgMenuSave) (res *pojos.ResultMenuS
 	t := time.Now()
 	err = dao.Save(arg.Id, &models.AdminMenu{
 		ParentId:   arg.ParentId,
-		AppName:    arg.AppName,
 		Label:      arg.Label,
 		Icon:       arg.Icon,
 		IsMenuShow: arg.IsMenuShow,
-		AppVersion: arg.AppVersion,
 		UrlPath:    arg.UrlPath,
-		PathType:   arg.PathType,
 		SortValue:  arg.SortValue,
 		OtherValue: arg.OtherValue,
 		UpdatedAt:  t,
@@ -226,17 +221,13 @@ func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]po
 			continue
 		}
 		tmp = pojos.AdminMenuObject{Children: make([]pojos.AdminMenuObject, 0, 20),}
-
 		tmp.ResultAdminMenuSingle = pojos.ResultAdminMenuSingle{
 			Id:         value.Id,
 			ParentId:   value.ParentId,
-			AppName:    value.AppName,
 			Title:      value.Label,
 			Icon:       value.Icon,
 			IsMenuShow: value.IsMenuShow,
-			AppVersion: value.AppVersion,
 			UrlPath:    value.UrlPath,
-			PathType:   value.PathType,
 			SortValue:  value.SortValue,
 			IsDel:      value.IsDel,
 		}
@@ -253,6 +244,7 @@ func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]po
 func (r *PermitService) AdminGroup(arg *pojos.ArgAdminGroup) (res *pojos.ResultAdminGroup, err error) {
 
 	res = &pojos.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
+
 	var db *gorm.DB
 	dao := daos.NewDaoPermit(r.Context)
 	// 获取分页数据

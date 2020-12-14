@@ -177,7 +177,11 @@ func (r *DaoPermit) Save(id int, data *models.AdminMenu) (err error) {
 		return
 	}
 	var m models.AdminMenu
-	err = r.Context.Db.Table(m.TableName()).Where("id=?", id).Save(data).Error
+	err = r.Context.Db.
+		Table(m.TableName()).
+		Where("id=?", id).
+		Update(data).
+		Error
 	return
 }
 func (r *DaoPermit) DeleteByIds(ids []string) (err error) {

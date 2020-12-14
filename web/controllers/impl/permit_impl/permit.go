@@ -192,40 +192,41 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
+
 	var arg pojos.ArgMenuDelete
 	var err error
-	err = c.Bind(&arg)
-	if err != nil {
+
+	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
+	} else {
+		arg.Default()
+		arg.JwtUserMessage = r.GetUser(c)
 	}
-	arg.Default()
-	arg.JwtUserMessage = r.GetUser(c)
+
 	// 记录日志
-	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
-
-	srv := services.NewPermitService(context)
-
-	res, err := srv.MenuDelete(&arg)
-
-	if err != nil {
+	if res, err := services.NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
+		MenuDelete(&arg); err != nil {
 		r.Response(c, 500000002, nil)
 		return
+	} else {
+		r.Response(c, 0, res)
 	}
-	r.Response(c, 0, res)
+
 }
 
 func (r *ControllerPermit) MenuSave(c *gin.Context) {
 	var arg pojos.ArgMenuSave
 	var err error
-	err = c.ShouldBind(&arg)
-	if err != nil {
+
+	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, 500000001, err.Error())
 		return
+	} else {
+		arg.Default()
+		arg.JwtUserMessage = r.GetUser(c)
 	}
-	arg.Default()
-	arg.JwtUserMessage = r.GetUser(c)
+
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
 
