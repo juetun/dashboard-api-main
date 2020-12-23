@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	_ "github.com/juetun/base-wrapper/lib/init" // 加载公共插件项
 	. "github.com/juetun/base-wrapper/lib/plugins"
 	"github.com/juetun/dashboard-api-main/basic/plugins"

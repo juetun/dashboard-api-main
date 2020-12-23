@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/dashboard-api-main/web"
 )
 
@@ -37,7 +37,7 @@ func (r *ApiController) Response(httpCode, errCode int, data gin.H) {
 	r.C.Writer.Header().Set("X-Response-time", roundedStr)
 	requestUrl := r.C.Request.URL.String()
 	requestMethod := r.C.Request.Method
-	app_log.GetLog().Logger.Infoln("message", "Index Response", "Request Url",
+	app_obj.GetLog().Logger.Infoln("message", "Index Response", "Request Url",
 		requestUrl, "Request method", requestMethod,
 		"code", errCode, "errMsg", msg,
 		"took", roundedStr)

@@ -12,7 +12,7 @@ package services
 // 	"time"
 //
 // 	"github.com/jinzhu/gorm"
-// 	"github.com/juetun/base-wrapper/lib/app_obj"
+// 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 // 	"github.com/juetun/base-wrapper/lib/base"
 // 	"github.com/juetun/base-wrapper/lib/common"
 // 	"github.com/juetun/dashboard-api-main/basic/utils"

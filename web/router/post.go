@@ -5,7 +5,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/controllers/impl/con_impl"
 	"github.com/juetun/dashboard-api-main/web/controllers/impl/img_impl"
 	"github.com/juetun/dashboard-api-main/web/validate"
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 )
 
 func init() {

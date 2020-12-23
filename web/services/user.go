@@ -11,9 +11,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/rpc"
+	"github.com/juetun/base-wrapper/lib/plugins/rpc"
 	"github.com/juetun/dashboard-api-main/basic/const_obj"
 	"github.com/juetun/dashboard-api-main/web/models"
 )

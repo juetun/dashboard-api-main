@@ -9,7 +9,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_start"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/dashboard-api-main/web/controllers/impl/permit_impl"
 )
 

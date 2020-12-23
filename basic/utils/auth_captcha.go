@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/mojocn/base64Captcha"
 )
 
@@ -43,7 +43,7 @@ func (r *AuthCaptcha) InitGet() (idKeyD string, base64stringD string) {
 // customizeRdsStore An object implementing Store interface
 type CustomizeRdsStore struct {
 	RedisClient *redis.Client
-	Log         *app_log.AppLog
+	Log         *app_obj.AppLog
 }
 
 // customizeRdsStore implementing Set method of  Store interface

@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common/response"
 
 	"github.com/juetun/dashboard-api-main/web/models"

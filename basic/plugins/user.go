@@ -12,9 +12,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app_log"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/middlewares"
+	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	"github.com/juetun/dashboard-api-main/basic/web_middlerwares/permissions"
 )
 
@@ -33,7 +33,7 @@ func PluginUser() (err error) {
 			c.Next()
 			return
 		}
-		app_log.GetLog().Info(c, map[string]interface{}{
+		app_obj.GetLog().Info(c, map[string]interface{}{
 			"method":      "PluginUser",
 			"info":        "user message",
 			"router name": c.Request.RequestURI,
@@ -68,7 +68,7 @@ func RequestPathPermit(c *gin.Context, s string) (res bool) {
 	res = permissions.CheckPermissions(c, s)
 	// 如果不在白名单范围内，则让过
 	if !res {
-		app_log.GetLog().Error(c, map[string]interface{}{
+		app_obj.GetLog().Error(c, map[string]interface{}{
 			"method":      "middleware.Permission",
 			"info":        "router permission",
 			"router name": c.Request.RequestURI,

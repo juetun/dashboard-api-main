@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app_obj"
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 )
 
 type ArgumentsExportList struct {
