@@ -31,6 +31,17 @@ func NewPermitService(context ...*base.Context) (p *PermitService) {
 	return
 }
 
+func (r *PermitService) GetMenu(arg *pojos.ArgGetMenu) (res pojos.ResultGetMenu, err error) {
+	res = pojos.ResultGetMenu{}
+	if arg.MenuId == 0 {
+		return
+	}
+	res.AdminMenu, err = daos.NewDaoPermit(r.Context).GetMenu(arg.MenuId)
+	if err != nil {
+		return
+	}
+	return
+}
 func (r *PermitService) AdminMenuSearch(arg *pojos.ArgAdminMenu) (res pojos.ResAdminMenuSearch, err error) {
 	res = pojos.ResAdminMenuSearch{
 		List: []models.AdminMenu{},

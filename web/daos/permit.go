@@ -219,6 +219,21 @@ func (r *DaoPermit) GetAdminUserList(db *gorm.DB, arg *pojos.ArgAdminUser, pager
 	return
 }
 
+func (r *DaoPermit) GetMenu(menuId int) (res models.AdminMenu, err error) {
+	var m models.AdminMenu
+	var l []models.AdminMenu
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("id = ?", menuId).
+		Limit(1).
+		Find(&l).
+		Error; err != nil {
+		return
+	}
+	if len(l) > 0 {
+		res = l[0]
+	}
+	return
+}
 func (r *DaoPermit) GetAdminMenuList(arg *pojos.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
 	var m models.AdminMenu

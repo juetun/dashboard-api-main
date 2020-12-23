@@ -24,11 +24,35 @@ func NewControllerPermit() inter.Permit {
 	controller.ControllerBase.Init()
 	return controller
 }
+
+func (r *ControllerPermit) GetMenu(c *gin.Context) {
+	var arg pojos.ArgGetMenu
+	var err error
+
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	} else {
+		arg.JwtUserMessage = r.GetUser(c)
+		arg.Default()
+	}
+
+	// 记录日志
+	if res, err := services.
+		NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
+		GetMenu(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+
+}
 func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 	var arg pojos.ArgAdminMenu
 	var err error
-	err = c.Bind(&arg)
-	if err != nil {
+
+	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
@@ -36,15 +60,15 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 	arg.Default()
 
 	// 记录日志
-	res, err := services.
+	if res, err := services.
 		NewPermitService(base.GetControllerBaseContext(&r.ControllerBase, c)).
-		AdminMenuSearch(&arg)
-
-	if err != nil {
+		AdminMenuSearch(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
+	}else{
+		r.Response(c, 0, res)
 	}
-	r.Response(c, 0, res)
+
 }
 
 func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {

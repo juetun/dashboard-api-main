@@ -285,3 +285,16 @@ type ArgFlag struct {
 
 type ResultFlag struct {
 }
+
+type ArgGetMenu struct {
+	app_obj.JwtUserMessage
+	MenuId int `json:"menu_id" form:"menu_id"`
+}
+
+type ResultGetMenu struct {
+	models.AdminMenu
+}
+
+func (r *ArgGetMenu) Default() {
+
+}
