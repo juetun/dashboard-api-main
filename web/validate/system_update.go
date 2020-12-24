@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/dashboard-api-main/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
 type SystemUpdateV struct {
@@ -21,7 +21,7 @@ type SystemUpdateV struct {
 func (sv *SystemUpdateV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := common.NewGin(c)
-		var json pojos.ConsoleSystem
+		var json wrappers.ConsoleSystem
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
 			emsg := "参数验证失败" + err.Error()

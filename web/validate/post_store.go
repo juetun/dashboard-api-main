@@ -9,7 +9,7 @@ package validate
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/dashboard-api-main/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
 type PostStoreV struct {
@@ -18,7 +18,7 @@ type PostStoreV struct {
 func (pv *PostStoreV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := common.NewGin(c)
-		var json pojos.PostStore
+		var json wrappers.PostStore
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
 			appG.Response(400001000, err.Error())

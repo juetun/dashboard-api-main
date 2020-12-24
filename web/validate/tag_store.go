@@ -10,7 +10,7 @@ package validate
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/dashboard-api-main/web/pojos"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
 type TagStoreV struct {
@@ -19,7 +19,7 @@ type TagStoreV struct {
 func (tv *TagStoreV) MyValidate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		appG := common.NewGin(c)
-		var json pojos.TagStore
+		var json wrappers.TagStore
 		// 接收各种参数
 		if err := c.ShouldBindJSON(&json); err != nil {
 			appG.Response(400001000, err.Error())

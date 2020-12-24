@@ -2,15 +2,15 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/dashboard-api-main/web/controllers/impl/con_impl"
-	"github.com/juetun/dashboard-api-main/web/validate"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/con_impl"
+	"github.com/juetun/dashboard-api-main/web/validate"
 )
 
 func init() {
 	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		tag := r.Group(urlPrefix + "/console")
-		consoleTag := con_impl.NewControllerTag()
+		consoleTag := con_impl2.NewControllerTag()
 		tagV := validate.NewValidate().NewTagV.MyValidate()
 		tag.GET("/tag", consoleTag.Index)
 		tag.POST("/tag", tagV, consoleTag.Store)

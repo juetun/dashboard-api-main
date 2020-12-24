@@ -10,13 +10,13 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/controllers/impl/export_impl"
+	"github.com/juetun/dashboard-api-main/web/cons/con_impl"
 )
 
 func init() {
 	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
 		rou := r.Group(urlPrefix + "/export")
-		impl := export_impl.NewControllerExportData()
+		impl := con_impl.NewControllerExportData()
 
 		rou.GET("/list", impl.List)
 		rou.POST("/init", impl.Init)

@@ -10,12 +10,12 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/controllers/impl/permit_impl"
+	"github.com/juetun/dashboard-api-main/web/cons/con_impl"
 )
 
 func init() {
 	app_start.HandleFunc = append(app_start.HandleFunc, func(r *gin.Engine, urlPrefix string) {
-		controller := permit_impl.NewControllerPermit()
+		controller := con_impl.NewControllerPermit()
 		h := r.Group(urlPrefix + "/permit")
 
 		h.POST("/admin_user", controller.AdminUser)
