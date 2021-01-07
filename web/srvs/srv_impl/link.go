@@ -92,21 +92,37 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 	if err == redis.Nil {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Context.Log.Logger.Infoln("message", "service.AllLink", "err", err.Error())
+			r.Context.Error(map[string]interface{}{
+				"message":  "service.AllLink",
+				"err":      err,
+				"cacheKey": cacheKey,
+			})
 			return links, err
 		}
 		return links, nil
 	} else if err != nil {
-		r.Context.Log.Logger.Infoln("message", "service.AllLink", "err", err.Error())
-		return nil, err
+		r.Context.Error(map[string]interface{}{
+			"message":  "service.AllLink1",
+			"err":      err,
+			"cacheKey": cacheKey,
+		})
+ 		return nil, err
 	}
 
 	err = json.Unmarshal([]byte(cacheRes), &links)
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.AllLink", "err", err.Error())
-		links, err = r.doCacheLinkList(cacheKey)
+		r.Context.Error(map[string]interface{}{
+			"message":  "service.AllLink2",
+			"err":      err,
+			"cacheKey": cacheKey,
+		})
+ 		links, err = r.doCacheLinkList(cacheKey)
 		if err != nil {
-			r.Context.Log.Logger.Errorln("message", "service.AllLink", "err", err.Error())
+			r.Context.Error(map[string]interface{}{
+				"message":  "service.AllLink3",
+				"err":      err,
+				"cacheKey": cacheKey,
+			})
 			return nil, err
 		}
 		return links, nil
@@ -120,17 +136,29 @@ func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, e
 		Find(&links).
 		Error
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+ 		r.Context.Error(map[string]interface{}{
+			"message":  "service.doCacheLinkList",
+			"err":      err,
+			"cacheKey": cacheKey,
+		})
 		return links, err
 	}
 	jsonRes, err := json.Marshal(&links)
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+ 		r.Context.Error(map[string]interface{}{
+			"message":  "service.doCacheLinkList1",
+			"err":      err,
+			"cacheKey": cacheKey,
+		})
 		return nil, err
 	}
 	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", "service.doCacheLinkList", "err", err.Error())
+ 		r.Context.Error(map[string]interface{}{
+			"message":  "service.doCacheLinkList2",
+			"err":      err,
+			"cacheKey": cacheKey,
+		})
 		return nil, err
 	}
 	return links, nil

@@ -89,8 +89,9 @@ func (r *DaoPostTag) GetListByPostId(postId int) (postTag *[]models.ZPostTag, er
 		Error
 
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message": "service.PostUpdate",
+			"postId":  postId,
 			"err":     "get post tag  no succeed",
 		})
 		return

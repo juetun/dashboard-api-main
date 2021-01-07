@@ -43,8 +43,9 @@ func (r *UserService) GetUserById(userId string) (user *models.UserMain, err err
 		*user = users[0]
 	}
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message": "service.GetUserById",
+			"userId":  userId,
 			"error":   err.Error(),
 		})
 
@@ -83,14 +84,14 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 		Send().
 		GetBody()
 	body = action.GetBodyAsString()
-	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
+	r.Context.Info(map[string]interface{}{
 		"message": "service.GetUserMapByIds",
 		"request": request,
 		"body":    body,
 	})
 
 	if err = action.Bind(&rpcUser).Error; err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message": "service.GetUserMapByIds",
 			"error":   err.Error(),
 		})

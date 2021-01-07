@@ -274,8 +274,9 @@ func (r *CategoryService) PostCate(postId int) (res string, err error) {
 		Find(postCate).
 		Error
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext,map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message": "service.PostCates",
+			"postId":  postId,
 			"err":     err.Error(),
 		})
 		return
@@ -293,8 +294,9 @@ func (r *CategoryService) GetPostCates(postId *[]int) (res *map[string]models.ZP
 		Find(&postCate).
 		Error
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext,map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message": "service.PostCates",
+			"postId":  postId,
 			"err":     err.Error(),
 		})
 		return

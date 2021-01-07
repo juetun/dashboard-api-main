@@ -54,7 +54,7 @@ func (r *AsyncExport) Run() {
 
 	// 如果是外部取消任务，任务结束状态实现
 	if r.IsFinish {
-		r.Context.Log.Error(r.Context.GinContext,
+		r.Context.Error(
 			map[string]interface{}{
 				"message": fmt.Sprintf("外部命令中止导出任务(ID:%d) ", r.model.Id),
 			},
@@ -71,9 +71,11 @@ func (r *AsyncExport) uploadFileToTarget(excel *ExcelOperate, exportData *models
 		Run()
 	err = fileUpload.Err
 	if err != nil {
-		r.Context.Log.Logger.Errorln(
-			"message", fmt.Sprintf("文件（%s）上传文件到阿里云失败 ", excel.PathFileName),
-			"content:", err.Error())
+		r.Context.Error(
+			map[string]interface{}{
+				"message":  fmt.Sprintf("文件（%s）上传文件到阿里云失败 ", excel.PathFileName),
+				"content:": err,
+			})
 		return
 	}
 	exportData.DownloadLink = fileUpload.DownloadUrl
@@ -107,7 +109,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	r.UpdateProgress(web.RunProgressMax) // 获取数据完成后更新进度
 
 	var err error
-	r.Context.Log.Info(r.Context.GinContext,
+	r.Context.Info(
 		map[string]interface{}{
 			"message": fmt.Sprintf("文件（ %s）生成成功 ", excel.PathFileName),
 		},
@@ -117,7 +119,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	// 上传EXCEL文件到指定路径
 	err = r.uploadFileToTarget(excel, &r.model)
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message":  fmt.Sprintf("上传文件(%s)到指定路径错误 ", excel.PathFileName),
 			"content:": err.Error(),
 		})
@@ -134,7 +136,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 
 	err = dao_impl.NewDaoExport(r.Context).Update(&r.model)
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message":  "update export progress to database is error ",
 			"content:": err.Error(),
 		})
@@ -149,7 +151,7 @@ func (r *AsyncExport) PathFileName() (pathFileName string) {
 // 获得操作系统的临时目录文件夹
 func (r *AsyncExport) getSysTmp() (res string) {
 	res = strings.TrimSuffix(os.TempDir(), "/")
-	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
+	r.Context.Info(map[string]interface{}{
 		"临时目录:": res,
 	})
 	return
@@ -264,10 +266,10 @@ func (r *AsyncExport) doOnePage(excel *ExcelOperate, artSheet *wrappers.Argument
 	// 获取第一页数据
 	pageData, err = r.getData(artSheet)
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"message": "数据获取异常", "content:": err.Error()})
+		r.Context.Error(map[string]interface{}{"message": "数据获取异常", "content:": err.Error()})
 		return
 	}
-	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{"desc": fmt.Sprintf("first page return:%v", pageData)})
+	r.Context.Info(map[string]interface{}{"desc": fmt.Sprintf("first page return:%v", pageData)})
 	r.WritePageData(&pageData, excel)
 	return
 
@@ -317,7 +319,10 @@ func (r *AsyncExport) getAccessUrl(argSheet *wrappers.ArgumentExportSheet) (res 
 		if value.Key == argSheet.AppName {
 			domain, err = value.GetRandomDomain()
 			if err != nil {
-				r.Context.Log.Logger.Errorln("message", fmt.Sprintf("the app_name %s(%s) config domain is err ", value.Name, value.Key), "content:", err.Error())
+				r.Context.Error(
+					map[string]interface{}{
+						"message": fmt.Sprintf("the app_name %s(%s) config domain is err ", value.Name, value.Key),
+						"err":     err}, )
 				return
 			}
 			serverMessage = ServerConfig{
@@ -347,7 +352,7 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 	switch strings.ToUpper(artSheet.HttpMethod) {
 	case "POST":
 		args := r.getArgString(r.dealDefaultQuery(artSheet.Query))
-		r.Context.Log.Logger.Errorln("message", fmt.Sprintf("the params: %s ", string(*args)))
+		r.Context.Error(map[string]interface{}{"message": fmt.Sprintf("the params: %s ", string(*args)),})
 		request = RequestObject{
 			ReSendTimes:        3,
 			Uri:                "",
@@ -358,7 +363,10 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 		}
 		request.Uri = Uri
 		if err != nil {
-			r.Context.Log.Logger.Errorln("message", " getData", "content:", err.Error())
+			r.Context.Error(map[string]interface{}{
+				"message": " getData",
+				"err:":    err,
+			})
 			return
 		}
 		break
@@ -376,13 +384,17 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 		break
 	default:
 		err = fmt.Errorf("当前不支持%s方法", artSheet.HttpMethod)
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"desc": err.Error(),}, )
+		r.Context.Error(map[string]interface{}{"desc": err.Error(),}, )
 		return
 	}
 
 	result, err := httpRequest.Send(&request)
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", " getData", "content:", err.Error())
+		r.Context.Error(
+			map[string]interface{}{
+				"message": " getData", "content:": err.Error(),
+			},
+		)
 		return
 	}
 	var dt struct {
@@ -393,15 +405,29 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 
 	// 如果没有获取到数据
 	if len(*result) == 0 {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{"message": "请求接口返回数据为空", "request": fmt.Sprintf("%v", request),})
+		r.Context.Error(
+			map[string]interface{}{
+				"message": "请求接口返回数据为空",
+				"request": fmt.Sprintf("%v", request),
+			})
 		return
 	}
 	err = json.Unmarshal(*result, &dt)
 	resString := string(*result)
 	if err != nil {
-		r.Context.Log.Logger.Errorln("message", " Unmarshal JSON  Exception", "content:", resString)
+		r.Context.Error(
+			map[string]interface{}{
+				"message":  " Unmarshal JSON  Exception",
+				"content:": resString,
+			},
+		)
 	} else {
-		r.Context.Log.Logger.Infoln("message", "request return ", "content:", resString)
+		r.Context.Info(
+			map[string]interface{}{
+				"message":  "request return ",
+				"content:": resString,
+			},
+		)
 	}
 	res = dt.Data
 	return

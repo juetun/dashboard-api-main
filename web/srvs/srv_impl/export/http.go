@@ -32,7 +32,7 @@ type RequestObject struct {
 	Body          io.Reader `json:"body"`
 	Query         map[string]interface{}
 	RequestMethod string `json:"request_method"`
-	ReSendTimes   int    // 如果获取数据失败 尝试重新请求的次数 默认3次
+	ReSendTimes   int // 如果获取数据失败 尝试重新请求的次数 默认3次
 	wrappers.HttpRequestContent
 }
 
@@ -70,7 +70,7 @@ func NewHttpRequest(context *base.Context) (r *HttpRequest) {
 
 func (r *HttpRequest) preReadySend(request *RequestObject, client *http.Client, req *http.Request, res *[]byte, timeStep int) {
 	timeStep--
-	r.Context.Log.Info(r.Context.GinContext, map[string]interface{}{
+	r.Context.Info(map[string]interface{}{
 		"request:": fmt.Sprintf("%v", request),
 		"desc:":    fmt.Sprintf("尝试第%d次(共%d次)获取数据", request.ReSendTimes-timeStep, request.ReSendTimes),
 	})
@@ -80,7 +80,7 @@ func (r *HttpRequest) preReadySend(request *RequestObject, client *http.Client, 
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	if err != nil {
-		r.Context.Log.Error(r.Context.GinContext, map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"request:": fmt.Sprintf("%v", request), "content:": err.Error(),
 		})
 
@@ -115,7 +115,7 @@ func (r *HttpRequest) orgParams(request *RequestObject) (logData map[string]inte
 		return
 	}
 	logData["request content:"] = fmt.Sprintf("发送HTTP请求 参数异常:%s", urlVal)
-	r.Context.Log.Info(r.Context.GinContext, logData)
+	r.Context.Info(logData)
 	return
 }
 
@@ -159,7 +159,7 @@ func (r *HttpRequest) Send(request *RequestObject) (res *[]byte, err error) {
 			req.Header.Add(headerKey, vc)
 		}
 	}
-	r.Context.Log.Info(r.Context.GinContext, logData)
+	r.Context.Info(logData)
 	// 尝试获取数据，如果获取失败，则多次尝试
 	r.preReadySend(request, client, req, res, request.ReSendTimes)
 	return

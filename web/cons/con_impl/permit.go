@@ -63,7 +63,7 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 		AdminMenuSearch(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
-	}else{
+	} else {
 		r.Response(c, 0, res)
 	}
 
@@ -151,7 +151,7 @@ func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.AdminUserGroupAdd(&arg)
@@ -176,7 +176,7 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.AdminGroupDelete(&arg)
@@ -200,7 +200,7 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.AdminGroupEdit(&arg)
@@ -319,7 +319,7 @@ func (r *ControllerPermit) AdminUser(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.AdminUser(&arg)
@@ -343,7 +343,7 @@ func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.AdminGroup(&arg)
@@ -367,7 +367,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 
 	// 记录日志
 	context := base.GetControllerBaseContext(&r.ControllerBase, c)
-	context.Log.Logger.Infof("user:%+v", arg.JwtUserMessage)
+	context.Info(map[string]interface{}{"arg":arg})
 
 	srv := srv_impl.NewPermitService(context)
 	res, err := srv.Menu(&arg)

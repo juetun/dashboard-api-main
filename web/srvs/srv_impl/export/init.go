@@ -64,7 +64,11 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 func (r *ServiceActExport) SetArgument(args *wrappers.ArgumentsExportInit) (p *ServiceActExport) {
 	arg, _ := json.Marshal(args)
 	r.argsString = string(arg)
-	r.Context.Log.Logger.Errorln("message", "export argument", "content:", r.argsString)
+	r.Context.Error(
+		map[string]interface{}{
+			"message":  "export argument",
+			"content:": r.argsString},
+	)
 	r.args = args
 	return r
 }
