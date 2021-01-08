@@ -1,3 +1,4 @@
 config/*
 /juetun_dashboard_api_main
 /config/
+/log/
