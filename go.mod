@@ -26,7 +26,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/spf13/afero v1.5.1 // indirect
@@ -35,7 +34,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/sys v0.0.0-20210105210732-16f7687f5001 // indirect
 	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1 // indirect
 	qiniupkg.com/x v7.0.8+incompatible // indirect
 )
