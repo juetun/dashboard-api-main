@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -28,7 +27,10 @@ type DaoPermit struct {
 func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	p = &DaoPermit{}
 	p.SetContext(context...)
-	p.Context.Db = app_obj.GetDbClient("admin")
+	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+		Context:     p.Context,
+		DbNameSpace: "admin",
+	})
 	return
 }
 

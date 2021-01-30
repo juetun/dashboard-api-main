@@ -15,7 +15,7 @@ require (
 	github.com/go-xorm/xorm v0.7.9
 	github.com/google/uuid v1.1.4
 	github.com/jinzhu/gorm v1.9.16
-	github.com/juetun/base-wrapper v0.0.38
+	github.com/juetun/base-wrapper v0.0.50
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lestrrat-go/strftime v1.0.4 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
