@@ -103,6 +103,7 @@ github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
+github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239/go.mod h1:Gdwt2ce0yfBxPvZrHkprdPPTTS3N5rwmLE8T22KBXlw=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
@@ -335,6 +336,8 @@ github.com/juetun/base-wrapper v0.0.38 h1:vzZmM0NxL7YZLDid3qGZeI1kdOweI3lnU/NXlj
 github.com/juetun/base-wrapper v0.0.38/go.mod h1:1duOLHCjZOtDZrd0Sa7GOVJviJFAxPTkf6A9GPw5lBs=
 github.com/juetun/base-wrapper v0.0.50 h1:r5yMc12c27VOoFb99eeAMMJeR938piwQJInTF46q+wM=
 github.com/juetun/base-wrapper v0.0.50/go.mod h1:h82SXnmZSuA13ds7cOm9+SHQKSxhQ5dU+nDvC2qUF90=
+github.com/juetun/base-wrapper v0.0.51 h1:r3tFxxywjrsdWCaxnp4fz2UfzWnlxmCcaoYPZhODTX8=
+github.com/juetun/base-wrapper v0.0.51/go.mod h1:KHWLbFU7x50kZ1RQ3/90ogkesrLAO/Qb2gJfs8E22os=
 github.com/juetun/dashboard-api-main v0.0.29 h1:Ky2lxCZL6miEY4N6M3h+8RciGxdX+aneJQfsRTK+SQc=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
@@ -420,6 +423,8 @@ github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 h1:RWengNIwukTxcDr9
 github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826/go.mod h1:TaXosZuwdSHYgviHp1DAtfrULt5eUgsSMsZf+YrPgl8=
 github.com/mojocn/base64Captcha v1.2.2 h1:NTFnThPVrb3tR66JO/N8/ZHsyFrNc7ho+xRpxBUEIlo=
 github.com/mojocn/base64Captcha v1.2.2/go.mod h1:wAQCKEc5bDujxKRmbT6/vTnTt5CjStQ8bRfPWUuz/iY=
+github.com/mojocn/base64Captcha v1.3.1 h1:2Wbkt8Oc8qjmNJ5GyOfSo4tgVQPsbKMftqASnq8GlT0=
+github.com/mojocn/base64Captcha v1.3.1/go.mod h1:wAQCKEc5bDujxKRmbT6/vTnTt5CjStQ8bRfPWUuz/iY=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=

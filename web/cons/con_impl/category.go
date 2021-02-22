@@ -28,7 +28,7 @@ func NewControllerCategory() cons.Console {
 
 func (r *ControllerCategory) Index(c *gin.Context) {
 
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	cates, err := srv.CateListBySort()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Cate.Index", "err", err.Error())
@@ -57,7 +57,7 @@ func (r *ControllerCategory) Store(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	_, err := srv.CateStore(cs)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Cate.Store", "err", err.Error())
@@ -77,7 +77,7 @@ func (r *ControllerCategory) Edit(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	cateData, err := srv.GetCateById(cateIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Cate.Edit", "err", err.Error())
@@ -110,7 +110,7 @@ func (r *ControllerCategory) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil)
 		return
 	}
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	_, err = srv.CateUpdate(cateIdInt, cs)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "cate.Update", "error", err.Error())
@@ -130,7 +130,7 @@ func (r *ControllerCategory) Destroy(c *gin.Context) {
 		r.Response(c, 400001002, nil)
 		return
 	}
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	_, err = srv.GetCateById(cateIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Cate.Destroy", "err", err.Error())

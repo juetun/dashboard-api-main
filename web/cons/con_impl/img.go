@@ -42,7 +42,7 @@ func (r *ControllerImg) ImgUpload(c *gin.Context) {
 		return
 	}
 
-	srv := srv_impl.NewQiuNiuService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewQiuNiuService(base.CreateContext(&r.ControllerBase, c))
 	// Default upload both
 	data := make(map[string]interface{})
 	if common.ConfigUpload.ImgUploadBoth {
