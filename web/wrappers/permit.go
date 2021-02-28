@@ -11,11 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common/response"
 
 	"github.com/juetun/dashboard-api-main/web/models"
 )
+
+const DefaultPermitParentId = 1
 
 type ArgAdminMenuSearch struct {
 	app_obj.JwtUserMessage
@@ -142,7 +145,9 @@ type ArgMenuAdd struct {
 }
 
 func (r *ArgMenuAdd) Default() {
-
+	if r.ParentId == 0 {
+		r.ParentId = DefaultPermitParentId
+	}
 }
 
 type ResultMenuAdd struct {
@@ -153,7 +158,9 @@ type ArgMenuSave struct {
 }
 
 func (r *ArgMenuSave) Default() {
-
+	if r.ParentId == 0 {
+		r.ParentId = DefaultPermitParentId
+	}
 }
 
 type ResultMenuSave struct {
@@ -199,6 +206,7 @@ type ResultAdminGroup struct {
 type ArgAdminMenu struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
+	Id         int    `json:"id" form:"id"`
 	Label      string `json:"label" form:"label"`
 	AppName    string `json:"app_name" form:"app_name"`
 	UserHId    string `json:"user_hid" form:"user_hid"`
@@ -207,8 +215,9 @@ type ArgAdminMenu struct {
 	IsDel      int    `json:"is_del" form:"is_del"`
 }
 
-func (r *ArgAdminMenu) Default() {
-
+func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	return
 }
 
 type AdminMenuObject struct {
@@ -227,6 +236,7 @@ type ResultAdminMenuSingle struct {
 	ParentId   int    `json:"parent_id"`
 	AppName    string `json:"app_name"`
 	Title      string `json:"title"`
+	Label      string `json:"label"`
 	Icon       string `json:"icon"`
 	IsMenuShow int    `json:"is_menu_show"`
 	AppVersion string `json:"app_version"`
@@ -297,4 +307,13 @@ type ResultGetMenu struct {
 
 func (r *ArgGetMenu) Default() {
 
+}
+func GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
+	jwtUser = app_obj.JwtUserMessage{}
+	v, e := c.Get(app_obj.ContextUserObjectKey)
+	if e {
+		jwtUser = v.(app_obj.JwtUserMessage)
+	}
+
+	return jwtUser
 }

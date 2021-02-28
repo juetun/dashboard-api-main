@@ -220,7 +220,7 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var list []models.AdminMenu
 	list, err = dao.GetAdminMenuList(arg)
-	r.orgTree(list, 0, &res.List)
+	r.orgTree(list, wrappers.DefaultPermitParentId, &res.List)
 	return
 }
 
@@ -228,30 +228,36 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]wrappers.AdminMenuObject) () {
 	var tmp wrappers.AdminMenuObject
 	for _, value := range list {
-		if value.ParentId != parentId {
+		// 剔除默认数据那条
+		if value.Id == parentId || value.ParentId != parentId {
 			continue
 		}
-		tmp = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20),}
-		tmp.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
-			Id:         value.Id,
-			ParentId:   value.ParentId,
-			Title:      value.Label,
-			Icon:       value.Icon,
-			IsMenuShow: value.IsMenuShow,
-			UrlPath:    value.UrlPath,
-			SortValue:  value.SortValue,
-			IsDel:      value.IsDel,
-		}
-		if value.OtherValue != "" {
-			json.Unmarshal([]byte(value.OtherValue), &tmp.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
-		} else {
-			tmp.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true,}
-		}
+		tmp = r.orgAdminMenuObject(&value)
 		r.orgTree(list, value.Id, &tmp.Children)
 		*res = append(*res, tmp)
 	}
 }
 
+func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrappers.AdminMenuObject) {
+	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20),}
+	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
+		Id:         value.Id,
+		ParentId:   value.ParentId,
+		Title:      value.Label,
+		Label:      value.Label,
+		Icon:       value.Icon,
+		IsMenuShow: value.IsMenuShow,
+		UrlPath:    value.UrlPath,
+		SortValue:  value.SortValue,
+		IsDel:      value.IsDel,
+	}
+	if value.OtherValue != "" {
+		json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
+	} else {
+		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true,}
+	}
+	return
+}
 func (r *PermitService) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
 
 	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}

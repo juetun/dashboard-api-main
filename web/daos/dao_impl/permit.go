@@ -240,7 +240,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
 	dba := r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
-	if arg.Label != "" {
+	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
 		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
 	}
 	if arg.ParentId != -1 {
@@ -252,8 +252,13 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	if arg.IsMenuShow != -1 {
 		dba = dba.Where("is_menu_show = ?", arg.IsMenuShow)
 	}
-	if arg.IsDel != -1 {
+	if arg.IsDel == -1 || arg.IsDel == 0 {
+		dba = dba.Where("is_del = ?", 0)
+	} else {
 		dba = dba.Where("is_del = ?", arg.IsDel)
+	}
+	if arg.Id != 0 {
+		dba = dba.Where("id = ?", arg.Id)
 	}
 	err = dba.Find(&res).Error
 	return
