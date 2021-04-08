@@ -374,7 +374,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	res, err := srv.Menu(&arg)
 
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)

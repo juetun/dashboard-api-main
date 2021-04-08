@@ -284,29 +284,30 @@ func (r *DaoPermit) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, 
 		Error
 	return
 }
-func (r *DaoPermit) GetGroupByUserId(userId string) (res []models.AdminUserGroup, err error) {
+func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error) {
 	if userId == "" {
-		res = []models.AdminUserGroup{}
+		res = []wrappers.AdminGroupUserStruct{}
 		return
 	}
 	var m models.AdminUserGroup
-	err = r.Context.Db.
+	var m1 models.AdminGroup
+	err = r.Context.Db.Select("a.*,b.*").
 		Table(m.TableName()).
-		Where("user_hid=? AND is_del=?", userId, 0).
+		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
+		Where("a.user_hid=? AND a.is_del=?", userId, 0).
 		Find(&res).
 		Error
 	return
 }
 func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, err error) {
-	if len(menuIds) == 0 {
-		return
-	}
 	var m models.AdminMenu
-	err = r.Context.Db.
-		Table(m.TableName()).
-		Where("id IN(?) AND is_del=?", menuIds, 0).
-		Find(&res).
-		Error
+	db := r.Context.Db.
+		Table(m.TableName()).Where("is_del=?", 0)
+	// 兼容超级管理员和普通管理员
+	if len(menuIds) != 0 {
+		db = db.Where("id IN(?)", menuIds)
+	}
+	err = db.Find(&res).Error
 	return
 }
 func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {

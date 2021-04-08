@@ -8,9 +8,10 @@
 package models
 
 type AdminGroup struct {
-	Id       int    `gorm:"primary_key" json:"id"`
-	Name     string `json:"name" gorm:"name"`
- 	IsDel    int    `json:"-" gorm:"is_del"`
+	Id           int    `gorm:"primary_key" json:"id"`
+	Name         string `json:"name" gorm:"name"`
+	IsSuperAdmin uint8  `json:"is_super_admin"`
+	IsDel        int    `json:"-" gorm:"is_del"`
 }
 
 func (r *AdminGroup) TableName() string {

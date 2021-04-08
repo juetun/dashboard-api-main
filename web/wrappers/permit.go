@@ -238,7 +238,7 @@ type ResultAdminMenuSingle struct {
 	Title      string `json:"title"`
 	Label      string `json:"label"`
 	Icon       string `json:"icon"`
-	IsMenuShow int    `json:"is_menu_show"`
+	HideInMenu uint8  `json:"hide_in_menu"`
 	AppVersion string `json:"app_version"`
 	UrlPath    string `json:"url_path"`
 	PathType   string `json:"path_type"`
@@ -285,10 +285,37 @@ func (r *ArgPermitMenu) Default() {
 	}
 }
 
-type ResultPermitMenu struct {
-	Menu []models.AdminMenu `json:"menu"`
+type PermitMeta struct {
+	PermitKey  string `json:"permitKey"` // 控制权限结构的参数
+	Icon       string `json:"icon"`
+	Title      string `json:"title"`
+	HideInMenu bool   `json:"hideInMenu"`
 }
-
+type ResultPermitMenuReturn struct {
+	ResultPermitMenu
+	RoutParentMap map[string][]string `json:"routParentMap"`
+}
+ 
+type ResultPermitMenu struct {
+	Id        int                `json:"id"`
+	Path      string             `json:"path"`
+	Module    string             `json:"module"`
+	Name      string             `json:"name"`
+	Meta      PermitMeta         `json:"meta"`
+	Children  []ResultPermitMenu `json:"children"`
+	Component interface{}        `json:"component"`
+}
+type AdminMenu struct {
+	ID         int    `json:"id"`
+	PathName   string `json:"path_name" form:"path_name"`
+	ParentId   int    `json:"parent_id" gorm:"parent_id" form:"parent_id"`
+	Label      string `json:"label" gorm:"label" form:"label"`
+	Icon       string `json:"icon" gorm:"icon" form:"icon"`
+	IsMenuShow int    `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
+	UrlPath    string `json:"url_path" gorm:"url_path" form:"url_path"`
+	SortValue  int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	OtherValue string `json:"other_value" gorm :"other_value" form:"other_value"`
+}
 type ArgFlag struct {
 	app_obj.JwtUserMessage
 }
@@ -296,6 +323,10 @@ type ArgFlag struct {
 type ResultFlag struct {
 }
 
+type AdminGroupUserStruct struct {
+	models.AdminUserGroup
+	models.AdminGroup
+}
 type ArgGetMenu struct {
 	app_obj.JwtUserMessage
 	MenuId int `json:"menu_id" form:"menu_id"`
