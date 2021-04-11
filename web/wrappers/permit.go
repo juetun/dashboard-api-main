@@ -213,6 +213,8 @@ type ArgAdminMenu struct {
 	ParentId   int    `json:"parent_id" form:"parent_id"`
 	IsMenuShow int    `json:"is_menu_show" form:"is_menu_show"`
 	IsDel      int    `json:"is_del" form:"is_del"`
+	Module     string `json:"module" form:"module"`
+	SystemId   int    `json:"system_id" form:"system_id"`
 }
 
 func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
@@ -247,9 +249,18 @@ type ResultAdminMenuSingle struct {
 	IsDel int `json:"is_del"`
 }
 type ResultAdminMenu struct {
-	List []AdminMenuObject `json:"list"`
+	List []AdminMenuObject       `json:"list"`
+	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
 }
-
+type ResultSystemAdminMenu struct {
+	Id        int    `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey string `json:"permit_key" gorm:"permit_key"`
+	Label     string `json:"label" gorm:"label" form:"label"`
+	Icon      string `json:"icon" gorm:"icon" form:"icon"`
+	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	Module    string `json:"module" gorm:"module" form:"module"`
+	Active    bool   `json:"active"`
+}
 type ArgAdminUser struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
@@ -275,13 +286,16 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage
-	PathType string `json:"path_type" form:"path_type"`
+	ParentId  int      `json:"parent_id"`
+	PathType  string   `json:"path_type" form:"path_type"`
+	PathTypes []string `json:"path_type" form:"path_type"`
 }
 
 // 初始化默认值
 func (r *ArgPermitMenu) Default() {
+	r.PathTypes = []string{}
 	if r.PathType == "" {
-		r.PathType = "page"
+		r.PathTypes = []string{"page", "system"}
 	}
 }
 
@@ -292,10 +306,20 @@ type PermitMeta struct {
 	HideInMenu bool   `json:"hideInMenu"`
 }
 type ResultPermitMenuReturn struct {
-	ResultPermitMenu
-	RoutParentMap map[string][]string `json:"routParentMap"`
+	ResultPermitMenu                     // 当前选中的权限
+	RoutParentMap    map[string][]string `json:"routParentMap"`
+	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
 }
- 
+
+type ResultSystemMenu struct {
+	Id        int    `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey string `json:"permit_key" gorm:"permit_key"`
+	Label     string `json:"label" gorm:"label" form:"label"`
+	Icon      string `json:"icon" gorm:"icon" form:"icon"`
+	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	Module    string `json:"module" gorm:"module" form:"module"`
+	Active    bool   `json:"active"`
+}
 type ResultPermitMenu struct {
 	Id        int                `json:"id"`
 	Path      string             `json:"path"`

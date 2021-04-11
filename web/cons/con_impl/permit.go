@@ -369,9 +369,8 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	// 记录日志
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
-
-	srv := srv_impl.NewPermitService(context)
-	res, err := srv.Menu(&arg)
+	res, err := srv_impl.NewPermitService(context).
+		Menu(&arg)
 
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())

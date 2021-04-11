@@ -240,11 +240,24 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
 	dba := r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
+
+	if arg.SystemId > 0 {
+		if err = dba.Where("id=?", arg.SystemId).First(&m).Error; err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return
+			}
+			err = fmt.Errorf("你查看权限系统不存在或已删除")
+		}
+		arg.Module = m.PermitKey
+	}
 	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
 		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
 	}
 	if arg.ParentId != -1 {
 		dba = dba.Where("parent_id = ?", arg.ParentId)
+	}
+	if arg.Module != "" {
+		dba = dba.Where("module = ? OR parent_id=?", arg.Module, 0)
 	}
 	if arg.AppName != "" {
 		dba = dba.Where("app_name = ?", arg.AppName)
@@ -280,6 +293,7 @@ func (r *DaoPermit) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, 
 	res = []models.AdminGroup{}
 	err = db.Limit(pagerObject.PageSize).
 		Offset(pagerObject.GetFromAndLimit()).
+		Order("updated_at desc").
 		Find(&res).
 		Error
 	return
@@ -291,10 +305,10 @@ func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUs
 	}
 	var m models.AdminUserGroup
 	var m1 models.AdminGroup
-	err = r.Context.Db.Select("a.*,b.*").
+	err = r.Context.Db.Select("a.*,b.*").Unscoped().
 		Table(m.TableName()).
 		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
-		Where("a.user_hid=? AND a.is_del=?", userId, 0).
+		Where(fmt.Sprintf("a.user_hid=? AND a.is_del=? AND  b.deleted_at IS NULL"), userId, 0, ).
 		Find(&res).
 		Error
 	return
@@ -310,7 +324,7 @@ func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, 
 	err = db.Find(&res).Error
 	return
 }
-func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
+func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
 	if len(groupIds) == 0 {
 		return
 	}
@@ -318,7 +332,7 @@ func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType string, groupIds ...in
 	err = r.Context.Db.
 		Table(m.TableName()).
 		Select("distinct `menu_id`,`group_id`,`id`,`is_del`").
-		Where("path_type = ? AND `group_id` in(?) AND `is_del`=?  ", pathType, groupIds, 0).
+		Where("path_type IN(?)  AND `group_id` in(?) AND `is_del`=?  ", pathType, groupIds, 0).
 		Find(&res).
 		Error
 	return
