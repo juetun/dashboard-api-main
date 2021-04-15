@@ -148,9 +148,13 @@ func (r *ArgMenuAdd) Default() {
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
+	if r.Label != "" {
+		r.Label = strings.TrimSpace(r.Label)
+	}
 }
 
 type ResultMenuAdd struct {
+	Result bool `json:"result"`
 }
 type ArgMenuSave struct {
 	app_obj.JwtUserMessage
@@ -245,6 +249,8 @@ type ResultAdminMenuSingle struct {
 	UrlPath    string `json:"url_path"`
 	PathType   string `json:"path_type"`
 	SortValue  int    `json:"sort_value"`
+	Module     string `json:"module"`
+	PermitKey  string `json:"permit_key"`
 	ResultAdminMenuOtherValue
 	IsDel int `json:"is_del"`
 }

@@ -16,7 +16,7 @@ import (
 
 type AdminMenu struct {
 	Id         int       `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey  string    `json:"permit_key" gorm:"permit_key"`
+	PermitKey  string    `json:"permit_key" gorm:"permit_key" form:"permit_key"`
 	ParentId   int       `json:"parent_id" gorm:"parent_id" form:"parent_id"`
 	Module     string    `json:"module" gorm:"module" form:"module"`
 	Label      string    `json:"label" gorm:"label" form:"label"`

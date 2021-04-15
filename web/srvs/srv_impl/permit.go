@@ -174,9 +174,21 @@ func (r *PermitService) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wr
 func (r *PermitService) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultMenuAdd, err error) {
 	res = &wrappers.ResultMenuAdd{}
 	dao := dao_impl.NewDaoPermit(r.Context)
-	// timeNow:=time.Now().Format("2006-01-02 15:04:05")
 	t := time.Now()
+	var list []models.AdminMenu
+	if list, err = dao.GetByCondition(map[string]interface{}{
+		"label":     arg.Label,
+		"module":    arg.Module,
+		"parent_id": arg.ParentId,
+	}); err != nil {
+		return
+	} else if len(list) > 0 {
+		err = fmt.Errorf("您输入的菜单名已存在")
+		return
+	}
 	err = dao.Add(&models.AdminMenu{
+		PermitKey:  arg.PermitKey,
+		Module:     arg.Module,
 		ParentId:   arg.ParentId,
 		Label:      arg.Label,
 		Icon:       arg.Icon,
@@ -188,6 +200,7 @@ func (r *PermitService) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultM
 		UpdatedAt:  t,
 		IsDel:      0,
 	})
+	res.Result = true
 	return
 }
 func (r *PermitService) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
@@ -201,8 +214,22 @@ func (r *PermitService) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.R
 func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.ResultMenuSave, err error) {
 	res = &wrappers.ResultMenuSave{}
 	dao := dao_impl.NewDaoPermit(r.Context)
+
+	var list []models.AdminMenu
+	if list, err = dao.GetByCondition(map[string]interface{}{
+		"label":     arg.Label,
+		"module":    arg.Module,
+		"parent_id": arg.ParentId,
+	}); err != nil {
+		return
+	} else if len(list) > 0 && arg.Id != list[0].Id {
+		err = fmt.Errorf("您输入的菜单名已存在")
+		return
+	}
+
 	t := time.Now()
 	err = dao.Save(arg.Id, &models.AdminMenu{
+		PermitKey:  arg.PermitKey,
 		ParentId:   arg.ParentId,
 		Label:      arg.Label,
 		Icon:       arg.Icon,
@@ -213,6 +240,7 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 		UpdatedAt:  t,
 		IsDel:      0,
 	})
+	res.Result = true
 	return
 }
 func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error) {
@@ -271,6 +299,8 @@ func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrapper
 		UrlPath:    value.UrlPath,
 		SortValue:  value.SortValue,
 		IsDel:      value.IsDel,
+		Module:     value.Module,
+		PermitKey:  value.PermitKey,
 	}
 	if value.OtherValue != "" {
 		json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
@@ -407,7 +437,6 @@ func (r *PermitService) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultP
 	} else if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
 		return
 	}
-
 	return
 }
 

@@ -198,8 +198,19 @@ func (r *DaoPermit) DeleteByIds(ids []string) (err error) {
 		Error
 	return
 }
+func (r *DaoPermit) GetByCondition(condition map[string]interface{}) (res []models.AdminMenu, err error) {
+	if len(condition) == 0 {
+		return
+	}
+	var m models.AdminMenu
+	err = r.Context.Db.
+		Table(m.TableName()).
+		Where(condition).
+		Find(&res).
+		Error
+	return
+}
 func (r *DaoPermit) Add(data *models.AdminMenu) (err error) {
-
 	err = r.Context.Db.Create(data).Error
 	return
 }
@@ -273,7 +284,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	if arg.Id != 0 {
 		dba = dba.Where("id = ?", arg.Id)
 	}
-	err = dba.Find(&res).Error
+	err = dba.Order("sort_value desc").Find(&res).Error
 	return
 }
 
@@ -321,7 +332,7 @@ func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, 
 	if len(menuIds) != 0 {
 		db = db.Where("id IN(?)", menuIds)
 	}
-	err = db.Find(&res).Error
+	err = db.Order("sort_value desc").Find(&res).Error
 	return
 }
 func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {

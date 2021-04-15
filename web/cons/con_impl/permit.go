@@ -242,7 +242,7 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 	var err error
 
 	if err = c.ShouldBind(&arg); err != nil {
-		r.Response(c, 500000001, err.Error())
+		r.Response(c, 500000001, nil, err.Error())
 		return
 	} else {
 		arg.Default()
@@ -250,13 +250,11 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 	}
 
 	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-
-	srv := srv_impl.NewPermitService(context)
-	res, err := srv.MenuSave(&arg)
+	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		MenuSave(&arg)
 
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil,err.Error())
 		return
 	}
 	r.Response(c, 0, res)
@@ -265,22 +263,22 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 func (r *ControllerPermit) MenuAdd(c *gin.Context) {
 	var arg wrappers.ArgMenuAdd
 	var err error
-	err = c.ShouldBind(&arg)
-	if err != nil {
-		r.Response(c, 500000001, err.Error())
+	if err = c.ShouldBind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	if arg.Label == "" {
+		r.Response(c, 500000001, nil, "请输入菜单名")
 		return
 	}
 	arg.Default()
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-
-	srv := srv_impl.NewPermitService(context)
-	res, err := srv.MenuAdd(&arg)
-
+	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		MenuAdd(&arg)
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)
