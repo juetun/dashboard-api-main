@@ -8,11 +8,11 @@
 package models
 
 type AdminUserGroupPermit struct {
-	Id       int    `gorm:"primary_key" json:"id"`
-	GroupId  int    `json:"group_id" gorm:"group_id" `
-	PathType string `json:"path_type" gorm:"path_type"`
-	MenuId   int    `json:"menu_id" gorm:"menu_id"`
-	IsDel    int    `json:"-" gorm:"is_del"`
+	Id       int    `gorm:"column:id;primary_key" json:"id"`
+	GroupId  int    `json:"group_id" gorm:"column:group_id" `
+	PathType string `json:"path_type" gorm:"column:path_type"`
+	MenuId   int    `json:"menu_id" gorm:"column:menu_id"`
+	IsDel    int    `json:"-" gorm:"column:is_del"`
 }
 
 func (r *AdminUserGroupPermit) TableName() string {

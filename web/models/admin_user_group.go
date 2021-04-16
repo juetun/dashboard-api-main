@@ -8,10 +8,10 @@
 package models
 
 type AdminUserGroup struct {
-	Id      int    `gorm:"primary_key" json:"id"`
-	GroupId int    `json:"group_id" gorm:"group_id"`
-	UserHid string `json:"user_hid"  gorm:"user_hid"`
-	IsDel   int    `json:"-" gorm:"is_del"`
+	Id      int    `gorm:"column:primary_key" json:"id"`
+	GroupId int    `json:"group_id" gorm:"column:group_id"`
+	UserHid string `json:"user_hid"  gorm:"column:user_hid"`
+	IsDel   int    `json:"-" gorm:"column:is_del"`
 }
 
 func (r *AdminUserGroup) TableName() string {
