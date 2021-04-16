@@ -187,20 +187,38 @@ func (r *PermitService) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultM
 		return
 	}
 	err = dao.Add(&models.AdminMenu{
-		PermitKey:  arg.PermitKey,
-		Module:     arg.Module,
-		ParentId:   arg.ParentId,
-		Label:      arg.Label,
-		Icon:       arg.Icon,
-		HideInMenu: arg.HideInMenu,
-		UrlPath:    arg.UrlPath,
-		SortValue:  arg.SortValue,
-		OtherValue: arg.OtherValue,
-		CreatedAt:  t,
-		UpdatedAt:  t,
-		IsDel:      0,
+		PermitKey:          arg.PermitKey,
+		Module:             arg.Module,
+		ParentId:           arg.ParentId,
+		Label:              arg.Label,
+		Icon:               arg.Icon,
+		ManageImportPermit: arg.ManageImportPermit,
+		HideInMenu:         arg.HideInMenu,
+		UrlPath:            arg.UrlPath,
+		SortValue:          arg.SortValue,
+		OtherValue:         arg.OtherValue,
+		CreatedAt:          t,
+		UpdatedAt:          t,
+		IsDel:              0,
 	})
 	res.Result = true
+	return
+}
+
+func (r *PermitService) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
+	res = &wrappers.ResultGetImport{Pager: base.Pager{ReqPager: arg.ReqPager, List: []models.AdminImport{}, TotalCount: 0,},}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var db *gorm.DB
+	if db, err = dao.GetImportCount(arg, &res.TotalCount); err != nil {
+		return
+	}
+	if res.TotalCount > 0 {
+		if res.List, err = dao.GetImportList(db, arg); err != nil {
+			return
+		}
+	}
+
+	// []models.AdminImport{}
 	return
 }
 func (r *PermitService) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
@@ -229,16 +247,17 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 
 	t := time.Now()
 	err = dao.Save(arg.Id, &models.AdminMenu{
-		PermitKey:  arg.PermitKey,
-		ParentId:   arg.ParentId,
-		Label:      arg.Label,
-		Icon:       arg.Icon,
-		HideInMenu: arg.HideInMenu,
-		UrlPath:    arg.UrlPath,
-		SortValue:  arg.SortValue,
-		OtherValue: arg.OtherValue,
-		UpdatedAt:  t,
-		IsDel:      0,
+		PermitKey:          arg.PermitKey,
+		ParentId:           arg.ParentId,
+		Label:              arg.Label,
+		Icon:               arg.Icon,
+		HideInMenu:         arg.HideInMenu,
+		ManageImportPermit: arg.ManageImportPermit,
+		UrlPath:            arg.UrlPath,
+		SortValue:          arg.SortValue,
+		OtherValue:         arg.OtherValue,
+		UpdatedAt:          t,
+		IsDel:              0,
 	})
 	res.Result = true
 	return
@@ -290,17 +309,18 @@ func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]wr
 func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrappers.AdminMenuObject) {
 	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20),}
 	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
-		Id:         value.Id,
-		ParentId:   value.ParentId,
-		Title:      value.Label,
-		Label:      value.Label,
-		Icon:       value.Icon,
-		HideInMenu: value.HideInMenu,
-		UrlPath:    value.UrlPath,
-		SortValue:  value.SortValue,
-		IsDel:      value.IsDel,
-		Module:     value.Module,
-		PermitKey:  value.PermitKey,
+		Id:                 value.Id,
+		ParentId:           value.ParentId,
+		Title:              value.Label,
+		Label:              value.Label,
+		Icon:               value.Icon,
+		HideInMenu:         value.HideInMenu,
+		UrlPath:            value.UrlPath,
+		SortValue:          value.SortValue,
+		IsDel:              value.IsDel,
+		Module:             value.Module,
+		PermitKey:          value.PermitKey,
+		ManageImportPermit: value.ManageImportPermit,
 	}
 	if value.OtherValue != "" {
 		json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)

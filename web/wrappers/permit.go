@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -20,6 +21,20 @@ import (
 
 const DefaultPermitParentId = 1
 
+type ArgGetImport struct {
+	app_obj.JwtUserMessage
+	base.ReqPager
+	MenuId int `json:"menu_id" form:"menu_id"`
+}
+
+func (r *ArgGetImport) Default(c *gin.Context) {
+	r.JwtUserMessage = GetUser(c)
+	r.ReqPager.DefaultPager()
+}
+
+type ResultGetImport struct {
+	base.Pager
+}
 type ArgAdminMenuSearch struct {
 	app_obj.JwtUserMessage
 	UserHid string `json:"user_hid" form:"user_hid"`
@@ -238,19 +253,20 @@ type ResultAdminMenuOtherValue struct {
 	Checked         bool `json:"checked"`
 }
 type ResultAdminMenuSingle struct {
-	Id         int    `json:"id"`
-	ParentId   int    `json:"parent_id"`
-	AppName    string `json:"app_name"`
-	Title      string `json:"title"`
-	Label      string `json:"label"`
-	Icon       string `json:"icon"`
-	HideInMenu uint8  `json:"hide_in_menu"`
-	AppVersion string `json:"app_version"`
-	UrlPath    string `json:"url_path"`
-	PathType   string `json:"path_type"`
-	SortValue  int    `json:"sort_value"`
-	Module     string `json:"module"`
-	PermitKey  string `json:"permit_key"`
+	Id                 int    `json:"id"`
+	ParentId           int    `json:"parent_id"`
+	AppName            string `json:"app_name"`
+	Title              string `json:"title"`
+	Label              string `json:"label"`
+	Icon               string `json:"icon"`
+	HideInMenu         uint8  `json:"hide_in_menu"`
+	AppVersion         string `json:"app_version"`
+	UrlPath            string `json:"url_path"`
+	PathType           string `json:"path_type"`
+	SortValue          int    `json:"sort_value"`
+	Module             string `json:"module"`
+	PermitKey          string `json:"permit_key"`
+	ManageImportPermit uint8  `json:"manage_import_permit"`
 	ResultAdminMenuOtherValue
 	IsDel int `json:"is_del"`
 }
@@ -259,13 +275,14 @@ type ResultAdminMenu struct {
 	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
 }
 type ResultSystemAdminMenu struct {
-	Id        int    `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey string `json:"permit_key" gorm:"permit_key"`
-	Label     string `json:"label" gorm:"label" form:"label"`
-	Icon      string `json:"icon" gorm:"icon" form:"icon"`
-	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
-	Module    string `json:"module" gorm:"module" form:"module"`
-	Active    bool   `json:"active"`
+	Id                 int    `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey          string `json:"permit_key" gorm:"permit_key"`
+	ManageImportPermit uint8  `json:"manage_import_permit" gorm:"column:manage_import_permit" form:"manage_import_permit"`
+	Label              string `json:"label" gorm:"label" form:"label"`
+	Icon               string `json:"icon" gorm:"icon" form:"icon"`
+	SortValue          int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	Module             string `json:"module" gorm:"module" form:"module"`
+	Active             bool   `json:"active"`
 }
 type ArgAdminUser struct {
 	app_obj.JwtUserMessage

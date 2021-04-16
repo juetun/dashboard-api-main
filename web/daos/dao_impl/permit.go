@@ -33,7 +33,21 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	})
 	return
 }
-
+func (r *DaoPermit) GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *gorm.DB, err error) {
+	if arg.MenuId == 0 {
+		return
+	}
+	var m models.AdminImport
+	db = r.Context.Db.Table(m.TableName()).Where("menu_id=?", arg.MenuId)
+	err = db.Count(count).Error
+	return
+}
+func (r *DaoPermit) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
+	err = db.Offset(arg.GetOffset()).
+		Limit(arg.PageSize).
+		Find(&res).Error
+	return
+}
 func (r *DaoPermit) AdminUserGroupAdd(data []map[string]interface{}) (err error) {
 	field := make([]string, 0, 10)
 	dataMsg := make([]string, 0)

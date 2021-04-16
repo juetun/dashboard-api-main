@@ -213,6 +213,26 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	}
 	r.Response(c, 0, res)
 }
+
+func (r *ControllerPermit) GetImport(c *gin.Context) {
+	var arg wrappers.ArgGetImport
+	var err error
+
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.Default(c)
+
+	// 记录日志
+	if res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		GetImport(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+}
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 
 	var arg wrappers.ArgMenuDelete
@@ -229,7 +249,7 @@ func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 	// 记录日志
 	if res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
 		MenuDelete(&arg); err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	} else {
 		r.Response(c, 0, res)
@@ -254,7 +274,7 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 		MenuSave(&arg)
 
 	if err != nil {
-		r.Response(c, 500000002, nil,err.Error())
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)

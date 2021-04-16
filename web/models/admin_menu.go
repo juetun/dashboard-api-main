@@ -15,20 +15,21 @@ import (
 )
 
 type AdminMenu struct {
-	Id         int       `gorm:"column:id;primary_key" json:"id" form:"id"`
-	PermitKey  string    `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
-	ParentId   int       `json:"parent_id" gorm:"column:parent_id" form:"parent_id"`
-	Module     string    `json:"module" gorm:"column:module" form:"module"`
-	Label      string    `json:"label" gorm:"column:label" form:"label"`
-	Icon       string    `json:"icon" gorm:"column:icon" form:"icon"`
-	HideInMenu uint8     `json:"hide_in_menu" gorm:"column:hide_in_menu" form:"hide_in_menu"`
-	UrlPath    string    `json:"url_path" gorm:"column:url_path" form:"url_path"`
-	SortValue  int       `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
-	OtherValue string    `json:"other_value" gorm :"column:other_value" form:"other_value"`
-	CreatedAt  time.Time `json:"-" gorm :"column:created_at"  form:"-"`
-	UpdatedAt  time.Time `json:"-" gorm :"column:updated_at"  form:"-"`
-	IsDel      int       `json:"-" gorm:"column:is_del" form:"is_del"`
- }
+	Id                 int       `gorm:"column:id;primary_key" json:"id" form:"id"`
+	PermitKey          string    `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
+	ParentId           int       `json:"parent_id" gorm:"column:parent_id" form:"parent_id"`
+	Module             string    `json:"module" gorm:"column:module" form:"module"`
+	Label              string    `json:"label" gorm:"column:label" form:"label"`
+	Icon               string    `json:"icon" gorm:"column:icon" form:"icon"`
+	HideInMenu         uint8     `json:"hide_in_menu" gorm:"column:hide_in_menu" form:"hide_in_menu"`
+	ManageImportPermit uint8     `json:"manage_import_permit" gorm:"column:manage_import_permit" form:"manage_import_permit"`
+	UrlPath            string    `json:"url_path" gorm:"column:url_path" form:"url_path"`
+	SortValue          int       `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
+	OtherValue         string    `json:"other_value" gorm :"column:other_value" form:"other_value"`
+	CreatedAt          time.Time `json:"-" gorm :"column:created_at"  form:"-"`
+	UpdatedAt          time.Time `json:"-" gorm :"column:updated_at"  form:"-"`
+	IsDel              int       `json:"-" gorm:"column:is_del" form:"is_del"`
+}
 
 func (r *AdminMenu) TableName() string {
 	return "admin_menu"
