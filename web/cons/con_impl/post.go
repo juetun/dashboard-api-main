@@ -34,7 +34,7 @@ func NewControllerPost() cons.Console {
 func (r *ControllerPost) Index(c *gin.Context) {
 	pager := base.NewPager()
 	limit, offset := pager.InitPageBy(c, "GET")
-	srv := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(limit, offset, false)
 	postList := &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
@@ -52,7 +52,7 @@ func (r *ControllerPost) Index(c *gin.Context) {
 }
 
 func (r *ControllerPost) Create(c *gin.Context) {
-	srv := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	cates, err := srv.CateListBySort()
 
 	if err != nil {
@@ -60,7 +60,7 @@ func (r *ControllerPost) Create(c *gin.Context) {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	srvTag := srv_impl.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srvTag := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
 	tags, err := srvTag.AllTags()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
@@ -91,7 +91,7 @@ func (r *ControllerPost) Store(c *gin.Context) {
 		return
 	}
 	userId:=r.GetUser(c).UserId
-	srvPost := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srvPost := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	srvPost.PostStore(ps,userId)
 	r.Response(c, 0, nil, "操作成功")
 	return
@@ -106,7 +106,7 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
-	srvPost := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srvPost := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	post, err := srvPost.PostDetail(postIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Edit(116)", "err", err.Error())
@@ -114,8 +114,8 @@ func (r *ControllerPost) Edit(c *gin.Context) {
 		return
 	}
 
-	srvCate := srv_impl.NewCategoryService(base.GetControllerBaseContext(&r.ControllerBase, c))
-	srvTag := srv_impl.NewTagService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srvCate := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
+	srvTag := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
 	postTags, err := srvPost.PostIdTag(postIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Edit(125)", "err", err.Error())
@@ -174,7 +174,7 @@ func (r *ControllerPost) Update(c *gin.Context) {
 		r.Response(c, 400001003, nil, "参数格式异常")
 		return
 	}
-	srv := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	var ps wrappers.PostStore
 	ps, ok := requestJson.(wrappers.PostStore)
 	if !ok {
@@ -196,7 +196,7 @@ func (r *ControllerPost) Destroy(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	_, err = srv.PostDestroy(postIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Destroy", "err", err.Error())
@@ -212,7 +212,7 @@ func (r *ControllerPost) TrashIndex(c *gin.Context) {
 	pager := base.NewPager()
 	limit, offset := pager.InitPageBy(c, "GET")
 
-	srv := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	var dba *gorm.DB
 	dba, postCount, err := srv.ConsolePostCount(limit, offset, true)
 	if err != nil {
@@ -247,7 +247,7 @@ func (r *ControllerPost) UnTrash(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	srv := srv_impl.NewConsolePostService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	_, err = srv.PostUnTrash(postIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.UnTrash", "err", err.Error())
@@ -275,7 +275,7 @@ func (r *ControllerPost) ImgUpload(c *gin.Context) {
 		return
 	}
 
-	srvQiniu := srv_impl.NewQiuNiuService(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srvQiniu := srv_impl.NewQiuNiuService(base.CreateContext(&r.ControllerBase, c))
 	// Default upload both
 	data := make(map[string]interface{})
 	if common.Conf.ImgUploadBoth {

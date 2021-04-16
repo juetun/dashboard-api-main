@@ -15,11 +15,11 @@ require (
 	github.com/go-xorm/xorm v0.7.9
 	github.com/google/uuid v1.1.4
 	github.com/jinzhu/gorm v1.9.16
-	github.com/juetun/base-wrapper v0.0.50
+	github.com/juetun/base-wrapper v0.0.51
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lestrrat-go/strftime v1.0.4 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2
-	github.com/mojocn/base64Captcha v1.2.2
+	github.com/mojocn/base64Captcha v1.3.1
 	github.com/qiniu/api.v7 v7.2.5+incompatible
 	github.com/qiniu/x v7.0.8+incompatible // indirect
 	github.com/robfig/cron v1.2.0

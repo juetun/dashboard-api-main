@@ -13,12 +13,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/app/app_start"
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/basic/web_middlerwares/permissions"
 )
 
-func PluginUser() (err error) {
+func PluginUser(arg *app_start.PluginsOperate) (err error) {
 	middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, func(c *gin.Context) {
 		if c.Request.Method == "OPTIONS" {
 			c.Next()

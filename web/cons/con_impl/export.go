@@ -30,7 +30,7 @@ func (r ControllerExportData) Cancel(c *gin.Context) {
 		return
 	}
 	args.User = r.GetUser(c)
-	srv := srv_impl.NewServiceExport(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
 	var res wrappers.ResultExportCancel
 	res, err = srv.Cancel(&args)
 	if err != nil {
@@ -53,7 +53,7 @@ func (r ControllerExportData) Init(c *gin.Context) {
 	}
 	args.User = r.GetUser(c)
 	args.HttpHeader = c.Request.Header
-	srv := srv_impl.NewServiceExport(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
 	var res wrappers.ResultExportInit
 	res, err = srv.Init(&args)
 	if err != nil {
@@ -77,7 +77,7 @@ func (r ControllerExportData) Progress(c *gin.Context) {
 	args.InitIds()
 	args.User = r.GetUser(c)
 
-	srv := srv_impl.NewServiceExport(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
 	var res wrappers.ResultExportProgress
 	res, err = srv.Progress(&args)
 	if err != nil {
@@ -99,7 +99,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 		return
 	}
 	args.User = r.GetUser(c)
-	srv := srv_impl.NewServiceExport(base.GetControllerBaseContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
 	var res wrappers.ResultExportList
 	res, err = srv.List(&args)
 	if err != nil {

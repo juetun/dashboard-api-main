@@ -198,8 +198,19 @@ func (r *DaoPermit) DeleteByIds(ids []string) (err error) {
 		Error
 	return
 }
+func (r *DaoPermit) GetByCondition(condition map[string]interface{}) (res []models.AdminMenu, err error) {
+	if len(condition) == 0 {
+		return
+	}
+	var m models.AdminMenu
+	err = r.Context.Db.
+		Table(m.TableName()).
+		Where(condition).
+		Find(&res).
+		Error
+	return
+}
 func (r *DaoPermit) Add(data *models.AdminMenu) (err error) {
-
 	err = r.Context.Db.Create(data).Error
 	return
 }
@@ -240,11 +251,24 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
 	dba := r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
-	if arg.Label != "" {
+
+	if arg.SystemId > 0 {
+		if err = dba.Where("id=?", arg.SystemId).First(&m).Error; err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return
+			}
+			err = fmt.Errorf("你查看权限系统不存在或已删除")
+		}
+		arg.Module = m.PermitKey
+	}
+	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
 		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
 	}
 	if arg.ParentId != -1 {
 		dba = dba.Where("parent_id = ?", arg.ParentId)
+	}
+	if arg.Module != "" {
+		dba = dba.Where("module = ? OR parent_id=?", arg.Module, 0)
 	}
 	if arg.AppName != "" {
 		dba = dba.Where("app_name = ?", arg.AppName)
@@ -252,10 +276,15 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	if arg.IsMenuShow != -1 {
 		dba = dba.Where("is_menu_show = ?", arg.IsMenuShow)
 	}
-	if arg.IsDel != -1 {
+	if arg.IsDel == -1 || arg.IsDel == 0 {
+		dba = dba.Where("is_del = ?", 0)
+	} else {
 		dba = dba.Where("is_del = ?", arg.IsDel)
 	}
-	err = dba.Find(&res).Error
+	if arg.Id != 0 {
+		dba = dba.Where("id = ?", arg.Id)
+	}
+	err = dba.Order("sort_value desc").Find(&res).Error
 	return
 }
 
@@ -275,36 +304,38 @@ func (r *DaoPermit) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, 
 	res = []models.AdminGroup{}
 	err = db.Limit(pagerObject.PageSize).
 		Offset(pagerObject.GetFromAndLimit()).
+		Order("updated_at desc").
 		Find(&res).
 		Error
 	return
 }
-func (r *DaoPermit) GetGroupByUserId(userId string) (res []models.AdminUserGroup, err error) {
+func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error) {
 	if userId == "" {
-		res = []models.AdminUserGroup{}
+		res = []wrappers.AdminGroupUserStruct{}
 		return
 	}
 	var m models.AdminUserGroup
-	err = r.Context.Db.
+	var m1 models.AdminGroup
+	err = r.Context.Db.Select("a.*,b.*").Unscoped().
 		Table(m.TableName()).
-		Where("user_hid=? AND is_del=?", userId, 0).
+		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
+		Where(fmt.Sprintf("a.user_hid=? AND a.is_del=? AND  b.deleted_at IS NULL"), userId, 0, ).
 		Find(&res).
 		Error
 	return
 }
 func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, err error) {
-	if len(menuIds) == 0 {
-		return
-	}
 	var m models.AdminMenu
-	err = r.Context.Db.
-		Table(m.TableName()).
-		Where("id IN(?) AND is_del=?", menuIds, 0).
-		Find(&res).
-		Error
+	db := r.Context.Db.
+		Table(m.TableName()).Where("is_del=?", 0)
+	// 兼容超级管理员和普通管理员
+	if len(menuIds) != 0 {
+		db = db.Where("id IN(?)", menuIds)
+	}
+	err = db.Order("sort_value desc").Find(&res).Error
 	return
 }
-func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
+func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
 	if len(groupIds) == 0 {
 		return
 	}
@@ -312,7 +343,7 @@ func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType string, groupIds ...in
 	err = r.Context.Db.
 		Table(m.TableName()).
 		Select("distinct `menu_id`,`group_id`,`id`,`is_del`").
-		Where("path_type = ? AND `group_id` in(?) AND `is_del`=?  ", pathType, groupIds, 0).
+		Where("path_type IN(?)  AND `group_id` in(?) AND `is_del`=?  ", pathType, groupIds, 0).
 		Find(&res).
 		Error
 	return

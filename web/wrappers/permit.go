@@ -11,11 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common/response"
 
 	"github.com/juetun/dashboard-api-main/web/models"
 )
+
+const DefaultPermitParentId = 1
 
 type ArgAdminMenuSearch struct {
 	app_obj.JwtUserMessage
@@ -142,10 +145,16 @@ type ArgMenuAdd struct {
 }
 
 func (r *ArgMenuAdd) Default() {
-
+	if r.ParentId == 0 {
+		r.ParentId = DefaultPermitParentId
+	}
+	if r.Label != "" {
+		r.Label = strings.TrimSpace(r.Label)
+	}
 }
 
 type ResultMenuAdd struct {
+	Result bool `json:"result"`
 }
 type ArgMenuSave struct {
 	app_obj.JwtUserMessage
@@ -153,7 +162,9 @@ type ArgMenuSave struct {
 }
 
 func (r *ArgMenuSave) Default() {
-
+	if r.ParentId == 0 {
+		r.ParentId = DefaultPermitParentId
+	}
 }
 
 type ResultMenuSave struct {
@@ -199,16 +210,20 @@ type ResultAdminGroup struct {
 type ArgAdminMenu struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
+	Id         int    `json:"id" form:"id"`
 	Label      string `json:"label" form:"label"`
 	AppName    string `json:"app_name" form:"app_name"`
 	UserHId    string `json:"user_hid" form:"user_hid"`
 	ParentId   int    `json:"parent_id" form:"parent_id"`
 	IsMenuShow int    `json:"is_menu_show" form:"is_menu_show"`
 	IsDel      int    `json:"is_del" form:"is_del"`
+	Module     string `json:"module" form:"module"`
+	SystemId   int    `json:"system_id" form:"system_id"`
 }
 
-func (r *ArgAdminMenu) Default() {
-
+func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	return
 }
 
 type AdminMenuObject struct {
@@ -227,19 +242,31 @@ type ResultAdminMenuSingle struct {
 	ParentId   int    `json:"parent_id"`
 	AppName    string `json:"app_name"`
 	Title      string `json:"title"`
+	Label      string `json:"label"`
 	Icon       string `json:"icon"`
-	IsMenuShow int    `json:"is_menu_show"`
+	HideInMenu uint8  `json:"hide_in_menu"`
 	AppVersion string `json:"app_version"`
 	UrlPath    string `json:"url_path"`
 	PathType   string `json:"path_type"`
 	SortValue  int    `json:"sort_value"`
+	Module     string `json:"module"`
+	PermitKey  string `json:"permit_key"`
 	ResultAdminMenuOtherValue
 	IsDel int `json:"is_del"`
 }
 type ResultAdminMenu struct {
-	List []AdminMenuObject `json:"list"`
+	List []AdminMenuObject       `json:"list"`
+	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
 }
-
+type ResultSystemAdminMenu struct {
+	Id        int    `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey string `json:"permit_key" gorm:"permit_key"`
+	Label     string `json:"label" gorm:"label" form:"label"`
+	Icon      string `json:"icon" gorm:"icon" form:"icon"`
+	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	Module    string `json:"module" gorm:"module" form:"module"`
+	Active    bool   `json:"active"`
+}
 type ArgAdminUser struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
@@ -265,20 +292,60 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage
-	PathType string `json:"path_type" form:"path_type"`
+	ParentId  int      `json:"parent_id"`
+	PathType  string   `json:"path_type" form:"path_type"`
+	PathTypes []string `json:"path_type" form:"path_type"`
 }
 
 // 初始化默认值
 func (r *ArgPermitMenu) Default() {
+	r.PathTypes = []string{}
 	if r.PathType == "" {
-		r.PathType = "page"
+		r.PathTypes = []string{"page", "system"}
 	}
 }
 
-type ResultPermitMenu struct {
-	Menu []models.AdminMenu `json:"menu"`
+type PermitMeta struct {
+	PermitKey  string `json:"permitKey"` // 控制权限结构的参数
+	Icon       string `json:"icon"`
+	Title      string `json:"title"`
+	HideInMenu bool   `json:"hideInMenu"`
+}
+type ResultPermitMenuReturn struct {
+	ResultPermitMenu                     // 当前选中的权限
+	RoutParentMap    map[string][]string `json:"routParentMap"`
+	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
 }
 
+type ResultSystemMenu struct {
+	Id        int    `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey string `json:"permit_key" gorm:"permit_key"`
+	Label     string `json:"label" gorm:"label" form:"label"`
+	Icon      string `json:"icon" gorm:"icon" form:"icon"`
+	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	Module    string `json:"module" gorm:"module" form:"module"`
+	Active    bool   `json:"active"`
+}
+type ResultPermitMenu struct {
+	Id        int                `json:"id"`
+	Path      string             `json:"path"`
+	Module    string             `json:"module"`
+	Name      string             `json:"name"`
+	Meta      PermitMeta         `json:"meta"`
+	Children  []ResultPermitMenu `json:"children"`
+	Component interface{}        `json:"component"`
+}
+type AdminMenu struct {
+	ID         int    `json:"id"`
+	PathName   string `json:"path_name" form:"path_name"`
+	ParentId   int    `json:"parent_id" gorm:"parent_id" form:"parent_id"`
+	Label      string `json:"label" gorm:"label" form:"label"`
+	Icon       string `json:"icon" gorm:"icon" form:"icon"`
+	IsMenuShow int    `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
+	UrlPath    string `json:"url_path" gorm:"url_path" form:"url_path"`
+	SortValue  int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+	OtherValue string `json:"other_value" gorm :"other_value" form:"other_value"`
+}
 type ArgFlag struct {
 	app_obj.JwtUserMessage
 }
@@ -286,6 +353,10 @@ type ArgFlag struct {
 type ResultFlag struct {
 }
 
+type AdminGroupUserStruct struct {
+	models.AdminUserGroup
+	models.AdminGroup
+}
 type ArgGetMenu struct {
 	app_obj.JwtUserMessage
 	MenuId int `json:"menu_id" form:"menu_id"`
@@ -297,4 +368,13 @@ type ResultGetMenu struct {
 
 func (r *ArgGetMenu) Default() {
 
+}
+func GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
+	jwtUser = app_obj.JwtUserMessage{}
+	v, e := c.Get(app_obj.ContextUserObjectKey)
+	if e {
+		jwtUser = v.(app_obj.JwtUserMessage)
+	}
+
+	return jwtUser
 }
