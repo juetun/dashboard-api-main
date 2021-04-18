@@ -152,9 +152,7 @@ func (r *DaoPermit) AdminUserGroupRelease(ids []string) (err error) {
 	var m models.AdminUserGroup
 	err = r.Context.Db.Table(m.TableName()).
 		Where("id IN (?) ", ids).
-		Update(map[string]interface{}{
-			"is_del": 1,
-		}).
+		Delete(&models.AdminUserGroup{}).
 		Error
 	return
 }

@@ -34,12 +34,7 @@ type AdminMenu struct {
 func (r *AdminMenu) TableName() string {
 	return "admin_menu"
 }
-func (r *AdminMenu) AfterCreate(tx *gorm.DB) (err error) {
-	if r.PermitKey == "" {
-		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.getPathName())
-	}
-	return
-}
+
 
 func (r *AdminMenu) getPathName() (res string) {
 	res, _ = hashid.Encode(r.TableName(), r.Id)
@@ -52,6 +47,12 @@ func (r *AdminMenu) AfterUpdate(tx *gorm.DB) (err error) {
 		tx.Table(r.TableName()).
 			Where("id=?", r.Id).
 			Update("permit_key", r.getPathName())
+	}
+	return
+}
+func (r *AdminMenu) AfterCreate(tx *gorm.DB) (err error) {
+	if r.PermitKey == "" {
+		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.getPathName())
 	}
 	return
 }

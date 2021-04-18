@@ -9,10 +9,14 @@ package models
 
 import (
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/juetun/base-wrapper/lib/hashid"
 )
 
 type AdminImport struct {
 	Id            int        `gorm:"primary_key" json:"id" form:"id"`
+	PermitKey     string     `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
 	MenuId        int        `json:"menu_id" gorm:"column:menu_id" form:"menu_id"`
 	AppName       string     `json:"app_name" gorm:"column:app_name" form:"app_name"`
 	AppVersion    string     `json:"app_version" gorm:"column:app_version" form:"app_version"`
@@ -26,4 +30,22 @@ type AdminImport struct {
 
 func (r *AdminImport) TableName() string {
 	return "admin_import"
+}
+func (r *AdminImport) getPathName() (res string) {
+	res, _ = hashid.Encode(r.TableName(), r.Id)
+	return
+}
+func (r *AdminImport) AfterUpdate(tx *gorm.DB) (err error) {
+	if r.PermitKey == "" {
+		tx.Table(r.TableName()).
+			Where("id=?", r.Id).
+			Update("permit_key", r.getPathName())
+	}
+	return
+}
+func (r *AdminImport) AfterCreate(tx *gorm.DB) (err error) {
+	if r.PermitKey == "" {
+		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.getPathName())
+	}
+	return
 }
