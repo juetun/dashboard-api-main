@@ -231,7 +231,7 @@ func (r *DaoPermit) GetAdminGroupByIds(gIds []int) (res []models.AdminGroup, err
 	}
 	var m models.AdminGroup
 	err = r.Context.Db.Table(m.TableName()).
-		Where("is_del=0 AND  id IN (?)", gIds).
+		Where("id IN (?)", gIds).
 		Find(&res).
 		Error
 	return
@@ -242,7 +242,7 @@ func (r *DaoPermit) GetUserGroupByUIds(uIds []string) (res []models.AdminUserGro
 	}
 	var m models.AdminUserGroup
 	err = r.Context.Db.Table(m.TableName()).
-		Where("is_del=0 AND  user_hid IN (?)", uIds).
+		Where(" user_hid IN (?)", uIds).
 		Find(&res).
 		Error
 	return
