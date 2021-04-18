@@ -35,6 +35,8 @@ func init() {
 		h.POST("/admin_menu_save", controller.MenuSave)     // 修改菜单
 		h.POST("/admin_menu_delete", controller.MenuDelete) // 删除菜单
 		h.POST("/get_import", controller.GetImport)         // 获取接口列表
+		h.POST("/edit_import", controller.EditImport)
+		h.DELETE("/delete_import/:id", controller.DeleteImport)
 		// 权限菜单列表
 		h.GET("/menu", controller.Menu)
 		h.POST("/flag", controller.Flag) // 指定链接是否有权限

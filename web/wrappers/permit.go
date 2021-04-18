@@ -8,18 +8,62 @@
 package wrappers
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/pkg/utils"
 
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 const DefaultPermitParentId = 1
+
+type ArgDeleteImport struct {
+	ID int `uri:"id" binding:"required"`
+}
+type ResultDeleteImport struct {
+	Result bool `json:"result"`
+}
+type ArgEditImport struct {
+	AppName       string   `json:"app_name" form:"app_name"`
+	AppVersion    string   `json:"app_version" form:"app_version"`
+	Id            int      `json:"id" form:"id"`
+	MenuId        int      `json:"menu_id" form:"menu_id"`
+	SortValue     int      `json:"sort_value" form:"sort_value"`
+	UrlPath       string   `json:"url_path" form:"url_path"`
+	RequestMethod []string `json:"request_method" form:"request_method"`
+	RequestTime   string   `json:"request_time" form:"-"`
+}
+
+type ResultEditImport struct {
+	Result bool `json:"result"`
+}
+
+func (r *ArgEditImport) Default(c *gin.Context) (err error) {
+	if r.MenuId == 0 {
+		err = fmt.Errorf("您没有选择要添加接口权限的菜单")
+		return
+	}
+	if r.AppName == "" {
+		err = fmt.Errorf("请输入接口所属应用KEY")
+		return
+	}
+	if r.UrlPath == "" {
+		err = fmt.Errorf("请输入接口path路径")
+		return
+	}
+	if r.AppVersion == "" {
+		r.AppVersion = "1.0"
+	}
+	r.RequestTime = utils.DateTime(time.Now())
+	return
+}
 
 type ArgGetImport struct {
 	app_obj.JwtUserMessage

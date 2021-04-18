@@ -33,6 +33,67 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	})
 	return
 }
+func (r *DaoPermit) DeleteImportByIds(id ...int) (err error) {
+	if len(id) == 0 {
+		return
+	}
+	var m models.AdminImport
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("id IN(?)", id).
+		Delete(&models.AdminImport{}).Error; err != nil {
+		return
+	}
+
+	var m1 models.AdminUserGroupPermit
+	if err = r.Context.Db.Table(m1.TableName()).
+		Where("menu_id IN(?) AND path_type=?", id, "api").
+		Delete(&models.AdminImport{}).Error; err != nil {
+		return
+	}
+
+	return
+}
+func (r *DaoPermit) GetImportMenuId(menuId int) (list []models.AdminImport, err error) {
+	list = []models.AdminImport{}
+	var m models.AdminImport
+	if menuId == 0 {
+		return
+	}
+	if err = r.Context.Db.Table(m.TableName()).Unscoped().
+		Where("menu_id=?", menuId).
+		Find(&list).Error; err != nil {
+	}
+	return
+}
+
+func (r *DaoPermit) CreateImport(data *models.AdminImport) (res bool, err error) {
+	var m models.AdminImport
+	if err = r.Context.Db.Table(m.TableName()).Create(data).Error; err != nil {
+		return
+	}
+
+	return
+}
+func (r *DaoPermit) UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error) {
+	var m models.AdminImport
+	if len(condition) == 0 {
+		return
+	}
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).Update(data).Error; err != nil {
+		return
+	}
+	res = true
+	return
+}
+func (r *DaoPermit) GetImportId(id int) (res models.AdminImport, err error) {
+	var m models.AdminImport
+	err1 := r.Context.Db.Table(m.TableName()).Where("id=?", id).Find(&res).Error
+	if err1 != nil && gorm.IsRecordNotFoundError(err1) {
+		err = err1
+		return
+	}
+	return
+}
 func (r *DaoPermit) GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *gorm.DB, err error) {
 	if arg.MenuId == 0 {
 		return
@@ -133,9 +194,7 @@ func (r *DaoPermit) DeleteAdminGroupByIds(ids []string) (err error) {
 	var m models.AdminGroup
 	err = r.Context.Db.Table(m.TableName()).
 		Where("id IN (?) ", ids).
-		Update(map[string]interface{}{
-			"is_del": 1,
-		}).
+		Delete(&models.AdminGroup{}).
 		Error
 	return
 }
@@ -304,7 +363,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 
 func (r *DaoPermit) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int, dba *gorm.DB, err error) {
 	var m models.AdminGroup
-	dba = r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
+	dba = r.Context.Db.Table(m.TableName())
 	if arg.Name != "" {
 		dba = dba.Where("name LIKE ?", "%"+arg.Name+"%")
 	}
@@ -333,7 +392,7 @@ func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUs
 	err = r.Context.Db.Select("a.*,b.*").Unscoped().
 		Table(m.TableName()).
 		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
-		Where(fmt.Sprintf("a.user_hid=? AND a.is_del=? AND  b.deleted_at IS NULL"), userId, 0, ).
+		Where(fmt.Sprintf("a.user_hid=? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"), userId, ).
 		Find(&res).
 		Error
 	return

@@ -214,6 +214,48 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 
+func (r *ControllerPermit) DeleteImport(c *gin.Context) {
+	var err error
+	var arg wrappers.ArgDeleteImport
+	if err = c.ShouldBindUri(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	var res *wrappers.ResultDeleteImport
+	// 记录日志
+	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		DeleteImport(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+}
+
+
+
+func (r *ControllerPermit) EditImport(c *gin.Context) {
+	var arg wrappers.ArgEditImport
+	var err error
+	var res *wrappers.ResultEditImport
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+
+	// 记录日志
+	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		EditImport(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+}
 func (r *ControllerPermit) GetImport(c *gin.Context) {
 	var arg wrappers.ArgGetImport
 	var err error

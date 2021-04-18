@@ -48,6 +48,10 @@ type Permit interface {
 
 	GetImport(c *gin.Context)
 
+	EditImport(c *gin.Context)
+
+	DeleteImport(c *gin.Context)
+
 	MenuSave(c *gin.Context)
 
 	// 权限菜单
