@@ -25,8 +25,10 @@ func init() {
 		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd)
 
 		h.POST("/admin_group", controller.AdminGroup)
+		h.POST("/admin_set_permit", controller.AdminSetPermit)
 		h.POST("/edit_admin_group", controller.AdminGroupEdit)
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
+
 		h.POST("/admin_menu", controller.AdminMenu) // 菜单列表
 		h.GET("/get_menu", controller.GetMenu)      // 获取菜单信息
 

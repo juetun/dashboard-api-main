@@ -232,8 +232,6 @@ func (r *ControllerPermit) DeleteImport(c *gin.Context) {
 	}
 }
 
-
-
 func (r *ControllerPermit) EditImport(c *gin.Context) {
 	var arg wrappers.ArgEditImport
 	var err error
@@ -392,24 +390,44 @@ func (r *ControllerPermit) AdminUser(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 
+// 设置权限
+func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
+	var arg wrappers.ArgAdminSetPermit
+	var err error
+	var res *wrappers.ResultAdminSetPermit
+
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	} else if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
+
+	// 记录日志
+	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		AdminSetPermit(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
+
 func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 	var arg wrappers.ArgAdminGroup
-	err := c.Bind(&arg)
-	if err != nil {
-		r.Response(c, 500000001, nil)
+	if err := c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
 	arg.Default()
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-
-	srv := srv_impl.NewPermitService(context)
-	res, err := srv.AdminGroup(&arg)
+	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		AdminGroup(&arg)
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)
@@ -420,7 +438,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	var arg wrappers.ArgPermitMenu
 	err := c.Bind(&arg)
 	if err != nil {
-		r.Response(c, 500000001, nil)
+		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
 	arg.Default()
@@ -442,14 +460,15 @@ func (r *ControllerPermit) Flag(c *gin.Context) {
 	var arg wrappers.ArgFlag
 	err := c.Bind(&arg)
 	if err != nil {
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	arg.JwtUserMessage = r.GetUser(c)
-	srv := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c))
-	res, err := srv.Flag(&arg)
+
+	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		Flag(&arg)
 	if err != nil {
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)

@@ -24,6 +24,42 @@ import (
 
 const DefaultPermitParentId = 1
 
+type ArgAdminSetPermit struct {
+	app_obj.JwtUserMessage
+	GroupId        int    `json:"group_id" form:"group_id"`
+	PermitIdString string `json:"permit_ids" form:"permit_ids"`
+	PermitIds      []int  `json:"-" form:"-"`
+}
+
+func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
+	if r.GroupId == 0 {
+		err = fmt.Errorf("您没有选择要设置权限的管理组")
+		return
+	}
+	permitIds := strings.Split(r.PermitIdString, ",")
+	r.PermitIds = make([]int, 0, len(permitIds))
+	if r.PermitIdString != "" {
+		var id int
+		for _, value := range permitIds {
+			if value == "" {
+				continue
+			}
+			if id, err = strconv.Atoi(value); err != nil {
+				return
+			}
+			if id == 0 {
+				err = fmt.Errorf("参数异常,请联系管理员")
+				return
+			}
+			r.PermitIds = append(r.PermitIds, id)
+		}
+	}
+	return
+}
+
+type ResultAdminSetPermit struct {
+	Result bool `json:"result"`
+}
 type ArgDeleteImport struct {
 	ID int `uri:"id" binding:"required"`
 }
@@ -38,6 +74,7 @@ type ArgEditImport struct {
 	SortValue     int      `json:"sort_value" form:"sort_value"`
 	UrlPath       string   `json:"url_path" form:"url_path"`
 	RequestMethod []string `json:"request_method" form:"request_method"`
+	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	RequestTime   string   `json:"request_time" form:"-"`
 }
 

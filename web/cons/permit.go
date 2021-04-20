@@ -27,6 +27,9 @@ type Permit interface {
 	// 用户组
 	AdminGroup(c *gin.Context)
 
+	// 用户组设置权限
+	AdminSetPermit(c *gin.Context)
+
 	// 用户组编辑
 	AdminGroupEdit(c *gin.Context)
 

@@ -161,8 +161,8 @@ func (r *PermitService) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wr
 	}
 
 	if dao.UpdateAdminGroup(&models.AdminGroup{
-		Name:  arg.Name,
-		Id:    arg.Id,
+		Name: arg.Name,
+		Id:   arg.Id,
 	}); err != nil {
 		return
 	}
@@ -397,6 +397,54 @@ func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrapper
 	}
 	return
 }
+func (r *PermitService) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error) {
+	res = &wrappers.ResultAdminSetPermit{}
+
+	list := make([]models.AdminUserGroupPermit, 0, len(arg.PermitIds))
+	var dt models.AdminUserGroupPermit
+	dao := dao_impl.NewDaoPermit(r.Context)
+	if err = dao.DeleteGroupPermit(arg.GroupId); err != nil {
+		return
+	}
+	if len(arg.PermitIds) == 0 {
+		return
+	}
+	var t = time.Now()
+	var listImport []models.AdminImport
+	if listImport, err = dao.GetDefaultOpenImportByMenuIds(arg.PermitIds...); err != nil {
+		return
+	} else {
+		for _, importData := range listImport {
+			dt = models.AdminUserGroupPermit{
+				GroupId:   arg.GroupId,
+				MenuId:    importData.Id,
+				PathType:  models.PathTypeApi,
+				CreatedAt: t,
+				UpdatedAt: t,
+			}
+			list = append(list, dt)
+		}
+	}
+
+	for _, pid := range arg.PermitIds {
+		dt = models.AdminUserGroupPermit{
+			GroupId:   arg.GroupId,
+			MenuId:    pid,
+			PathType:  models.PathTypePage,
+			CreatedAt: t,
+			UpdatedAt: t,
+		}
+		list = append(list, dt)
+	}
+	var m models.AdminUserGroupPermit
+	if err = dao.BatchGroupPermit(m.TableName(), list); err != nil {
+		err = fmt.Errorf("操作异常")
+		return
+	}
+	res.Result = true
+	return
+}
+
 func (r *PermitService) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
 
 	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
