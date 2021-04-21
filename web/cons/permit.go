@@ -39,6 +39,8 @@ type Permit interface {
 	// 菜单
 	AdminMenu(c *gin.Context)
 
+	AdminMenuWithCheck(c *gin.Context)
+
 	// 获取菜单信息
 	GetMenu(c *gin.Context)
 

@@ -343,6 +343,25 @@ func (r *ControllerPermit) MenuAdd(c *gin.Context) {
 	}
 	r.Response(c, 0, res)
 }
+func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
+	var arg wrappers.ArgAdminMenuWithCheck
+	err := c.Bind(&arg)
+	if err != nil {
+		r.Response(c, 500000001, err.Error())
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		return
+	}
+	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		AdminMenuWithCheck(&arg)
+
+	if err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+}
 func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 	var arg wrappers.ArgAdminMenu
 	err := c.Bind(&arg)
@@ -360,7 +379,7 @@ func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 	res, err := srv.AdminMenu(&arg)
 
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)
@@ -384,7 +403,7 @@ func (r *ControllerPermit) AdminUser(c *gin.Context) {
 	res, err := srv.AdminUser(&arg)
 
 	if err != nil {
-		r.Response(c, 500000002, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
 	r.Response(c, 0, res)

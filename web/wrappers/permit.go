@@ -24,6 +24,22 @@ import (
 
 const DefaultPermitParentId = 1
 
+type ArgAdminMenuWithCheck struct {
+	ArgAdminMenu
+}
+
+func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
+	return
+}
+
+type ResultMenuWithCheck struct {
+	List []AdminMenuObject       `json:"list"`
+	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
+}
+type AdminMenuObjectCheck struct {
+	ResultAdminMenuSingle
+	Children []AdminMenuObject `json:"children"`
+}
 type ArgAdminSetPermit struct {
 	app_obj.JwtUserMessage
 	GroupId        int    `json:"group_id" form:"group_id"`

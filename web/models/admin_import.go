@@ -25,7 +25,7 @@ type AdminImport struct {
 	AppName       string     `json:"app_name" gorm:"column:app_name" form:"app_name"`
 	AppVersion    string     `json:"app_version" gorm:"column:app_version" form:"app_version"`
 	UrlPath       string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
-	SortValue     int        `json:"sort_value" gorm:"column:ort_value" form:"sort_value"`
+	SortValue     int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
 	RequestMethod string     `json:"request_method" gorm :"column:request_method" form:"request_method"`
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	CreatedAt     time.Time  `json:"-" gorm :"column:created_at" `

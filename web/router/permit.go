@@ -30,6 +30,7 @@ func init() {
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 
 		h.POST("/admin_menu", controller.AdminMenu) // 菜单列表
+		h.POST("/menu_with_check", controller.AdminMenuWithCheck) // 菜单列表
 		h.GET("/get_menu", controller.GetMenu)      // 获取菜单信息
 
 		h.POST("/admin_menu_search", controller.AdminMenuSearch)

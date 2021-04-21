@@ -221,6 +221,37 @@ func (r *DaoPermit) DeleteGroupPermit(groupId int) (err error) {
 	}
 	return
 }
+func (r *DaoPermit) DeleteGroupPermitByMenuIds(groupId int, pageMenuId, apiMenuId []int) (err error) {
+	if len(apiMenuId) == 0 && len(pageMenuId) == 0 {
+		return
+	}
+	var m models.AdminUserGroupPermit
+	db := r.Context.Db.Table(m.TableName()).
+		Where("group_id =?", groupId)
+
+	if len(apiMenuId) > 0 {
+		db = db.Where("menu_id IN (?) AND path_type=?", apiMenuId, models.PathTypeApi)
+		if len(pageMenuId) > 0 {
+			db = db.Or("menu_id IN (?) AND path_type=?", pageMenuId, models.PathTypePage)
+		}
+	} else {
+		if len(pageMenuId) > 0 {
+			db = db.Where("menu_id IN (?) AND path_type=?", pageMenuId, models.PathTypePage)
+		}
+	}
+	db = db.Where(db)
+	if err = db.
+		Delete(&models.AdminUserGroupPermit{}).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"groupId":    groupId,
+			"apiMenuId":  apiMenuId,
+			"pageMenuId": pageMenuId,
+			"err":        err,
+		}, "DeleteGroupPermitByMenuIds")
+	}
+	return
+}
 func (r *DaoPermit) GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.AdminImport, err error) {
 	res = []models.AdminImport{}
 	if len(menuId) == 0 {
@@ -235,6 +266,24 @@ func (r *DaoPermit) GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.A
 			"menuId": menuId,
 			"err":    err,
 		}, "GetDefaultOpenImportByMenuIds")
+		return
+	}
+	return
+}
+func (r *DaoPermit) GetDefaultImportByMenuIds(menuId ...int) (res []models.AdminImport, err error) {
+	res = []models.AdminImport{}
+	if len(menuId) == 0 {
+		return
+	}
+	var m models.AdminImport
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("menu_id IN(?) ", menuId).
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"menuId": menuId,
+			"err":    err,
+		}, "GetDefaultImportByMenuIds")
 		return
 	}
 	return
@@ -719,8 +768,8 @@ func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...
 	var m models.AdminUserGroupPermit
 	if err = r.Context.Db.
 		Table(m.TableName()).
-		Select("distinct `menu_id`,`group_id`,`id`,`is_del`").
-		Where("path_type IN(?)  AND `group_id` in(?) AND `is_del`=?  ", pathType, groupIds, 0).
+		Select("distinct `menu_id`,`group_id`,`id`").
+		Where("path_type IN(?)  AND `group_id` in(?) ", pathType, groupIds).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
