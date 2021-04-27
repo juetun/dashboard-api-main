@@ -343,6 +343,7 @@ func (r *ControllerPermit) MenuAdd(c *gin.Context) {
 	}
 	r.Response(c, 0, res)
 }
+
 func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 	var arg wrappers.ArgAdminMenuWithCheck
 	err := c.Bind(&arg)
@@ -423,7 +424,6 @@ func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
 		return
 	}
 	arg.JwtUserMessage = r.GetUser(c)
-
 	// 记录日志
 	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
 		AdminSetPermit(&arg); err != nil {

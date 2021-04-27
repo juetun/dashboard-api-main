@@ -208,16 +208,40 @@ func (r *DaoPermit) BatchGroupPermit(tableName string, list []models.AdminUserGr
 	}
 	return
 }
-func (r *DaoPermit) DeleteGroupPermit(groupId int) (err error) {
+func (r *DaoPermit) DeleteGroupPermit(groupId int, pathType string, menuId ...int) (err error) {
 	var m models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("group_id =?", groupId).
+	db := r.Context.Db.Table(m.TableName()).
+		Where("group_id =?", groupId)
+	if pathType != "" {
+		db = db.Where("path_type=?", pathType)
+	}
+	if len(menuId) > 0 {
+		db = db.Where("menu_id IN(?)", menuId)
+	}
+	if err = db.
 		Delete(&models.AdminUserGroupPermit{}).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"groupId": groupId,
 			"err":     err,
 		}, "daoPermitDeleteGroupPermit")
+	}
+	return
+}
+func (r *DaoPermit) DeleteByMenuIds(pageMenuIds []string) (err error) {
+	if len(pageMenuIds) == 0 {
+		return
+	}
+	var m models.AdminUserGroupPermit
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("path_type =? AND menu_id IN(?)", models.PathTypePage, pageMenuIds).
+		Delete(&models.AdminUserGroupPermit{}).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"pageMenuIds": pageMenuIds,
+			"err":         err,
+		}, "daoPermitDeleteByMenuIds")
+		return
 	}
 	return
 }
@@ -270,14 +294,23 @@ func (r *DaoPermit) GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.A
 	}
 	return
 }
-func (r *DaoPermit) GetDefaultImportByMenuIds(menuId ...int) (res []models.AdminImport, err error) {
+func (r *DaoPermit) GetDefaultImportByMenuIds(pageType string, menuId ...int) (res []models.AdminImport, err error) {
 	res = []models.AdminImport{}
 	if len(menuId) == 0 {
 		return
 	}
 	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("menu_id IN(?) ", menuId).
+	db := r.Context.Db.Table(m.TableName())
+	switch pageType {
+	case models.PathTypePage:
+		db = db.Where("menu_id IN(?) ", menuId)
+	case models.PathTypeApi:
+		db = db.Where("id IN(?) ", menuId)
+	default:
+		err = fmt.Errorf("pathtype is error")
+		return
+	}
+	if err = db.
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -318,6 +351,23 @@ func (r *DaoPermit) GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *
 	}
 	return
 }
+func (r *DaoPermit) GetSelectImportByImportId(importId ...int) (res []models.AdminUserGroupPermit, err error) {
+	if len(importId) == 0 {
+		return
+	}
+	var m models.AdminUserGroupPermit
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("menu_id IN(?) AND path_type=?", importId, models.PathTypeApi).
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"importId": importId,
+			"err":      err,
+		}, "daoPermitGetSelectImportByImportId")
+		return
+	}
+	return
+}
 func (r *DaoPermit) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
 	err = db.Offset(arg.GetOffset()).
 		Limit(arg.PageSize).
@@ -327,6 +377,7 @@ func (r *DaoPermit) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res 
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetImportList")
+		return
 	}
 	return
 }
@@ -337,7 +388,8 @@ func (r *DaoPermit) AdminUserGroupAdd(data []map[string]interface{}) (err error)
 	duplicate := make([]string, 0)
 	dataMsgA := make([]string, 0)
 	if len(data) == 0 {
-		return fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
+		err = fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
+		return
 	}
 
 	for key, value := range data {
@@ -552,7 +604,7 @@ func (r *DaoPermit) DeleteByIds(ids []string) (err error) {
 	if err = r.Context.Db.
 		Table(m.TableName()).
 		Where("id in (?)", ids).
-		Update(map[string]interface{}{"is_del": 1, "updated_at": time.Now().Format("2006-01-02 15:04:05")}).
+		Delete(&models.AdminMenu{}).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"ids": ids,
@@ -640,7 +692,7 @@ func (r *DaoPermit) GetMenu(menuId int) (res models.AdminMenu, err error) {
 func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
-	dba := r.Context.Db.Table(m.TableName()).Where("is_del=?", 0)
+	dba := r.Context.Db.Table(m.TableName()).Unscoped()
 
 	if arg.SystemId > 0 {
 		if err = dba.Where("id=?", arg.SystemId).First(&m).Error; err != nil {
@@ -672,9 +724,9 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 		dba = dba.Where("is_menu_show = ?", arg.IsMenuShow)
 	}
 	if arg.IsDel == -1 || arg.IsDel == 0 {
-		dba = dba.Where("is_del = ?", 0)
+		dba = dba.Where("deleted_at IS NULL")
 	} else {
-		dba = dba.Where("is_del = ?", arg.IsDel)
+		dba = dba.Where("deleted_at NOT NULL")
 	}
 	if arg.Id != 0 {
 		dba = dba.Where("id = ?", arg.Id)
@@ -747,12 +799,12 @@ func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUs
 func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, err error) {
 	var m models.AdminMenu
 	db := r.Context.Db.
-		Table(m.TableName()).Where("is_del=?", 0)
+		Table(m.TableName())
 	// 兼容超级管理员和普通管理员
 	if len(menuIds) != 0 {
 		db = db.Where("id IN(?)", menuIds)
 	}
-	if err = db.Order("sort_value desc").Find(&res).Error; err != nil {
+	if err = db.Order("sort_value desc").Limit(2000).Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"menuIds": menuIds,
 			"err":     err,

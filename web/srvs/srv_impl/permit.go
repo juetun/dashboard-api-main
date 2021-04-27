@@ -196,7 +196,6 @@ func (r *PermitService) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultM
 		OtherValue:         arg.OtherValue,
 		CreatedAt:          t,
 		UpdatedAt:          t,
-		IsDel:              0,
 	})
 	res.Result = true
 	return
@@ -280,18 +279,55 @@ func (r *PermitService) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.Res
 		return
 	}
 	if res.TotalCount > 0 {
-		if res.List, err = dao.GetImportList(db, arg); err != nil {
+		var list []models.AdminImport
+		if list, err = dao.GetImportList(db, arg); err != nil {
 			return
 		}
+		if !arg.Checked {
+			res.List = list
+			return
+		}
+		res.List, err = r.joinChecked(dao, arg, list)
 	}
 
 	// []models.AdminImport{}
 	return
 }
+func (r *PermitService) joinChecked(dao *dao_impl.DaoPermit, arg *wrappers.ArgGetImport, data []models.AdminImport) (res []wrappers.AdminImport, err error) {
+	res = make([]wrappers.AdminImport, 0, len(data))
+	var dt wrappers.AdminImport
+	var importId = make([]int, 0, len(data))
+	for _, value := range data {
+		importId = append(importId, value.Id)
+	}
+	var li []models.AdminUserGroupPermit
+	if li, err = dao.GetSelectImportByImportId(importId...); err != nil {
+		return
+	}
+	var m = make(map[int]int, len(li))
+	for _, it := range li {
+		m[it.MenuId] = it.MenuId
+	}
+	for _, value := range data {
+		dt = wrappers.AdminImport{
+			AdminImport: value,
+		}
+		if _, ok := m[value.Id]; ok {
+			dt.Checked = true
+		}
+		res = append(res, dt)
+	}
+	return
+}
 func (r *PermitService) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
 	res = &wrappers.ResultMenuDelete{}
 	dao := dao_impl.NewDaoPermit(r.Context)
-	err = dao.DeleteByIds(arg.IdValue)
+	if err = dao.DeleteByIds(arg.IdValue); err != nil {
+		return
+	}
+	if err = dao.DeleteByMenuIds(arg.IdValue); err != nil {
+		return
+	}
 	res.Result = true
 	return
 }
@@ -324,7 +360,6 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 		SortValue:          arg.SortValue,
 		OtherValue:         arg.OtherValue,
 		UpdatedAt:          t,
-		IsDel:              0,
 	})
 	res.Result = true
 	return
@@ -337,34 +372,28 @@ func (r *PermitService) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithCheck) 
 
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var list []models.AdminMenu
-	list, err = dao.GetAdminMenuList(&arg.ArgAdminMenu)
-
-	var data wrappers.ResultSystemAdminMenu
-	var defaultSystemId = arg.SystemId
-	var ind int
-	for _, item := range list {
-		if item.ParentId != 0 {
-			continue
-		}
-		data = wrappers.ResultSystemAdminMenu{
-			Id:        item.Id,
-			PermitKey: item.PermitKey,
-			Label:     item.Label,
-			Icon:      item.Icon,
-			SortValue: item.SortValue,
-			Module:    item.Module,
-		}
-		if arg.SystemId == 0 && ind == 0 {
-			data.Active = true
-			arg.SystemId = item.Id
-		} else if arg.SystemId > 0 && item.Id == arg.SystemId {
-			data.Active = true
-		}
-		res.Menu = append(res.Menu, data)
-		ind++
+	if list, err = dao.GetAdminMenuList(&arg.ArgAdminMenu); err != nil {
+		return
 	}
-	r.orgTree(list, defaultSystemId, &res.List)
+	arg.SystemId = r.permitTab(list, &res.Menu, arg.SystemId)
+	var mapPermitMenu map[int]int
+	if mapPermitMenu, err = r.getGroupPermitMenu(dao, arg.GroupId); err != nil {
+		return
+	}
+	r.orgTree(list, arg.SystemId, &res.List, mapPermitMenu)
 
+	return
+}
+func (r *PermitService) getGroupPermitMenu(dao *dao_impl.DaoPermit, groupId int) (mapPermitMenu map[int]int, err error) {
+	var groupPermit []models.AdminUserGroupPermit
+	if groupPermit, err = dao.GetMenuIdsByPermitByGroupIds([]string{models.PathTypePage}, []int{groupId}...); err != nil {
+		return
+	} else {
+		mapPermitMenu = make(map[int]int, len(groupPermit))
+		for _, it := range groupPermit {
+			mapPermitMenu[it.MenuId] = it.MenuId
+		}
+	}
 	return
 }
 func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error) {
@@ -375,6 +404,11 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var list []models.AdminMenu
 	list, err = dao.GetAdminMenuList(arg)
+	arg.SystemId = r.permitTab(list, &res.Menu, arg.SystemId)
+	r.orgTree(list, arg.SystemId, &res.List, nil)
+	return
+}
+func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.ResultSystemAdminMenu, systemId int) (sid int) {
 
 	var data wrappers.ResultSystemAdminMenu
 	var ind int
@@ -390,35 +424,34 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 			SortValue: item.SortValue,
 			Module:    item.Module,
 		}
-		if arg.SystemId == 0 && ind == 0 {
+		if systemId == 0 && ind == 0 {
 			data.Active = true
-			arg.SystemId = item.Id
-		} else if arg.SystemId > 0 && item.Id == arg.SystemId {
+			systemId = item.Id
+		} else if systemId > 0 && item.Id == systemId {
 			data.Active = true
 		}
-		res.Menu = append(res.Menu, data)
+		*menu = append(*menu, data)
 		ind++
-
 	}
-	r.orgTree(list, arg.SystemId, &res.List)
+	sid = systemId
 	return
 }
 
 //
-func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]wrappers.AdminMenuObject) () {
+func (r *PermitService) orgTree(list []models.AdminMenu, parentId int, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int]int) () {
 	var tmp wrappers.AdminMenuObject
 	for _, value := range list {
 		// 剔除默认数据那条
 		if value.Id == parentId || value.ParentId != parentId {
 			continue
 		}
-		tmp = r.orgAdminMenuObject(&value)
-		r.orgTree(list, value.Id, &tmp.Children)
+		tmp = r.orgAdminMenuObject(&value, mapPermitMenu)
+		r.orgTree(list, value.Id, &tmp.Children, mapPermitMenu)
 		*res = append(*res, tmp)
 	}
 }
 
-func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrappers.AdminMenuObject) {
+func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu, mapPermitMenu map[int]int) (res wrappers.AdminMenuObject) {
 	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20),}
 	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
 		Id:                 value.Id,
@@ -429,7 +462,6 @@ func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrapper
 		HideInMenu:         value.HideInMenu,
 		UrlPath:            value.UrlPath,
 		SortValue:          value.SortValue,
-		IsDel:              value.IsDel,
 		Module:             value.Module,
 		PermitKey:          value.PermitKey,
 		ManageImportPermit: value.ManageImportPermit,
@@ -439,10 +471,15 @@ func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu) (res wrapper
 	} else {
 		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true,}
 	}
+	if mapPermitMenu != nil {
+		if _, ok := mapPermitMenu[value.Id]; ok {
+			res.ResultAdminMenuSingle.Checked = true
+		}
+	}
 	return
 }
 func (r *PermitService) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit, dao *dao_impl.DaoPermit) (newPermit []int, notPermitId []int, err error) {
-	listSelectMenu, err := dao.GetMenuIdsByPermitByGroupIds([]string{models.PathTypePage}, arg.GroupId)
+	listSelectMenu, err := dao.GetMenuIdsByPermitByGroupIds([]string{arg.Type}, arg.GroupId)
 	if err != nil {
 		return
 	}
@@ -473,13 +510,7 @@ func (r *PermitService) inSlice(id int, slice []int) (res bool) {
 	return
 }
 
-func (r *PermitService) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error) {
-	res = &wrappers.ResultAdminSetPermit{}
-
-	dao := dao_impl.NewDaoPermit(r.Context)
-	// if err = dao.DeleteGroupPermit(arg.GroupId); err != nil {
-	// 	return
-	// }
+func (r *PermitService) setMenuPermit(dao *dao_impl.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
 	var (
 		newPermit   []int
 		notPermitId []int
@@ -487,21 +518,83 @@ func (r *PermitService) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wr
 	if newPermit, notPermitId, err = r.getGroupHavePermit(arg, dao); err != nil {
 		return
 	}
-	if err = r.deleteNotPermitId(dao, notPermitId, arg.GroupId); err != nil {
+	if err = r.deleteNotMenuPermitId(dao, notPermitId, arg); err != nil {
 		return
 	}
-	if err = r.addNewPermit(dao, newPermit, arg.GroupId); err != nil {
+	if err = r.addNewMenuPermit(dao, newPermit, arg.GroupId); err != nil {
 		return
+	}
+	return
+}
+func (r *PermitService) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error) {
+	res = &wrappers.ResultAdminSetPermit{}
+
+	dao := dao_impl.NewDaoPermit(r.Context)
+	switch arg.Type {
+	case models.PathTypePage: // 设置菜单权限
+		r.setMenuPermit(dao, arg)
+	case models.PathTypeApi: // 设置API权限
+		r.setApiPermit(dao, arg)
 	}
 	res.Result = true
 	return
 }
-func (r *PermitService) deleteNotPermitId(dao *dao_impl.DaoPermit, notPermitId []int, groupId int) (err error) {
+func (r *PermitService) setApiPermit(dao *dao_impl.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
+	switch arg.Act {
+	case models.SetPermitAdd:
+		var dt models.AdminUserGroupPermit
+		var list []models.AdminUserGroupPermit
+		var t = time.Now()
+		for _, pid := range arg.PermitIds {
+			dt = models.AdminUserGroupPermit{
+				GroupId:   arg.GroupId,
+				MenuId:    pid,
+				PathType:  models.PathTypeApi,
+				CreatedAt: t,
+				UpdatedAt: t,
+				DeletedAt: nil,
+			}
+			list = append(list, dt)
+		}
+		var m models.AdminUserGroupPermit
+		if err = dao.BatchGroupPermit(m.TableName(), list); err != nil {
+			err = fmt.Errorf("操作异常")
+			return
+		}
+
+	case models.SetPermitCancel:
+		if err = dao.DeleteGroupPermit(arg.GroupId, models.PathTypeApi, arg.PermitIds...); err != nil {
+			return
+		}
+	default:
+		err = fmt.Errorf("act格式错误")
+		return
+	}
+	return
+}
+func (r *PermitService) setApiPermitOld(dao *dao_impl.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
+	var (
+		newPermit   []int
+		notPermitId []int
+	)
+	if newPermit, notPermitId, err = r.getGroupHavePermit(arg, dao); err != nil {
+		return
+	}
+	if err = r.deleteNotApiPermitId(dao, notPermitId, arg); err != nil {
+		return
+	}
+	if err = r.addNewApiPermit(dao, newPermit, arg.GroupId); err != nil {
+		return
+	}
+	return
+}
+
+func (r *PermitService) deleteNotMenuPermitId(dao *dao_impl.DaoPermit, notPermitId []int, args *wrappers.ArgAdminSetPermit) (err error) {
 	var listImport []models.AdminImport
 
 	// 获取菜单下的接口
 	var notPermitImportId []int
-	if listImport, err = dao.GetDefaultImportByMenuIds(notPermitId...); err != nil {
+	if listImport, err = dao.GetDefaultImportByMenuIds(args.Type, notPermitId...); err != nil {
 		return
 	} else if len(listImport) > 0 {
 		notPermitImportId = make([]int, 0, len(listImport))
@@ -510,12 +603,31 @@ func (r *PermitService) deleteNotPermitId(dao *dao_impl.DaoPermit, notPermitId [
 		}
 	}
 
-	if err = dao.DeleteGroupPermitByMenuIds(groupId, notPermitId, notPermitImportId); err != nil {
+	if err = dao.DeleteGroupPermitByMenuIds(args.GroupId, notPermitId, notPermitImportId); err != nil {
 		return
 	}
 	return
 }
-func (r *PermitService) addNewPermit(dao *dao_impl.DaoPermit, newPermit []int, groupId int) (err error) {
+func (r *PermitService) deleteNotApiPermitId(dao *dao_impl.DaoPermit, notPermitId []int, arg *wrappers.ArgAdminSetPermit) (err error) {
+	var listImport []models.AdminImport
+
+	// 获取菜单下的接口
+	var notPermitImportId []int
+	if listImport, err = dao.GetDefaultImportByMenuIds(arg.Type, notPermitId...); err != nil {
+		return
+	} else if len(listImport) > 0 {
+		notPermitImportId = make([]int, 0, len(listImport))
+		for _, it := range listImport {
+			notPermitImportId = append(notPermitImportId, it.Id)
+		}
+	}
+
+	if err = dao.DeleteGroupPermitByMenuIds(arg.GroupId, notPermitId, notPermitImportId); err != nil {
+		return
+	}
+	return
+}
+func (r *PermitService) addNewMenuPermit(dao *dao_impl.DaoPermit, newPermit []int, groupId int) (err error) {
 	list := make([]models.AdminUserGroupPermit, 0, len(newPermit))
 
 	var dt models.AdminUserGroupPermit
@@ -546,6 +658,31 @@ func (r *PermitService) addNewPermit(dao *dao_impl.DaoPermit, newPermit []int, g
 		}
 		list = append(list, dt)
 	}
+	var m models.AdminUserGroupPermit
+	if err = dao.BatchGroupPermit(m.TableName(), list); err != nil {
+		err = fmt.Errorf("操作异常")
+		return
+	}
+	return
+}
+func (r *PermitService) addNewApiPermit(dao *dao_impl.DaoPermit, newPermit []int, groupId int) (err error) {
+	if len(newPermit) == 0 {
+		return
+	}
+	list := make([]models.AdminUserGroupPermit, 0, len(newPermit))
+	var dt models.AdminUserGroupPermit
+	var t = time.Now()
+	for _, importId := range newPermit {
+		dt = models.AdminUserGroupPermit{
+			GroupId:   groupId,
+			MenuId:    importId,
+			PathType:  models.PathTypeApi,
+			CreatedAt: t,
+			UpdatedAt: t,
+		}
+		list = append(list, dt)
+	}
+
 	var m models.AdminUserGroupPermit
 	if err = dao.BatchGroupPermit(m.TableName(), list); err != nil {
 		err = fmt.Errorf("操作异常")

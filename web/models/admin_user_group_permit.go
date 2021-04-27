@@ -14,6 +14,8 @@ import (
 const (
 	PathTypePage = "page"
 	PathTypeApi  = "api"
+	SetPermitAdd ="add"
+	SetPermitCancel ="cancel"
 )
 
 type AdminUserGroupPermit struct {

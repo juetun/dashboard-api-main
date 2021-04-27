@@ -26,6 +26,7 @@ const DefaultPermitParentId = 1
 
 type ArgAdminMenuWithCheck struct {
 	ArgAdminMenu
+	GroupId int `json:"group_id" form:"group_id"`
 }
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
@@ -43,8 +44,10 @@ type AdminMenuObjectCheck struct {
 type ArgAdminSetPermit struct {
 	app_obj.JwtUserMessage
 	GroupId        int    `json:"group_id" form:"group_id"`
+	Type           string `json:"type" form:"type"`
 	PermitIdString string `json:"permit_ids" form:"permit_ids"`
 	PermitIds      []int  `json:"-" form:"-"`
+	Act            string `json:"act" form:"act"`
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
@@ -70,6 +73,22 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 			r.PermitIds = append(r.PermitIds, id)
 		}
 	}
+	if r.Type == "" {
+		err = fmt.Errorf("type is null")
+		return
+	}
+	switch r.Type {
+	case models.PathTypePage:
+	case models.PathTypeApi:
+		if r.Act != models.SetPermitAdd && r.Act != models.SetPermitCancel {
+			err = fmt.Errorf("act格式不正确")
+			return
+		}
+	default:
+		err = fmt.Errorf("type格式错误")
+		return
+	}
+
 	return
 }
 
@@ -121,7 +140,12 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
 	base.ReqPager
-	MenuId int `json:"menu_id" form:"menu_id"`
+	MenuId  int  `json:"menu_id" form:"menu_id"`
+	Checked bool `json:"checked" form:"checked"` // 是否要查看选中权限情况
+}
+type AdminImport struct {
+	models.AdminImport
+	Checked bool `json:"checked"`
 }
 
 func (r *ArgGetImport) Default(c *gin.Context) {
