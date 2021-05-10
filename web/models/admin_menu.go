@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/juetun/base-wrapper/lib/hashid"
+	"github.com/juetun/base-wrapper/lib/utils/hashid"
 )
 
 type AdminMenu struct {

@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/4/19 8:02 下午
  */
-package plugins
+package myplugins
 
 import (
 	"fmt"

@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/juetun/dashboard-api-main/basic/plugins"
+	"github.com/juetun/base-wrapper/lib/plugins"
 )
 
 type FileUpload struct {
