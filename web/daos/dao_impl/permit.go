@@ -108,6 +108,24 @@ func (r *DaoPermit) UpdateAdminImport(condition, data map[string]interface{}) (r
 	res = true
 	return
 }
+func (r *DaoPermit) GetAdminImportById(id ...int) (res []models.AdminImport, err error) {
+	if len(id) == 0 {
+		res = []models.AdminImport{}
+		return
+	}
+	var m models.AdminImport
+	err = r.Context.Db.Table(m.TableName()).
+		Where("id IN(?)", id).
+		Find(&res).Error
+	if err != nil {
+		r.Context.Error(map[string]interface{}{
+			"id":  id,
+			"err": err,
+		}, "daoPermitGetAdminImportByIdError")
+		return
+	}
+	return
+}
 func (r *DaoPermit) getColumnName(s string) (res string) {
 	li := strings.Split(s, ";")
 	res = s

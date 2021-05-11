@@ -22,7 +22,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
-const DefaultPermitParentId = 1
+const DefaultPermitParentId = -1
 
 type ArgAdminMenuWithCheck struct {
 	ArgAdminMenu
@@ -134,6 +134,13 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 		r.AppVersion = "1.0"
 	}
 	r.RequestTime = utils.DateTime(time.Now())
+	methods := make([]string, 0, len(r.RequestMethod))
+	for _, value := range r.RequestMethod {
+		if value != "" {
+			methods = append(methods, value)
+		}
+	}
+	r.RequestMethod = methods
 	return
 }
 

@@ -36,7 +36,7 @@ type AdminImport struct {
 func (r *AdminImport) TableName() string {
 	return "admin_import"
 }
-func (r *AdminImport) getPathName() (res string) {
+func (r *AdminImport) GetPathName() (res string) {
 	res, _ = hashid.Encode(r.TableName(), r.Id)
 	return
 }
@@ -44,13 +44,13 @@ func (r *AdminImport) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
 		tx.Table(r.TableName()).
 			Where("id=?", r.Id).
-			Update("permit_key", r.getPathName())
+			Update("permit_key", r.GetPathName())
 	}
 	return
 }
 func (r *AdminImport) AfterCreate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
-		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.getPathName())
+		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.GetPathName())
 	}
 	return
 }

@@ -228,6 +228,23 @@ func (r *PermitService) DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappe
 	res.Result = true
 	return
 }
+func (r *PermitService) editImportParam(arg *wrappers.ArgEditImport, value *models.AdminImport) (err error) {
+	if arg.Id == 0 {
+		if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
+			err = fmt.Errorf("您输入的接口信息已存在")
+			return
+		}
+		return
+	}
+	if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
+		if arg.Id != value.Id {
+			err = fmt.Errorf("您输入的接口信息已存在")
+			return
+		}
+	}
+
+	return
+}
 func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
 	res = &wrappers.ResultEditImport{Result: false}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -237,27 +254,11 @@ func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.R
 		return
 	}
 	for _, value := range listImport {
-		if arg.Id == 0 {
-			if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
-				err = fmt.Errorf("您输入的接口信息已存在")
-				return
-			}
-		} else {
-			if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
-				if arg.Id != value.Id {
-					err = fmt.Errorf("您输入的接口信息已存在")
-					return
-				}
-			}
+		if err = r.editImportParam(arg, &value); err != nil {
+			return
 		}
 	}
-
-	if arg.Id == 0 { // 如果是添加接口
-		res.Result, err = r.createImport(dao, arg)
-		return
-	}
-
-	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, map[string]interface{}{
+	data := map[string]interface{}{
 		`menu_id`:        arg.MenuId,
 		`app_name`:       arg.AppName,
 		`app_version`:    arg.AppVersion,
@@ -265,7 +266,26 @@ func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.R
 		`request_method`: strings.Join(arg.RequestMethod, ","),
 		`sort_value`:     arg.SortValue,
 		`updated_at`:     arg.RequestTime,
-	}); err != nil {
+	}
+	if arg.Id == 0 { // 如果是添加接口
+		res.Result, err = r.createImport(dao, arg)
+		return
+	} else {
+		var m = models.AdminImport{Id: arg.Id}
+		var dt []models.AdminImport
+		if dt, err = dao.GetAdminImportById(arg.Id); err != nil {
+			return
+		}
+		if len(dt) == 0 {
+			err = fmt.Errorf("您编辑的接口信息不存在或已删除")
+			return
+		}
+		if dt[0].PermitKey == "" {
+			data["permit_key"] = m.GetPathName()
+		}
+	}
+
+	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, data); err != nil {
 		return
 	}
 	res.Result = true
@@ -350,6 +370,7 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 
 	t := time.Now()
 	err = dao.Save(arg.Id, &models.AdminMenu{
+		Module:             arg.Module,
 		PermitKey:          arg.PermitKey,
 		ParentId:           arg.ParentId,
 		Label:              arg.Label,
@@ -413,7 +434,7 @@ func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.Resu
 	var data wrappers.ResultSystemAdminMenu
 	var ind int
 	for _, item := range list {
-		if item.ParentId != 0 {
+		if item.ParentId != wrappers.DefaultPermitParentId {
 			continue
 		}
 		data = wrappers.ResultSystemAdminMenu{
@@ -911,7 +932,7 @@ func (r *PermitService) groupPermit(list []models.AdminMenu) (systemList []wrapp
 	var data wrappers.ResultPermitMenu
 	for _, item := range list {
 
-		if item.ParentId == 0 {
+		if item.ParentId == wrappers.DefaultPermitParentId {
 			systemList = append(systemList, wrappers.ResultSystemMenu{
 				Id:        item.Id,
 				PermitKey: item.PermitKey,

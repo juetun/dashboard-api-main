@@ -16,6 +16,7 @@ import (
 type AdminGroup struct {
 	Id           int             `gorm:"column:id;primary_key" json:"id"`
 	Name         string          `json:"name" gorm:"column:name"`
+	GroupCode    string          `json:"group_code" gorm:"column:group_code"`
 	IsSuperAdmin uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`
 	CreatedAt    base.TimeNormal `json:"created_at" gorm:"column:created_at" `
 	UpdatedAt    base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
