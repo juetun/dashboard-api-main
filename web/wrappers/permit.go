@@ -22,7 +22,10 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
-const DefaultPermitParentId = -1
+const (
+	DefaultPermitParentId = -1
+	DefaultPermitModule   = "platform"
+)
 
 type ArgAdminMenuWithCheck struct {
 	ArgAdminMenu
@@ -440,6 +443,7 @@ type ArgPermitMenu struct {
 	ParentId  int      `json:"parent_id"`
 	PathType  string   `json:"path_type" form:"path_type"`
 	PathTypes []string `json:"path_type" form:"path_type"`
+	Module    string   `json:"-"`
 }
 
 // 初始化默认值

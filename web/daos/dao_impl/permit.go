@@ -707,6 +707,22 @@ func (r *DaoPermit) GetMenu(menuId int) (res models.AdminMenu, err error) {
 	}
 	return
 }
+func (r *DaoPermit) GetMenuByPermitKey(permitKey ...string) (res []models.AdminMenu, err error) {
+	if len(permitKey) == 0 {
+		return
+	}
+	var m models.AdminMenu
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("permit_key IN(?)", permitKey).
+		Find(&res).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"permitKey": permitKey,
+			"err":       err.Error(),
+		}, "daoPermitGetMenuByPermitKey")
+		return
+	}
+	return
+}
 func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
@@ -729,11 +745,11 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
 		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
 	}
-	if arg.ParentId != -1 {
+	if arg.ParentId > 0 {
 		dba = dba.Where("parent_id = ?", arg.ParentId)
 	}
 	if arg.Module != "" {
-		dba = dba.Where("module = ? OR parent_id=?", arg.Module, 0)
+		dba = dba.Where("module = ? OR parent_id=?", arg.Module, wrappers.DefaultPermitParentId)
 	}
 	if arg.AppName != "" {
 		dba = dba.Where("app_name = ?", arg.AppName)
@@ -752,7 +768,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 	if err = dba.Order("sort_value desc").Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
-			"err": err,
+			"err": err.Error(),
 		}, "daoPermitGetAdminMenuList2")
 		return
 	}
@@ -814,13 +830,16 @@ func (r *DaoPermit) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUs
 	}
 	return
 }
-func (r *DaoPermit) GetPermitMenuByIds(menuIds ...int) (res []models.AdminMenu, err error) {
+func (r *DaoPermit) GetPermitMenuByIds(module []string, menuIds ...int) (res []models.AdminMenu, err error) {
 	var m models.AdminMenu
 	db := r.Context.Db.
 		Table(m.TableName())
 	// 兼容超级管理员和普通管理员
 	if len(menuIds) != 0 {
 		db = db.Where("id IN(?)", menuIds)
+	}
+	if len(module) > 0 {
+		db = db.Where("module IN(?)", module)
 	}
 	if err = db.Order("sort_value desc").Limit(2000).Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{

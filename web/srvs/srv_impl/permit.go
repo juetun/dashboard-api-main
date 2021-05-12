@@ -417,12 +417,26 @@ func (r *PermitService) getGroupPermitMenu(dao *dao_impl.DaoPermit, groupId int)
 	}
 	return
 }
+
 func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error) {
 	res = &wrappers.ResultAdminMenu{
 		List: make([]wrappers.AdminMenuObject, 0, 20),
 		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
+	// 如果选择了系统模块则，直接初始化systemId
+	if arg.Module != "" {
+		var dt []models.AdminMenu
+		if dt, err = dao.GetMenuByPermitKey(arg.Module); err != nil {
+			return
+		}
+		if len(dt) == 0 {
+			err = fmt.Errorf("您操作的系统信息不存在或已删除")
+			return
+		}
+		arg.SystemId = dt[0].Id
+	}
+
 	var list []models.AdminMenu
 	list, err = dao.GetAdminMenuList(arg)
 	arg.SystemId = r.permitTab(list, &res.Menu, arg.SystemId)
@@ -843,19 +857,25 @@ func (r *PermitService) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultP
 	return
 }
 
+func (r *PermitService) getCurrentSystem(arg *wrappers.ArgPermitMenu) (res []string, err error) {
+	res = []string{arg.Module, wrappers.DefaultPermitModule}
+	return
+}
 func (r *PermitService) getGroupMenu(dao *dao_impl.DaoPermit, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn, menuIds ...int) (err error) {
-
-	list, err := dao.GetPermitMenuByIds(menuIds...)
-	if err != nil {
-		return
-	}
 	var (
 		groupPermit map[int][]wrappers.ResultPermitMenu
 		permitMap   map[int]wrappers.ResultPermitMenu
+		list        []models.AdminMenu
 	)
-	res.Menu, groupPermit, permitMap = r.groupPermit(list)
+	var current []string
+	if current, err = r.getCurrentSystem(arg); err != nil {
+		return
+	}
+	if list, err = dao.GetPermitMenuByIds(current, menuIds...); err != nil {
+		return
+	}
 
-	if len(res.Menu) <= 0 {
+	if res.Menu, groupPermit, permitMap = r.groupPermit(list); len(res.Menu) <= 0 {
 		err = fmt.Errorf("您没有操作权限,请刷新或联系管理员(1)")
 		return
 	}
@@ -924,7 +944,11 @@ func (r *PermitService) getParentId(mapIdToParent map[int]int, nodeId, parentId 
 	}
 	return
 }
-func (r *PermitService) groupPermit(list []models.AdminMenu) (systemList []wrappers.ResultSystemMenu, groupPermit map[int][]wrappers.ResultPermitMenu, permitMap map[int]wrappers.ResultPermitMenu) {
+func (r *PermitService) groupPermit(list []models.AdminMenu) (
+	systemList []wrappers.ResultSystemMenu,
+	groupPermit map[int][]wrappers.ResultPermitMenu,
+	permitMap map[int]wrappers.ResultPermitMenu,
+) {
 	systemList = make([]wrappers.ResultSystemMenu, 0, 30)
 	groupPermit = map[int][]wrappers.ResultPermitMenu{}
 	l := len(list)
