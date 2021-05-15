@@ -197,7 +197,10 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
-	arg.Default()
+	if err = arg.Default(); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
@@ -300,15 +303,15 @@ func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 func (r *ControllerPermit) MenuSave(c *gin.Context) {
 	var arg wrappers.ArgMenuSave
 	var err error
-
 	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
-	} else {
-		arg.Default()
-		arg.JwtUserMessage = r.GetUser(c)
 	}
-
+	if err = arg.Default(); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	arg.JwtUserMessage = r.GetUser(c)
 	// 记录日志
 	res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
 		MenuSave(&arg)

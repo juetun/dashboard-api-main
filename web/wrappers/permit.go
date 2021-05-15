@@ -281,8 +281,8 @@ type ArgAdminGroupEdit struct {
 	Id   int    `json:"id" form:"id"`
 }
 
-func (r *ArgAdminGroupEdit) Default() {
-
+func (r *ArgAdminGroupEdit) Default() (err error) {
+	return
 }
 
 type ArgMenuAdd struct {
@@ -307,10 +307,14 @@ type ArgMenuSave struct {
 	models.AdminMenu
 }
 
-func (r *ArgMenuSave) Default() {
+func (r *ArgMenuSave) Default() (err error) {
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
+	if r.PermitKey == DefaultPermitModule {
+		err = fmt.Errorf("permit_key不能设置为%s", DefaultPermitModule)
+	}
+	return
 }
 
 type ResultMenuSave struct {
@@ -443,7 +447,7 @@ type ArgPermitMenu struct {
 	ParentId  int      `json:"parent_id"`
 	PathType  string   `json:"path_type" form:"path_type"`
 	PathTypes []string `json:"path_type" form:"path_type"`
-	Module    string   `json:"-"`
+	Module    string   `json:"module" form:"module"`
 }
 
 // 初始化默认值

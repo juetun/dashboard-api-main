@@ -549,11 +549,9 @@ func (r *DaoPermit) InsertAdminGroup(group *models.AdminGroup) (err error) {
 	return
 }
 func (r *DaoPermit) UpdateAdminGroup(group *models.AdminGroup) (err error) {
-	var m models.AdminGroup
-	err = r.Context.Db.Table(m.TableName()).Where("id=?", group.Id).
+	if err = r.Context.Db.Model(group).Where("id=?", group.Id).
 		Update(group).
-		Error
-	if err != nil {
+		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"group": group,
 			"err":   err,
@@ -595,6 +593,22 @@ func (r *DaoPermit) GetUserGroupByUIds(uIds []string) (res []models.AdminUserGro
 	}
 	return
 }
+func (r *DaoPermit) UpdateMenuByCondition(condition, data map[string]interface{}) (err error) {
+	var m models.AdminMenu
+	if err = r.Context.Db.
+		Table(m.TableName()).
+		Where(condition).
+		Update(data).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err,
+		}, "daoPermitUpdateMenuByCondition")
+		return
+	}
+	return
+}
 func (r *DaoPermit) Save(id int, data *models.AdminMenu) (err error) {
 	if id == 0 {
 		return
@@ -631,20 +645,38 @@ func (r *DaoPermit) DeleteByIds(ids []string) (err error) {
 	}
 	return
 }
-func (r *DaoPermit) GetByCondition(condition map[string]interface{}) (res []models.AdminMenu, err error) {
+
+type DaoOrderBy struct {
+	Column     string `json:"column"`      // 排序字段
+	SortFormat string `json:"sort_format"` // 排序方式
+}
+
+func (r *DaoPermit) GetByCondition(condition map[string]interface{}, orderBy []DaoOrderBy, limit int) (res []models.AdminMenu, err error) {
 	if len(condition) == 0 {
 		return
 	}
 	var m models.AdminMenu
-	if err = r.Context.Db.
+	db := r.Context.Db.
 		Table(m.TableName()).
-		Where(condition).
+		Where(condition)
+	var orderString string
+	for _, item := range orderBy {
+		orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+	}
+	if orderString != "" {
+		db = db.Order(orderString)
+	}
+	if limit > 0 {
+		db = db.Limit(limit)
+	}
+	if err = db.
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err,
 		}, "daoPermitGetByCondition")
+		return
 	}
 	return
 }
@@ -777,7 +809,7 @@ func (r *DaoPermit) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.A
 
 func (r *DaoPermit) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int, dba *gorm.DB, err error) {
 	var m models.AdminGroup
-	dba = r.Context.Db.Table(m.TableName())
+	dba = r.Context.Db.Table(m.TableName()).Unscoped().Where("deleted_at IS NULL")
 	if arg.Name != "" {
 		dba = dba.Where("name LIKE ?", "%"+arg.Name+"%")
 	}
