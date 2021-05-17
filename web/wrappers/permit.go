@@ -27,6 +27,11 @@ const (
 	DefaultPermitModule   = "platform"
 )
 
+type AdminGroup struct {
+	models.AdminGroup
+	ParentName string `json:"parent_name"`
+}
+
 type ArgAdminMenuWithCheck struct {
 	ArgAdminMenu
 	GroupId int `json:"group_id" form:"group_id"`
@@ -51,6 +56,7 @@ type ArgAdminSetPermit struct {
 	PermitIdString string `json:"permit_ids" form:"permit_ids"`
 	PermitIds      []int  `json:"-" form:"-"`
 	Act            string `json:"act" form:"act"`
+	Module         string `json:"-"`
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {

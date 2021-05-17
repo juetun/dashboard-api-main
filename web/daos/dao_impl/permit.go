@@ -263,19 +263,25 @@ func (r *DaoPermit) DeleteByMenuIds(pageMenuIds []string) (err error) {
 	}
 	return
 }
-func (r *DaoPermit) DeleteGroupPermitByMenuIds(groupId int, pageMenuId, apiMenuId []int) (err error) {
+func (r *DaoPermit) DeleteGroupPermitByMenuIds(groupId int, module string, pageMenuId, apiMenuId []int) (err error) {
 	if len(apiMenuId) == 0 && len(pageMenuId) == 0 {
 		return
 	}
 	var m models.AdminUserGroupPermit
 	db := r.Context.Db.Table(m.TableName()).
-		Where("group_id =?", groupId)
+		Where("group_id =? AND module=?", groupId, module)
 
 	if len(apiMenuId) > 0 {
-		db = db.Where("menu_id IN (?) AND path_type=?", apiMenuId, models.PathTypeApi)
-		if len(pageMenuId) > 0 {
-			db = db.Or("menu_id IN (?) AND path_type=?", pageMenuId, models.PathTypePage)
+		parameters := []interface{}{
+			apiMenuId,
+			models.PathTypeApi,
 		}
+		sql := "(menu_id IN (?) AND path_type=?)"
+		if len(pageMenuId) > 0 {
+			parameters = append(parameters, []interface{}{pageMenuId, models.PathTypePage}...)
+			sql += " OR (menu_id IN (?) AND path_type=?)"
+		}
+		db = db.Where(sql, parameters...)
 	} else {
 		if len(pageMenuId) > 0 {
 			db = db.Where("menu_id IN (?) AND path_type=?", pageMenuId, models.PathTypePage)
@@ -312,7 +318,7 @@ func (r *DaoPermit) GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.A
 	}
 	return
 }
-func (r *DaoPermit) GetDefaultImportByMenuIds(pageType string, menuId ...int) (res []models.AdminImport, err error) {
+func (r *DaoPermit) GetDefaultImportByMenuIds(pageType, module string, menuId ...int) (res []models.AdminImport, err error) {
 	res = []models.AdminImport{}
 	if len(menuId) == 0 {
 		return
@@ -692,7 +698,8 @@ func (r *DaoPermit) Add(data *models.AdminMenu) (err error) {
 }
 func (r *DaoPermit) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int, dba *gorm.DB, err error) {
 	var m models.AdminUser
-	dba = r.Context.Db.Table(m.TableName())
+	dba = r.Context.Db.Table(m.TableName()).Unscoped().
+		Where("deleted_at IS NULL")
 	if arg.Name != "" {
 		dba = dba.Where("real_name LIKE ?", "%"+arg.Name+"%")
 	}
@@ -720,22 +727,41 @@ func (r *DaoPermit) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pa
 	return
 }
 
-func (r *DaoPermit) GetMenu(menuId int) (res models.AdminMenu, err error) {
+func (r *DaoPermit) GetMenuByCondition(condition map[string]interface{}) (res []models.AdminMenu, err error) {
+	if len(condition) == 0 {
+		return
+	}
 	var m models.AdminMenu
-	var l []models.AdminMenu
 	if err = r.Context.Db.Table(m.TableName()).
-		Where("id = ?", menuId).
-		Limit(1).
-		Find(&l).
+		Where(condition).
+		Limit(1000).
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err,
+		}, "GetMenuByCondition")
+		return
+	}
+	return
+}
+func (r *DaoPermit) GetMenu(menuId ...int) (res []models.AdminMenu, err error) {
+	var m models.AdminMenu
+	l := len(menuId)
+	res = make([]models.AdminMenu, 0, l)
+	if l == 0 {
+		return
+	}
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?)", menuId).
+		Limit(len(menuId)).
+		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"menuId": menuId,
 			"err":    err,
 		}, "daoPermitGetMenu")
 		return
-	}
-	if len(l) > 0 {
-		res = l[0]
 	}
 	return
 }
@@ -882,7 +908,7 @@ func (r *DaoPermit) GetPermitMenuByIds(module []string, menuIds ...int) (res []m
 	}
 	return
 }
-func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
+func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error) {
 	if len(groupIds) == 0 {
 		return
 	}
@@ -890,7 +916,7 @@ func (r *DaoPermit) GetMenuIdsByPermitByGroupIds(pathType []string, groupIds ...
 	if err = r.Context.Db.
 		Table(m.TableName()).
 		Select("distinct `menu_id`,`group_id`,`id`").
-		Where("path_type IN(?)  AND `group_id` in(?) ", pathType, groupIds).
+		Where("module = ? AND path_type IN(?)  AND `group_id` in(?) ", module, pathType, groupIds).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{

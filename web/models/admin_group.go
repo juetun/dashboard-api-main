@@ -27,6 +27,7 @@ type AdminGroup struct {
 	GroupCode          string          `json:"group_code" gorm:"column:group_code"`
 	LastChildGroupCode string          `json:"last_child_group_code" gorm:"column:last_child_group_code"`
 	IsSuperAdmin       uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`
+	IsAdminGroup       uint8           `json:"is_admin_group" gorm:"column:is_admin_group"`
 	CreatedAt          base.TimeNormal `json:"created_at" gorm:"column:created_at" `
 	UpdatedAt          base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
 	DeletedAt          *time.Time      `json:"-" gorm:"column:deleted_at" `
