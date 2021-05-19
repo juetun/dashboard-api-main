@@ -472,13 +472,12 @@ func (r *PermitService) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithCheck) 
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
 	}
-
+	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	var mapPermitMenu map[int]int
 	if mapPermitMenu, err = r.getGroupPermitMenu(dao, arg.Module, arg.GroupId); err != nil {
 		return
 	}
 
-	arg.SystemId = r.permitTab(list, &res.Menu, arg.SystemId)
 	r.orgTree(list, arg.SystemId, &res.List, mapPermitMenu)
 
 	return
@@ -526,12 +525,12 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 	}
 	var list []models.AdminMenu
 	list, err = dao.GetAdminMenuList(arg)
-	arg.SystemId = r.permitTab(list, &res.Menu, arg.SystemId)
+	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	r.orgTree(list, arg.SystemId, &res.List, nil)
 	return
 }
-func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.ResultSystemAdminMenu, systemId int) (sid int) {
-
+func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.ResultSystemAdminMenu, systemId int, moduleSrc string) (sid int, module string) {
+	module = moduleSrc
 	var data wrappers.ResultSystemAdminMenu
 	var ind int
 	for _, item := range list {
@@ -549,13 +548,20 @@ func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.Resu
 		if systemId == 0 && ind == 0 {
 			data.Active = true
 			systemId = item.Id
+			if moduleSrc == "" {
+				module = item.PermitKey
+			}
 		} else if systemId > 0 && item.Id == systemId {
 			data.Active = true
+			if moduleSrc == "" {
+				module = item.PermitKey
+			}
 		}
 		*menu = append(*menu, data)
 		ind++
 	}
 	sid = systemId
+
 	return
 }
 
@@ -638,6 +644,9 @@ func (r *PermitService) isHomePage(dao *dao_impl.DaoPermit, permitIds []int) (re
 		return
 	}
 	for _, it := range li {
+		if module == "" {
+			module = it.Module
+		}
 		if it.Label == "首页" {
 			res = true
 			module = it.Module
@@ -668,14 +677,30 @@ func (r *PermitService) orgNeedMenu(dao *dao_impl.DaoPermit, arg *wrappers.ArgAd
 	// 判断是否为系统首页，如果是首页，则自动绑定公共接口隐藏界面
 	if isHomePage, homePageId, arg.Module, err = r.isHomePage(dao, arg.PermitIds); err != nil {
 		return
-	} else if isHomePage {
-		if permitIds, err = r.commonImport(dao, arg.Module); err != nil {
-			return
-		}
+	}
+	if permitIds, err = r.commonImport(dao, arg.Module); err != nil {
+		return
+	}
+	if isHomePage { // 如果设置的有首页权限，则有公共权限
 		arg.PermitIds = append(arg.PermitIds, permitIds...)
-		permitIds = append(permitIds, homePageId)
+		return
 	}
 
+	if homePageId == 0 {
+		return
+	}
+	// 如果没有首页设置，则删除公共接口隐藏界面（隐藏界面只是用于存储公共接口权限使用，实际界面不存在）
+	permitIds = append(permitIds, homePageId)
+	return
+}
+func (r *PermitService) deleteGroupPermitByGroupId(dao *dao_impl.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
+	if len(arg.PermitIds) > 0 {
+		return
+	}
+	// 没有权限ID，则说明清除所有的权限
+	if err = dao.DeleteGroupPermitByGroupId(arg.GroupId); err != nil {
+		return
+	}
 	return
 }
 func (r *PermitService) setMenuPermit(dao *dao_impl.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
@@ -684,6 +709,11 @@ func (r *PermitService) setMenuPermit(dao *dao_impl.DaoPermit, arg *wrappers.Arg
 		notPermitId []int
 		permitIds   []int
 	)
+
+	// permitId 为空处理逻辑
+	if err = r.deleteGroupPermitByGroupId(dao, arg); err != nil {
+		return
+	}
 
 	if permitIds, err = r.orgNeedMenu(dao, arg); err != nil {
 		return
@@ -768,6 +798,9 @@ func (r *PermitService) setApiPermitOld(dao *dao_impl.DaoPermit, arg *wrappers.A
 }
 
 func (r *PermitService) deleteNotMenuPermitId(dao *dao_impl.DaoPermit, notPermitId []int, args *wrappers.ArgAdminSetPermit) (err error) {
+	if len(notPermitId) == 0 {
+		return
+	}
 	var listImport []models.AdminImport
 
 	// notPermitId = append(notPermitId, args.PermitIds...)
@@ -808,7 +841,11 @@ func (r *PermitService) deleteNotApiPermitId(dao *dao_impl.DaoPermit, notPermitI
 	return
 }
 func (r *PermitService) addNewMenuPermit(dao *dao_impl.DaoPermit, newPermit []int, arg *wrappers.ArgAdminSetPermit) (err error) {
-	list := make([]models.AdminUserGroupPermit, 0, len(newPermit))
+	l := len(newPermit)
+	if l == 0 {
+		return
+	}
+	list := make([]models.AdminUserGroupPermit, 0, l)
 
 	var dt models.AdminUserGroupPermit
 	var t = time.Now()

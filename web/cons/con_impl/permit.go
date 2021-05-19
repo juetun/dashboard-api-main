@@ -422,7 +422,8 @@ func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
 	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
-	} else if err = arg.Default(c); err != nil {
+	}
+	if err = arg.Default(c); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}

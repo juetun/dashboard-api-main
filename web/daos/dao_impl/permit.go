@@ -263,6 +263,23 @@ func (r *DaoPermit) DeleteByMenuIds(pageMenuIds []string) (err error) {
 	}
 	return
 }
+func (r *DaoPermit) DeleteGroupPermitByGroupId(groupId int) (err error) {
+	if groupId == 0 {
+		return
+	}
+	var m models.AdminUserGroupPermit
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("group_id=?", groupId).
+		Delete(&models.AdminUserGroupPermit{}).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"groupId": groupId,
+			"err":     err,
+		}, "daoPermitDeleteGroupPermitByGroupId")
+	}
+	return
+}
+
 func (r *DaoPermit) DeleteGroupPermitByMenuIds(groupId int, module string, pageMenuId, apiMenuId []int) (err error) {
 	if len(apiMenuId) == 0 && len(pageMenuId) == 0 {
 		return
