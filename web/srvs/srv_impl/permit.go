@@ -442,19 +442,21 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 
 	}
 	t := time.Now()
-	err = dao.Save(arg.Id, &models.AdminMenu{
+	var m = models.AdminMenu{
 		Module:             arg.Module,
 		PermitKey:          arg.PermitKey,
 		ParentId:           arg.ParentId,
 		Label:              arg.Label,
 		Icon:               arg.Icon,
 		HideInMenu:         arg.HideInMenu,
+		Domain:             arg.Domain,
 		ManageImportPermit: arg.ManageImportPermit,
 		UrlPath:            arg.UrlPath,
 		SortValue:          arg.SortValue,
 		OtherValue:         arg.OtherValue,
 		UpdatedAt:          t,
-	})
+	}
+	err = dao.Save(arg.Id, m.ToMapStringInterface())
 	res.Result = true
 	return
 }
@@ -519,7 +521,6 @@ func (r *PermitService) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.Res
 		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
-
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
 	}
@@ -544,6 +545,7 @@ func (r *PermitService) permitTab(list []models.AdminMenu, menu *[]wrappers.Resu
 			Icon:      item.Icon,
 			SortValue: item.SortValue,
 			Module:    item.Module,
+			Domain:    item.Domain,
 		}
 		if systemId == 0 && ind == 0 {
 			data.Active = true
@@ -592,6 +594,7 @@ func (r *PermitService) orgAdminMenuObject(value *models.AdminMenu, mapPermitMen
 		SortValue:          value.SortValue,
 		Module:             value.Module,
 		PermitKey:          value.PermitKey,
+		Domain:             value.Domain,
 		ManageImportPermit: value.ManageImportPermit,
 	}
 	if value.OtherValue != "" {
@@ -847,23 +850,26 @@ func (r *PermitService) addNewMenuPermit(dao *dao_impl.DaoPermit, newPermit []in
 	}
 	list := make([]models.AdminUserGroupPermit, 0, l)
 
-	var dt models.AdminUserGroupPermit
-	var t = time.Now()
-	var listImport []models.AdminImport
+	var (
+		dt         models.AdminUserGroupPermit
+		t          = time.Now()
+		listImport []models.AdminImport
+	)
+
 	if listImport, err = dao.GetDefaultOpenImportByMenuIds(newPermit...); err != nil {
 		return
-	} else {
-		for _, importData := range listImport {
-			dt = models.AdminUserGroupPermit{
-				Module:    arg.Module,
-				GroupId:   arg.GroupId,
-				MenuId:    importData.Id,
-				PathType:  models.PathTypeApi,
-				CreatedAt: t,
-				UpdatedAt: t,
-			}
-			list = append(list, dt)
+	}
+
+	for _, importData := range listImport {
+		dt = models.AdminUserGroupPermit{
+			Module:    arg.Module,
+			GroupId:   arg.GroupId,
+			MenuId:    importData.Id,
+			PathType:  models.PathTypeApi,
+			CreatedAt: t,
+			UpdatedAt: t,
 		}
+		list = append(list, dt)
 	}
 
 	for _, pid := range newPermit {
@@ -917,7 +923,7 @@ func (r *PermitService) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.R
 	var db *gorm.DB
 	dao := dao_impl.NewDaoPermit(r.Context)
 	// 获取分页数据
-	res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
+	if err = res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
 		pagerObject.TotalCount, db, err = dao.GetAdminGroupCount(db, arg)
 		return
 	}, func(pagerObject *response.Pager) (err error) {
@@ -925,7 +931,9 @@ func (r *PermitService) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.R
 		list, err = dao.GetAdminGroupList(db, arg, pagerObject)
 		pagerObject.List, err = r.orgGroupList(dao, list)
 		return
-	})
+	}); err != nil {
+		return
+	}
 	return
 }
 
@@ -1066,7 +1074,8 @@ func (r *PermitService) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultP
 	var menuIds []int
 	if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, groupIds...); err != nil { // 普通管理员
 		return
-	} else if err = r.getGroupMenu(dao, isSuperAdmin, arg, res, menuIds...); err != nil {
+	}
+	if err = r.getGroupMenu(dao, isSuperAdmin, arg, res, menuIds...); err != nil {
 		return
 	}
 	return
@@ -1211,6 +1220,7 @@ func (r *PermitService) groupPermit(list []models.AdminMenu) (
 				Icon:      item.Icon,
 				SortValue: item.SortValue,
 				Module:    item.Module,
+				Domain:    item.Domain,
 			})
 			continue
 		}

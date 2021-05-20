@@ -320,6 +320,16 @@ func (r *ArgMenuSave) Default() (err error) {
 	if r.PermitKey == DefaultPermitModule {
 		err = fmt.Errorf("permit_key不能设置为%s", DefaultPermitModule)
 	}
+	if r.Domain != "" {
+		if strings.TrimPrefix(r.Domain, "https") != r.Domain || strings.TrimPrefix(r.Domain, "https") != r.Domain {
+			if strings.TrimSuffix(r.Domain, "/") != r.Domain {
+				err = fmt.Errorf("domain格式不正确")
+				return
+			}
+			return
+		}
+		err = fmt.Errorf("domain格式不正确")
+	}
 	return
 }
 
@@ -352,7 +362,7 @@ type ArgAdminGroup struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
 	Name    string `json:"name" form:"name"`
-	GroupId int    `json:"group_id" form:"group_id"`
+	GroupId string `json:"group_id" form:"group_id"`
 }
 
 func (r *ArgAdminGroup) Default() {
@@ -406,6 +416,7 @@ type ResultAdminMenuSingle struct {
 	PathType           string `json:"path_type"`
 	SortValue          int    `json:"sort_value"`
 	Module             string `json:"module"`
+	Domain             string `json:"domain"`
 	PermitKey          string `json:"permit_key"`
 	ManageImportPermit uint8  `json:"manage_import_permit"`
 	ResultAdminMenuOtherValue
@@ -417,12 +428,13 @@ type ResultAdminMenu struct {
 }
 type ResultSystemAdminMenu struct {
 	Id                 int    `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey          string `json:"permit_key" gorm:"permit_key"`
+	PermitKey          string `json:"permit_key" gorm:"column:permit_key"`
 	ManageImportPermit uint8  `json:"manage_import_permit" gorm:"column:manage_import_permit" form:"manage_import_permit"`
-	Label              string `json:"label" gorm:"label" form:"label"`
-	Icon               string `json:"icon" gorm:"icon" form:"icon"`
-	SortValue          int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
-	Module             string `json:"module" gorm:"module" form:"module"`
+	Label              string `json:"label" gorm:"column:label" form:"label"`
+	Icon               string `json:"icon" gorm:"column:icon" form:"icon"`
+	SortValue          int    `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
+	Module             string `json:"module" gorm:"column:module" form:"module"`
+	Domain             string `json:"domain" gorm:"column:domain" form:"domain"`
 	Active             bool   `json:"active"`
 }
 type ArgAdminUser struct {
@@ -478,11 +490,12 @@ type ResultPermitMenuReturn struct {
 
 type ResultSystemMenu struct {
 	Id        int    `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey string `json:"permit_key" gorm:"permit_key"`
-	Label     string `json:"label" gorm:"label" form:"label"`
-	Icon      string `json:"icon" gorm:"icon" form:"icon"`
-	SortValue int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
-	Module    string `json:"module" gorm:"module" form:"module"`
+	PermitKey string `json:"permit_key" gorm:"column:permit_key"`
+	Label     string `json:"label" gorm:"column:label" form:"label"`
+	Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
+	SortValue int    `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
+	Module    string `json:"module" gorm:"column:module" form:"module"`
+	Domain    string `json:"domain" gorm:"column:domain" form:"domain"`
 	Active    bool   `json:"active"`
 }
 type ResultPermitMenu struct {

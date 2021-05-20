@@ -632,14 +632,12 @@ func (r *DaoPermit) UpdateMenuByCondition(condition, data map[string]interface{}
 	}
 	return
 }
-func (r *DaoPermit) Save(id int, data *models.AdminMenu) (err error) {
+func (r *DaoPermit) Save(id int, data map[string]interface{}) (err error) {
 	if id == 0 {
 		return
 	}
-	var m models.AdminMenu
-
 	if err = r.Context.Db.
-		Table(m.TableName()).
+		Model(&models.AdminMenu{}).
 		Where("id=?", id).
 		Update(data).
 		Error; err != nil {
@@ -856,8 +854,16 @@ func (r *DaoPermit) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup)
 	if arg.Name != "" {
 		dba = dba.Where("name LIKE ?", "%"+arg.Name+"%")
 	}
-	if arg.GroupId != 0 {
-		dba = dba.Where("id=?", arg.GroupId)
+	if arg.GroupId != "" {
+		// 如果参数不是整数，则直接返回没有数据
+		if groupId, err1 := strconv.Atoi(arg.GroupId); err1 != nil {
+			total = 0
+			err = fmt.Errorf("您选择的ID格式不正确")
+			return
+		} else {
+			dba = dba.Where("id = ?", groupId)
+		}
+
 	}
 	if err = dba.Count(&total).Error; err != nil {
 		r.Context.Error(map[string]interface{}{

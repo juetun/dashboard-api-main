@@ -28,6 +28,7 @@ type AdminImport struct {
 	SortValue     int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
 	RequestMethod string     `json:"request_method" gorm :"column:request_method" form:"request_method"`
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
+	NeedLogin     uint8      `json:"need_login" gorm:"column:need_login" form:"need_login"`
 	CreatedAt     time.Time  `json:"-" gorm :"column:created_at" `
 	UpdatedAt     time.Time  `json:"-" gorm :"column:updated_at" `
 	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
