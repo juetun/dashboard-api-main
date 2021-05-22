@@ -235,7 +235,7 @@ func (r *PermitService) addSystemDefaultMenu(dao *dao_impl.DaoPermit, data *mode
 		ManageImportPermit: 1,
 		HideInMenu:         0,
 		UrlPath:            "",
-		SortValue:          0,
+		SortValue:          90000001,
 		OtherValue:         "",
 		CreatedAt:          data.CreatedAt,
 		UpdatedAt:          data.UpdatedAt,
@@ -250,7 +250,7 @@ func (r *PermitService) addSystemDefaultMenu(dao *dao_impl.DaoPermit, data *mode
 		ManageImportPermit: 1,
 		HideInMenu:         1,
 		UrlPath:            "",
-		SortValue:          0,
+		SortValue:          90000000,
 		OtherValue:         "",
 		CreatedAt:          data.CreatedAt,
 		UpdatedAt:          data.UpdatedAt,
@@ -356,7 +356,9 @@ func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.R
 	return
 }
 func (r *PermitService) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
-	res = &wrappers.ResultGetImport{Pager: base.Pager{ReqPager: arg.ReqPager, List: []models.AdminImport{}, TotalCount: 0,},}
+	res = &wrappers.ResultGetImport{
+		Pager: response.NewPager(response.PagerBaseQuery(arg.BaseQuery)),
+		}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB
 	if db, err = dao.GetImportCount(arg, &res.TotalCount); err != nil {

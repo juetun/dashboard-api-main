@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/cons_outernet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
@@ -29,19 +30,29 @@ func NewControllerLink() cons_outernet.Console {
 
 func (r *ControllerLink) Index(c *gin.Context) {
 
-	pager := base.NewPager()
-	limit, offset := pager.InitPageBy(c, "GET")
+	pager := response.NewPager()
+	var err error
 
-	srv := srv_impl.NewLinkService(base.CreateContext(&r.ControllerBase, c))
-	links, cnt, err := srv.LinkList(offset, limit)
+	if pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo))); err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
 	if err != nil {
-		r.Log.Logger.Errorln("message", "console.Link.Index", "err", err.Error())
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.DefaultPage()
+	srv := srv_impl.NewLinkService(base.CreateContext(&r.ControllerBase, c))
+	links, cnt, err := srv.LinkList(pager.GetOffset(), pager.PageSize)
+	if err != nil {
+		r.Log.Logger.Errorln("message", "console.Link.Index2", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	data := make(map[string]interface{})
 	data["list"] = links
-	data["page"] = utils.MyPaginate(cnt, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(cnt, pager.PageSize, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }

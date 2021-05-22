@@ -13,4 +13,5 @@ import (
 
 type ConService interface {
 	List(c *gin.Context)
+	Edit(c *gin.Context)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/cons_outernet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
@@ -22,12 +23,23 @@ func NewControllerTag() cons_outernet.Console {
 }
 
 func (r *ControllerTag) Index(c *gin.Context) {
-
-	pager := base.NewPager()
-	limit, offset := pager.InitPageBy(c, "GET")
+	pager := response.NewPager()
+	var err error
+	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.DefaultPage()
+	offset := pager.GetOffset()
 
 	srv := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
-	count, tags, err := srv.TagsIndex(limit, offset)
+	count, tags, err := srv.TagsIndex(pager.PageSize, offset)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Tag.Index", "err", err.Error())
 		r.Response(c, 402000001, nil, err.Error())
@@ -36,7 +48,7 @@ func (r *ControllerTag) Index(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = tags
-	data["page"] = utils.MyPaginate(count, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(count, pager.PageSize, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return

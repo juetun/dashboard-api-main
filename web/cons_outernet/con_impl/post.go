@@ -14,6 +14,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/cons_outernet"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -32,13 +33,25 @@ func NewControllerPost() cons_outernet.Console {
 }
 
 func (r *ControllerPost) Index(c *gin.Context) {
-	pager := base.NewPager()
-	limit, offset := pager.InitPageBy(c, "GET")
+	pager := response.NewPager()
+	var err error
+	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.DefaultPage()
+	offset := pager.GetOffset()
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
-	dba, postCount, err := srv.ConsolePostCount(limit, offset, false)
+	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, false)
 	postList := &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
-		postList, err = srv.ConsolePostIndex(dba, limit, offset, false)
+		postList, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, false)
 		if err != nil {
 			r.Response(c, 500000000, nil)
 			return
@@ -46,7 +59,7 @@ func (r *ControllerPost) Index(c *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }
@@ -209,12 +222,24 @@ func (r *ControllerPost) Destroy(c *gin.Context) {
 
 func (r *ControllerPost) TrashIndex(c *gin.Context) {
 
-	pager := base.NewPager()
-	limit, offset := pager.InitPageBy(c, "GET")
+	pager := response.NewPager()
+	var err error
+	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	pager.DefaultPage()
+	offset := pager.GetOffset()
 
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	var dba *gorm.DB
-	dba, postCount, err := srv.ConsolePostCount(limit, offset, true)
+	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, true)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
 		r.Response(c, 500000000, nil)
@@ -222,7 +247,7 @@ func (r *ControllerPost) TrashIndex(c *gin.Context) {
 	}
 	var postList = &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
-		postList, err = srv.ConsolePostIndex(dba, limit, offset, true)
+		postList, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, true)
 		if err != nil {
 			r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
 			r.Response(c, 500000000, nil)
@@ -232,7 +257,7 @@ func (r *ControllerPost) TrashIndex(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = utils.MyPaginate(postCount, limit, pager.PageNo)
+	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return

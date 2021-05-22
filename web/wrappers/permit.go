@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
-	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/pkg/utils"
 
@@ -157,7 +156,7 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
-	base.ReqPager
+	response.BaseQuery
 	MenuId  int  `json:"menu_id" form:"menu_id"`
 	Checked bool `json:"checked" form:"checked"` // 是否要查看选中权限情况
 	GroupId int  `json:"group_id" form:"group_id"`
@@ -169,11 +168,11 @@ type AdminImport struct {
 
 func (r *ArgGetImport) Default(c *gin.Context) {
 	r.JwtUserMessage = GetUser(c)
-	r.ReqPager.DefaultPager()
+	r.BaseQuery.DefaultPage()
 }
 
 type ResultGetImport struct {
-	base.Pager
+	*response.Pager
 }
 type ArgAdminMenuSearch struct {
 	app_obj.JwtUserMessage

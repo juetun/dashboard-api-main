@@ -410,7 +410,7 @@ func (r *DaoPermit) GetSelectImportByImportId(groupId int, importId ...int) (res
 	return
 }
 func (r *DaoPermit) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
-	err = db.Offset(arg.GetOffset()).
+	err = db.Offset(arg.BaseQuery).
 		Limit(arg.PageSize).
 		Find(&res).Error
 	if err != nil {
