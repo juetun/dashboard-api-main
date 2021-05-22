@@ -116,6 +116,8 @@ type ArgEditImport struct {
 	Id            int      `json:"id" form:"id"`
 	MenuId        int      `json:"menu_id" form:"menu_id"`
 	SortValue     int      `json:"sort_value" form:"sort_value"`
+	NeedLogin     uint8    `json:"need_login" form:"need_login"`
+	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
 	UrlPath       string   `json:"url_path" form:"url_path"`
 	RequestMethod []string `json:"request_method" form:"request_method"`
 	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
@@ -158,6 +160,7 @@ type ArgGetImport struct {
 	base.ReqPager
 	MenuId  int  `json:"menu_id" form:"menu_id"`
 	Checked bool `json:"checked" form:"checked"` // 是否要查看选中权限情况
+	GroupId int  `json:"group_id" form:"group_id"`
 }
 type AdminImport struct {
 	models.AdminImport
@@ -453,7 +456,9 @@ type ResultAdminUser struct {
 }
 type AdminUserGroupName struct {
 	models.AdminUserGroup
-	GroupName string `json:"group_name"`
+	GroupName    string `json:"group_name"`
+	IsSuperAdmin uint8  `json:"is_super_admin"`
+	IsAdminGroup uint8  `json:"is_admin_group"`
 }
 type ResultAdminUserList struct {
 	models.AdminUser

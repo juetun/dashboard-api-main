@@ -305,9 +305,11 @@ func (r *PermitService) editImportParam(arg *wrappers.ArgEditImport, value *mode
 }
 func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
 	res = &wrappers.ResultEditImport{Result: false}
-	dao := dao_impl.NewDaoPermit(r.Context)
+	var (
+		dao        = dao_impl.NewDaoPermit(r.Context)
+		listImport []models.AdminImport
+	)
 
-	var listImport []models.AdminImport
 	if listImport, err = dao.GetImportMenuId(arg.MenuId); err != nil {
 		return
 	}
@@ -324,23 +326,27 @@ func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.R
 		`request_method`: strings.Join(arg.RequestMethod, ","),
 		`sort_value`:     arg.SortValue,
 		`updated_at`:     arg.RequestTime,
+		"need_login":     arg.NeedLogin,
+		"need_sign":      arg.NeedSign,
 	}
 	if arg.Id == 0 { // 如果是添加接口
 		res.Result, err = r.createImport(dao, arg)
 		return
-	} else {
-		var m = models.AdminImport{Id: arg.Id}
-		var dt []models.AdminImport
-		if dt, err = dao.GetAdminImportById(arg.Id); err != nil {
-			return
-		}
-		if len(dt) == 0 {
-			err = fmt.Errorf("您编辑的接口信息不存在或已删除")
-			return
-		}
-		if dt[0].PermitKey == "" {
-			data["permit_key"] = m.GetPathName()
-		}
+	}
+
+	var m = models.AdminImport{Id: arg.Id}
+	var dt []models.AdminImport
+	if dt, err = dao.GetAdminImportById(arg.Id); err != nil {
+		return
+	}
+
+	if len(dt) == 0 {
+		err = fmt.Errorf("您编辑的接口信息不存在或已删除")
+		return
+	}
+
+	if dt[0].PermitKey == "" {
+		data["permit_key"] = m.GetPathName()
 	}
 
 	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, data); err != nil {
@@ -356,17 +362,18 @@ func (r *PermitService) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.Res
 	if db, err = dao.GetImportCount(arg, &res.TotalCount); err != nil {
 		return
 	}
-	if res.TotalCount > 0 {
-		var list []models.AdminImport
-		if list, err = dao.GetImportList(db, arg); err != nil {
-			return
-		}
-		if !arg.Checked {
-			res.List = list
-			return
-		}
-		res.List, err = r.joinChecked(dao, arg, list)
+	if res.TotalCount == 0 {
+		return
 	}
+	var list []models.AdminImport
+	if list, err = dao.GetImportList(db, arg); err != nil {
+		return
+	}
+	if !arg.Checked {
+		res.List = list
+		return
+	}
+	res.List, err = r.joinChecked(dao, arg, list)
 
 	// []models.AdminImport{}
 	return
@@ -379,7 +386,7 @@ func (r *PermitService) joinChecked(dao *dao_impl.DaoPermit, arg *wrappers.ArgGe
 		importId = append(importId, value.Id)
 	}
 	var li []models.AdminUserGroupPermit
-	if li, err = dao.GetSelectImportByImportId(importId...); err != nil {
+	if li, err = dao.GetSelectImportByImportId(arg.GroupId, importId...); err != nil {
 		return
 	}
 	var m = make(map[int]int, len(li))
@@ -1014,9 +1021,9 @@ func (r *PermitService) getUserGroup(list []models.AdminUser, dao *dao_impl.DaoP
 		return
 	}
 
-	groupMap := make(map[int]string, len(groupList))
+	groupMap := make(map[int]models.AdminGroup, len(groupList))
 	for _, value := range groupList {
-		groupMap[value.Id] = value.Name
+		groupMap[value.Id] = value
 	}
 
 	for _, item := range listResult {
@@ -1024,7 +1031,9 @@ func (r *PermitService) getUserGroup(list []models.AdminUser, dao *dao_impl.DaoP
 			AdminUserGroup: item,
 		}
 		if _, ok := groupMap[item.GroupId]; ok {
-			tmp.GroupName = groupMap[item.GroupId]
+			tmp.GroupName = groupMap[item.GroupId].Name
+			tmp.IsSuperAdmin = groupMap[item.GroupId].IsSuperAdmin
+			tmp.IsAdminGroup = groupMap[item.GroupId].IsAdminGroup
 		}
 		res[item.UserHid] = append(res[item.UserHid], tmp)
 	}
@@ -1044,6 +1053,7 @@ func (r *PermitService) leftAdminUser(list []models.AdminUser, dao *dao_impl.Dao
 		}
 		if _, ok := mapGroupPermit[item.UserHid]; ok {
 			tmp.Group = mapGroupPermit[item.UserHid]
+
 		}
 		res = append(res, tmp)
 	}

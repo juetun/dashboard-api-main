@@ -392,13 +392,13 @@ func (r *DaoPermit) GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *
 	}
 	return
 }
-func (r *DaoPermit) GetSelectImportByImportId(importId ...int) (res []models.AdminUserGroupPermit, err error) {
+func (r *DaoPermit) GetSelectImportByImportId(groupId int, importId ...int) (res []models.AdminUserGroupPermit, err error) {
 	if len(importId) == 0 {
 		return
 	}
 	var m models.AdminUserGroupPermit
 	if err = r.Context.Db.Table(m.TableName()).
-		Where("menu_id IN(?) AND path_type=?", importId, models.PathTypeApi).
+		Where("menu_id IN(?) AND path_type=? AND group_id=?", importId, models.PathTypeApi, groupId).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{

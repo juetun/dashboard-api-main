@@ -29,6 +29,7 @@ type AdminImport struct {
 	RequestMethod string     `json:"request_method" gorm :"column:request_method" form:"request_method"`
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	NeedLogin     uint8      `json:"need_login" gorm:"column:need_login" form:"need_login"`
+	NeedSign      uint8      `json:"need_sign" gorm:"column:need_sign" form:"need_sign"`
 	CreatedAt     time.Time  `json:"-" gorm :"column:created_at" `
 	UpdatedAt     time.Time  `json:"-" gorm :"column:updated_at" `
 	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
