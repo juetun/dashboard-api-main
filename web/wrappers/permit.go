@@ -157,18 +157,24 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
-	MenuId  int  `json:"menu_id" form:"menu_id"`
-	Checked bool `json:"checked" form:"checked"` // 是否要查看选中权限情况
-	GroupId int  `json:"group_id" form:"group_id"`
+	// PageNo   int    `form:"page_no" json:"page_no,omitempty"`
+	// PageSize int    `form:"page_size" json:"page_size,omitempty"`
+	Order    string `form:"order" json:"order,omitempty"`
+	Select   string `form:"select" json:"select,omitempty"`
+	IsDel    int    `form:"is_del" json:"is_del,omitempty"`
+	MenuId   int    `json:"menu_id,omitempty" form:"menu_id"`
+	Checked  bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
+	GroupId  int    `json:"group_id,omitempty" form:"group_id"`
 }
 type AdminImport struct {
 	models.AdminImport
 	Checked bool `json:"checked"`
 }
 
-func (r *ArgGetImport) Default(c *gin.Context) {
+func (r *ArgGetImport) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
 	r.BaseQuery.DefaultPage()
+	return
 }
 
 type ResultGetImport struct {

@@ -9,6 +9,7 @@ package dao_impl
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -20,6 +21,10 @@ type DaoTag struct {
 func NewDaoTag(context ...*base.Context) (p *DaoTag) {
 	p = &DaoTag{}
 	p.SetContext(context...)
+	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+		Context:     p.Context,
+		DbNameSpace: daos.DatabaseDefault,
+	})
 	return
 }
 func (r *DaoTag) UpdateTagNumById(tagCount *wrappers.TagCount) (err error) {

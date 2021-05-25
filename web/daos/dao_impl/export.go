@@ -10,6 +10,7 @@ package dao_impl
 import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/basic/utils"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -21,6 +22,10 @@ type DaoExport struct {
 func NewDaoExport(context ...*base.Context) (p *DaoExport) {
 	p = &DaoExport{}
 	p.SetContext(context...)
+	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+		Context:     p.Context,
+		DbNameSpace: daos.DatabaseDefault,
+	})
 	return
 }
 func (r DaoExport) Update(model *models.ZExportData) (err error) {

@@ -9,6 +9,7 @@ package dao_impl
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -19,6 +20,10 @@ type DaoAppPath struct {
 func NewDaoAppPath(context ...*base.Context) (p *DaoAppPath) {
 	p = &DaoAppPath{}
 	p.SetContext(context...)
+	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+		Context:     p.Context,
+		DbNameSpace: daos.DatabaseDefault,
+	})
 	return
 }
 

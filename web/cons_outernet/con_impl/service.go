@@ -8,6 +8,12 @@
 package con_impl
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/cons_outernet"
@@ -19,14 +25,24 @@ type ConServiceImpl struct {
 	base.ControllerBase
 }
 
+func (r *ConServiceImpl) getJsonArg(c *gin.Context, data interface{}) (err error) {
+	var bt bytes.Buffer
+	var body []byte
+	if body, err = ioutil.ReadAll(c.Request.Body); err != nil {
+		return
+	}
+	bt.Write(body)
+	fmt.Println(string(body))
+	err = json.Unmarshal(body, data)
+	return
+}
 func (r *ConServiceImpl) Edit(c *gin.Context) {
 	var (
 		arg wrappers.ArgServiceEdit
-		err error
+ 		err error
 		res *wrappers.ResultServiceEdit
 	)
-	err = c.ShouldBind(&arg)
-	if err != nil {
+	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, -1, nil, err.Error())
 		return
 	}
@@ -38,6 +54,28 @@ func (r *ConServiceImpl) Edit(c *gin.Context) {
 	r.Response(c, 0, res, "success")
 }
 
+func (r *ConServiceImpl) Detail(c *gin.Context) {
+	var (
+		arg wrappers.ArgDetail
+		err error
+		res *wrappers.ResultDetail
+	)
+	err = c.ShouldBind(&arg)
+	if err != nil {
+		r.Response(c, -1, nil, err.Error())
+		return
+	}
+	if arg.Id, err = strconv.Atoi(c.Params.ByName("id")); err != nil {
+		r.Response(c, -1, nil, "参数格式不正确")
+		return
+	}
+	srv := srv_impl.NewSrvServiceImpl(base.CreateContext(&r.ControllerBase, c))
+	if res, err = srv.Detail(&arg); err != nil {
+		r.Response(c, -1, res, err.Error())
+		return
+	}
+	r.Response(c, 0, res, "success")
+}
 func (r *ConServiceImpl) List(c *gin.Context) {
 	var (
 		arg wrappers.ArgServiceList

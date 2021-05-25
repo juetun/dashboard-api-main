@@ -9,6 +9,7 @@ import (
 
 func init() {
 	app_start.HandleFuncOuterNet = append(app_start.HandleFuncOuterNet, func(r *gin.Engine, urlPrefix string) {
+
 		link := r.Group(urlPrefix + "/console")
 		consoleLink := con_impl.NewControllerLink()
 		linkV := validate.NewValidate().NewLinkV.MyValidate()

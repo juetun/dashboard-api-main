@@ -261,11 +261,14 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 	var arg wrappers.ArgGetImport
 	var err error
 
-	if err = c.Bind(&arg); err != nil {
+	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
-	arg.Default(c)
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
 
 	// 记录日志
 	if res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).

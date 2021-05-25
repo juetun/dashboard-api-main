@@ -82,6 +82,23 @@ func (r *SrvServiceImpl) Edit(arg *wrappers.ArgServiceEdit) (res *wrappers.Resul
 	return
 }
 
+func (r *SrvServiceImpl) Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDetail, err error) {
+	res = &wrappers.ResultDetail{}
+	if arg.Id == 0 {
+		return
+	}
+	dao := dao_impl.NewDaoServiceImpl(r.Context)
+	var dt []models.AdminApp
+	if dt, err = dao.GetByIds(arg.Id); err != nil {
+		return
+	}
+	if len(dt) == 0 {
+		err = fmt.Errorf("您要查看的服务信息不存在或已删除")
+		return
+	}
+	res.AdminApp = dt[0]
+	return
+}
 func (r *SrvServiceImpl) List(arg *wrappers.ArgServiceList) (res *wrappers.ResultServiceList, err error) {
 	res = &wrappers.ResultServiceList{
 		Pager: response.NewPager(),

@@ -14,4 +14,5 @@ import (
 type SrvService interface {
 	Edit(arg *wrappers.ArgServiceEdit) (res *wrappers.ResultServiceEdit, err error)
 	List(arg *wrappers.ArgServiceList) (res *wrappers.ResultServiceList, err error)
+	Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDetail, err error)
 }

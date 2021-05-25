@@ -18,6 +18,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -31,7 +32,7 @@ func NewDaoPermit(context ...*base.Context) (p *DaoPermit) {
 	p.SetContext(context...)
 	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
-		DbNameSpace: "admin",
+		DbNameSpace: daos.DatabaseAdmin,
 	})
 	return
 }
@@ -410,7 +411,7 @@ func (r *DaoPermit) GetSelectImportByImportId(groupId int, importId ...int) (res
 	return
 }
 func (r *DaoPermit) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
-	err = db.Offset(arg.BaseQuery).
+	err = db.Offset(arg.BaseQuery.GetOffset()).
 		Limit(arg.PageSize).
 		Find(&res).Error
 	if err != nil {

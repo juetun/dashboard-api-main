@@ -15,19 +15,19 @@ import (
 )
 
 type AdminApp struct {
-	Id        int    `json:"id" gorm:"column:id;primary_key" `
-	UniqueKey string `json:"unique_key" gorm:"column:unique_key"`
-	Port      int    `json:"port"  gorm:"column:port"`
-	Name      string `json:"name" gorm:"column:name"`
-	Desc      string `json:"desc" gorm:"column:desc"`
-	IsStop    uint8  `json:"is_stop" gorm:"column:is_stop"`
+	Id        int             `json:"id" gorm:"column:id;primary_key" `
+	UniqueKey string          `json:"unique_key" gorm:"column:unique_key"`
+	Port      int             `json:"port"  gorm:"column:port"`
+	Name      string          `json:"name" gorm:"column:name"`
+	Desc      string          `json:"desc" gorm:"column:desc"`
+	IsStop    int             `json:"is_stop" gorm:"column:is_stop"`
 	CreatedAt base.TimeNormal `json:"created_at" gorm:"column:created_at" `
 	UpdatedAt base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
 	DeletedAt *time.Time      `json:"-" gorm:"column:deleted_at" `
 }
 
 func (r *AdminApp) TableName() string {
-	return "admin_group"
+	return "admin_app"
 }
 
 func (r AdminApp) AfterUpdate(tx *gorm.DB) (err error) {
