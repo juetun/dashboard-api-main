@@ -62,7 +62,7 @@ func (r *CategoryService) DelCateRel(cateId int) {
 		r.Error("message", "service.DelCateRel", "err", err.Error())
 		return
 	}
-	r.Context.CacheClient.Del(common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
 	return
 }
 
@@ -108,7 +108,7 @@ func (r *CategoryService) CateStore(cs wrappers.CateStore) (res bool, err error)
 		r.Error("message", "service.CateStore", "err", err.Error())
 		return
 	}
-	r.Context.CacheClient.Del(common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
 	res = true
 	return
 }
@@ -148,7 +148,7 @@ func (r *CategoryService) CateUpdate(cateId int, cs wrappers.CateStore) (res boo
 		r.Error("message", "service.CateUpdate", "err", err.Error())
 		return false, err
 	}
-	r.Context.CacheClient.Del(common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
 	return true, nil
 }
 
@@ -316,7 +316,7 @@ func (r *CategoryService) CateListBySort() (res []wrappers.Category, err error) 
 		r.Error("message", "service.CateListBySort redis connect is err", "err", err.Error())
 		return
 	}
-	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -371,7 +371,7 @@ func (r *CategoryService) doCacheCateList(cacheKey string) ([]wrappers.Category,
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err

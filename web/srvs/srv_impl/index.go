@@ -53,7 +53,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 	}
 
 	field := ":name:" + name + ":page:" + page + ":limit:" + limit
-	cacheRes, err := r.Context.CacheClient.HGet(postKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),postKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -271,7 +271,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		}, )
 		return
 	}
-	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message":  "service.index.doCacheIndexPostList12",
@@ -299,7 +299,7 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail wrappers.In
 		)
 		return
 	}
-	cacheRes, err := r.Context.CacheClient.HGet(cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -397,7 +397,7 @@ func (r *IndexService) doCacheIndexPostDetail(postSrv *ConsolePostService, cache
 		)
 		return
 	}
-	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{
@@ -443,7 +443,7 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 	cacheKey := common.Conf.ArchivesKey
 	field := ":all:"
 
-	cacheRes, err := r.Context.CacheClient.HGet(cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -553,7 +553,7 @@ func (r *ConsolePostService) doCacheArchives(cacheKey string, field string) (arc
 		)
 		return
 	}
-	err = r.Context.CacheClient.HSet(cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{

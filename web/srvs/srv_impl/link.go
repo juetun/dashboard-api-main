@@ -88,7 +88,7 @@ func (r *LinkService) LinkCnt() (cnt int64, err error) {
 func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 
 	cacheKey := common.Conf.LinkIndexKey
-	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
 	if err == redis.Nil {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
@@ -152,7 +152,7 @@ func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, e
 		})
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
  		r.Context.Error(map[string]interface{}{
 			"message":  "service.doCacheLinkList2",

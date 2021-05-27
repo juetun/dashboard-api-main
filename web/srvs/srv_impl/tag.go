@@ -64,7 +64,7 @@ func (r *TagService) TagStore(ts wrappers.TagStore) (err error) {
 		Num:         0,
 	}
 	err = dba.Create(tagInsert).Error
-	r.Context.CacheClient.Del(common.Conf.TagListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.TagListKey)
 	return
 }
 func (r *TagService) GetPostTagsByPostIds(postIds []string) (res *map[int][]wrappers.ConsoleTag, err error) {
@@ -317,7 +317,7 @@ func (r *TagService) DelTagRel(tagId int) {
 		)
 		return
 	}
-	r.Context.CacheClient.Del(common.Conf.TagListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.TagListKey)
 	return
 }
 func (r *TagService) CommonData() (h gin.H, err error) {
@@ -405,7 +405,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 func (r *TagService) AllTags() ([]models.ZTags, error) {
 	cacheKey := common.Conf.TagListKey
-	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
 	if err == redis.Nil {
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
@@ -476,7 +476,7 @@ func (r *TagService) doCacheTagList(cacheKey string) ([]models.ZTags, error) {
 		)
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{

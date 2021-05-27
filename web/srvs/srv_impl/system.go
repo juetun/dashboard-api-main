@@ -72,7 +72,7 @@ func (r *SystemService) SystemUpdate(sId int, ss wrappers.ConsoleSystem) (err er
 
 func (r *SystemService) IndexSystem() (system *models.ZBaseSys, err error) {
 	cacheKey := common.Conf.SystemIndexKey
-	cacheRes, err := r.Context.CacheClient.Get(cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
 	if err == redis.Nil {
 		system, err := r.doCacheIndexSystem(cacheKey)
 		if err != nil {
@@ -143,7 +143,7 @@ func (r *SystemService) doCacheIndexSystem(cacheKey string) (system *models.ZBas
 		)
 		return system, err
 	}
-	err = r.Context.CacheClient.Set(cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{

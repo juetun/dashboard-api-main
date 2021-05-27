@@ -100,7 +100,7 @@ func (r *AsyncExport) UpdateProgress(progress int) {
 
 // 更新Redis进度
 func (r *AsyncExport) UpdateRedisProgressValue() {
-	r.Context.CacheClient.Set(r.model.GetCacheKey(), r.model.Progress, 86400*time.Second)
+	r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(), r.model.GetCacheKey(), r.model.Progress, 86400*time.Second)
 }
 
 // 获取生成数据完成后的动作，如：将Excel生成文件，更新导出进度等

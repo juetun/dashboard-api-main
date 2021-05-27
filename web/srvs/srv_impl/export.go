@@ -78,7 +78,7 @@ func (r *ServiceExport) Progress(args *wrappers.ArgumentsExportProgress) (res wr
 		return
 	}
 	for _, value := range *list {
-		progress, _ := r.Context.CacheClient.Get(value.GetCacheKey()).Int()
+		progress, _ := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),value.GetCacheKey()).Int()
 		if progress <= 0 {
 			res.Data[value.Hid] = value.Progress
 		} else {
