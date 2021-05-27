@@ -20,4 +20,6 @@ type DaoService interface {
 	GetByIds(id ...int) (res []models.AdminApp,err error)
 	GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int, dba *gorm.DB, err error)
 	GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page *response.Pager) (list []models.AdminApp, err error)
+
+	GetImportMenuByModule(module string)(res []wrappers.ImportMenu,err error)
 }

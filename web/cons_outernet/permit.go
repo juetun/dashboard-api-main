@@ -64,4 +64,7 @@ type Permit interface {
 
 	// 请求是否有权限
 	Flag(c *gin.Context)
+
+	// 获取应用配置
+	GetAppConfig(c *gin.Context)
 }

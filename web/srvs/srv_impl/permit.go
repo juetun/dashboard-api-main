@@ -16,6 +16,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -358,7 +359,7 @@ func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.R
 func (r *PermitService) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
 	res = &wrappers.ResultGetImport{
 		Pager: response.NewPager(response.PagerBaseQuery(arg.BaseQuery)),
-		}
+	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB
 	if db, err = dao.GetImportCount(arg, &res.TotalCount); err != nil {
@@ -1326,5 +1327,59 @@ func (r *PermitService) getUserGroupIds(arg *ArgGetUserGroupIds) (res []int, sup
 
 func (r *PermitService) Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error) {
 	res = &wrappers.ResultFlag{}
+	return
+}
+func (r *PermitService) getAppConfigList(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
+	var list []models.AdminApp
+	if list, err = dao.GetList(nil, nil, nil); err != nil {
+		return
+	}
+	err = r.orgResAppConfig(list, res, arg)
+	return
+}
+func (r *PermitService) orgResAppConfig(list []models.AdminApp, res *wrappers.ResultGetAppConfig, arg *wrappers.ArgGetAppConfig) (err error) {
+	*res = make(map[string]string, len(list))
+	for _, it := range list {
+		if err = it.UnmarshalHosts(); err != nil {
+			r.Context.Error(map[string]interface{}{
+				"err": err.Error(),
+				"it":  it,
+				"arg": arg,
+			}, "permitServiceGetAppConfigList")
+			return
+		}
+		(*res)[it.UniqueKey] = fmt.Sprintf("%s:%d", it.HostConfig[arg.Env], it.Port)
+	}
+	return
+}
+func (r *PermitService) GetAppConfig(arg *wrappers.ArgGetAppConfig) (res *wrappers.ResultGetAppConfig, err error) {
+	res = &wrappers.ResultGetAppConfig{}
+	dao := dao_impl.NewDaoServiceImpl(r.Context)
+	if arg.Module == "" {
+		err = r.getAppConfigList(dao, arg, res)
+		return
+	}
+	err = r.getAppConfigListByModule(dao, arg, res)
+	return
+}
+func (r *PermitService) getAppConfigListByModule(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
+	var (
+		importMenus []wrappers.ImportMenu
+		list        []models.AdminApp
+	)
+	if importMenus, err = dao.GetImportMenuByModule(arg.Module); err != nil {
+		return
+	}
+	uniqueKeys := make([]string, 0, len(importMenus))
+	for _, it := range importMenus {
+		uniqueKeys = append(uniqueKeys, it.AppName)
+	}
+
+	if list, err = dao.GetList(nil, &wrappers.ArgServiceList{
+		UniqueKeys: uniqueKeys,
+	}, nil); err != nil {
+		return
+	}
+	err = r.orgResAppConfig(list, res, arg)
 	return
 }

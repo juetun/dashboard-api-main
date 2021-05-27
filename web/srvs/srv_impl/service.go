@@ -27,15 +27,18 @@ type SrvServiceImpl struct {
 
 func (r *SrvServiceImpl) add(dao daos.DaoService, arg *wrappers.ArgServiceEdit) (res bool, err error) {
 	t := base.TimeNormal{Time: time.Now()}
-	if err = dao.Create(&models.AdminApp{
-		UniqueKey: arg.UniqueKey,
-		Port:      arg.Port,
-		Name:      arg.Name,
-		Desc:      arg.Desc,
-		IsStop:    arg.IsStop,
-		CreatedAt: t,
-		UpdatedAt: t,
-	}); err != nil {
+	dt := &models.AdminApp{
+		UniqueKey:  arg.UniqueKey,
+		Port:       arg.Port,
+		Name:       arg.Name,
+		HostConfig: arg.HostConfig,
+		Desc:       arg.Desc,
+		IsStop:     arg.IsStop,
+		CreatedAt:  t,
+		UpdatedAt:  t,
+	}
+	dt.MarshalHosts()
+	if err = dao.Create(dt); err != nil {
 		return
 	}
 	res = true
@@ -56,9 +59,12 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 		return
 	}
 	t := base.TimeNormal{Time: time.Now()}
+	apps[0].HostConfig = arg.HostConfig
+	apps[0].MarshalHosts()
 	data := map[string]interface{}{
 		"unique_key": arg.UniqueKey,
 		"port":       arg.Port,
+		"hosts":      apps[0].Hosts,
 		"name":       arg.Name,
 		"desc":       arg.Desc,
 		"is_stop":    arg.IsStop,
@@ -96,6 +102,7 @@ func (r *SrvServiceImpl) Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDe
 		err = fmt.Errorf("您要查看的服务信息不存在或已删除")
 		return
 	}
+	dt[0].UnmarshalHosts()
 	res.AdminApp = dt[0]
 	return
 }

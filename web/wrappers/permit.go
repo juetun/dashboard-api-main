@@ -26,6 +26,18 @@ const (
 	DefaultPermitModule   = "platform"
 )
 
+type ArgGetAppConfig struct {
+	app_obj.JwtUserMessage
+	Module string `json:"module" form:"module"`
+	Env    string `json:"env" form:"env"`
+}
+
+func (r *ArgGetAppConfig) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	return
+}
+
+type ResultGetAppConfig map[string]string
 type AdminGroup struct {
 	models.AdminGroup
 	ParentName string `json:"parent_name"`
@@ -159,12 +171,12 @@ type ArgGetImport struct {
 	response.BaseQuery
 	// PageNo   int    `form:"page_no" json:"page_no,omitempty"`
 	// PageSize int    `form:"page_size" json:"page_size,omitempty"`
-	Order    string `form:"order" json:"order,omitempty"`
-	Select   string `form:"select" json:"select,omitempty"`
-	IsDel    int    `form:"is_del" json:"is_del,omitempty"`
-	MenuId   int    `json:"menu_id,omitempty" form:"menu_id"`
-	Checked  bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
-	GroupId  int    `json:"group_id,omitempty" form:"group_id"`
+	Order   string `form:"order" json:"order,omitempty"`
+	Select  string `form:"select" json:"select,omitempty"`
+	IsDel   int    `form:"is_del" json:"is_del,omitempty"`
+	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
+	Checked bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
+	GroupId int    `json:"group_id,omitempty" form:"group_id"`
 }
 type AdminImport struct {
 	models.AdminImport

@@ -482,6 +482,31 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	}
 	r.Response(c, 0, res)
 }
+
+func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
+	var (
+		arg wrappers.ArgGetAppConfig
+		res *wrappers.ResultGetAppConfig
+		err error
+	)
+
+	if err = c.ShouldBind(&arg); err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	if err=arg.Default(c);err!=nil{
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		GetAppConfig(&arg)
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+
+}
 func (r *ControllerPermit) Flag(c *gin.Context) {
 	var arg wrappers.ArgFlag
 	err := c.Bind(&arg)

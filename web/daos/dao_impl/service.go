@@ -22,6 +22,21 @@ type DaoServiceImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoServiceImpl) GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error) {
+	var m models.AdminImport
+	var mMenu models.AdminMenu
+	if err = r.Context.Db.Table(m.TableName()).Select("DISTINCT app_name").
+		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON a.menu_id=b.id ", mMenu.TableName())).
+		Where("b.module=?  AND a.deleted_at IS NULL AND b.deleted_at IS NULL", module).Find(&res).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"module": module,
+			"err":    err.Error(),
+		}, "daoServiceImplGetImportMenuByModule")
+		return
+	}
+	return
+}
+
 func (r *DaoServiceImpl) Update(condition, data map[string]interface{}) (err error) {
 	var m models.AdminApp
 	if err = r.Context.Db.Model(&m).Where(condition).Update(data).Error; err != nil {
@@ -36,8 +51,8 @@ func (r *DaoServiceImpl) Update(condition, data map[string]interface{}) (err err
 }
 
 func (r *DaoServiceImpl) Create(app *models.AdminApp) (err error) {
-	var m models.AdminApp
-	if err = r.Context.Db.Model(&m).Create(app).Error; err != nil {
+	// var m models.AdminApp
+	if err = r.Context.Db.Create(app).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"app": app,
 			"err": err.Error(),
@@ -68,7 +83,13 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 	if db == nil {
 		db = r.Context.Db
 	}
-	dba = db.Model(&m)
+	dba = db.Model(&m).Unscoped().Where("deleted_at IS NULL")
+	if arg == nil {
+		return
+	}
+	if len(arg.UniqueKeys) > 0 {
+		dba = dba.Where("unique_key IN (?)", arg.UniqueKeys)
+	}
 	if arg.Name != "" {
 		dba = dba.Where("name LIKE ?", fmt.Sprintf("%%%s%%", arg.Name))
 	}
@@ -87,7 +108,6 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 	if arg.Desc != "" {
 		dba = dba.Where("desc LIKE ?", fmt.Sprintf("%%%s%%", arg.Desc))
 	}
-	dba = dba.Unscoped().Where("deleted_at IS NULL")
 	return
 }
 func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int, dba *gorm.DB, err error) {
@@ -106,10 +126,13 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 	if db == nil {
 		db = r.fetchGetDb(db, arg)
 	}
-	if page.Order != "" {
-		db = db.Order(page.Order)
+	if page != nil {
+		if page.Order != "" {
+			db = db.Order(page.Order)
+		}
+		db = db.Offset(page.GetOffset()).Limit(page.PageSize)
 	}
-	if err = db.Offset(page.GetOffset()).Limit(page.PageSize).Find(&list).Error; err != nil {
+	if err = db.Find(&list).Error; err != nil {
 		return
 	}
 	return

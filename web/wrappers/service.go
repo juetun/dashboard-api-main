@@ -15,6 +15,9 @@ import (
 )
 
 type (
+	ImportMenu struct {
+		AppName string `json:"app_name"`
+	}
 	ArgDetail struct {
 		app_obj.JwtUserMessage
 		Id int `json:"id"`
@@ -25,12 +28,13 @@ type (
 	ArgServiceList struct {
 		app_obj.JwtUserMessage
 		response.BaseQuery
-		Name      string `json:"name" form:"name"`
-		Id        int    `json:"id" form:"id" `
-		UniqueKey string `json:"unique_key" form:"unique_key"`
-		Port      int    `json:"port"  form:"port"`
-		Desc      string `json:"desc" form:"desc"`
-		IsStop    uint8  `json:"is_stop" form:"is_stop"`
+		Name       string   `json:"name" form:"name"`
+		Id         int      `json:"id" form:"id" `
+		UniqueKey  string   `json:"unique_key" form:"unique_key"`
+		UniqueKeys []string `json:"-" form:"-"`
+		Port       int      `json:"port"  form:"port"`
+		Desc       string   `json:"desc" form:"desc"`
+		IsStop     uint8    `json:"is_stop" form:"is_stop"`
 	}
 	ResultServiceList struct {
 		*response.Pager
@@ -47,12 +51,13 @@ type (
 	}
 	// {"id":1,"unique_key":"app-user","port":80,"name":"用户","desc":"","is_stop":1}
 	ArgServiceEdit struct {
-		Name      string `json:"name" form:"name"`
-		UniqueKey string `json:"unique_key" form:"column:unique_key"`
-		Port      int    `json:"port"  form:"column:port"`
-		Desc      string `json:"desc" form:"column:desc"`
-		IsStop    int    `json:"is_stop" form:"column:is_stop"`
-		Id        int    `json:"id" form:"id"`
+		Name       string            `json:"name" form:"name"`
+		UniqueKey  string            `json:"unique_key" form:"unique_key"`
+		HostConfig map[string]string `json:"hosts" form:"hosts"`
+		Port       int               `json:"port"  form:"port"`
+		Desc       string            `json:"desc" form:"desc"`
+		IsStop     int               `json:"is_stop" form:"is_stop"`
+		Id         int               `json:"id" form:"id"`
 	}
 
 	ResultServiceEdit struct {

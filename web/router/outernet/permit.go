@@ -29,9 +29,9 @@ func init() {
 		h.POST("/edit_admin_group", controller.AdminGroupEdit)
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 
-		h.POST("/admin_menu", controller.AdminMenu) // 菜单列表
+		h.POST("/admin_menu", controller.AdminMenu)               // 菜单列表
 		h.POST("/menu_with_check", controller.AdminMenuWithCheck) // 菜单列表
-		h.GET("/get_menu", controller.GetMenu)      // 获取菜单信息
+		h.GET("/get_menu", controller.GetMenu)                    // 获取菜单信息
 
 		h.POST("/admin_menu_search", controller.AdminMenuSearch)
 		h.POST("/admin_menu_add", controller.MenuAdd)       // 添加菜单
@@ -43,5 +43,9 @@ func init() {
 		// 权限菜单列表
 		h.GET("/menu", controller.Menu)
 		h.POST("/flag", controller.Flag) // 指定链接是否有权限
+
+		// 获取服务列表
+		h.GET("/get_app_config", controller.GetAppConfig)
+
 	})
 }
