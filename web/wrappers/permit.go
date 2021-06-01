@@ -166,6 +166,11 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 	return
 }
 
+type DaoOrderBy struct {
+	Column     string `json:"column"`      // 排序字段
+	SortFormat string `json:"sort_format"` // 排序方式
+}
+
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
@@ -358,20 +363,29 @@ type ResultMenuSave struct {
 }
 type ArgMenuDelete struct {
 	app_obj.JwtUserMessage
-	Ids     string   `json:"ids" form:"ids"`
-	IdValue []string `json:"-"`
+	Ids           string   `json:"ids" form:"ids"`
+	IdValue       []string `json:"-"`
+	IdValueNumber []int    `json:"-"`
 }
 
-func (r *ArgMenuDelete) Default() {
+func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
 	r.IdValue = make([]string, 0, 5)
+	r.IdValueNumber = make([]int, 0, 5)
+	var v int
 	if r.Ids != "" {
 		idValue := strings.Split(r.Ids, ",")
 		for _, value := range idValue {
 			if value != "" {
 				r.IdValue = append(r.IdValue, value)
+				if v, err = strconv.Atoi(value); err != nil {
+					return
+				}
+				r.IdValueNumber = append(r.IdValueNumber, v)
 			}
 		}
 	}
+	r.JwtUserMessage = GetUser(c)
+	return
 }
 
 type ResultMenuDelete struct {
@@ -484,10 +498,12 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage
-	ParentId  int      `json:"parent_id"`
-	PathType  string   `json:"path_type" form:"path_type"`
-	PathTypes []string `json:"path_type" form:"path_type"`
-	Module    string   `json:"module" form:"module"`
+	ParentId     int      `json:"parent_id"`
+	PathType     string   `json:"path_type" form:"path_type"`
+	PathTypes    []string `json:"path_type" form:"path_type"`
+	Module       string   `json:"module" form:"module"`
+	IsSuperAdmin bool     `json:"-" form:"-"` // 是否为超级管理员
+	GroupId      []int    `json:"-" form:"-"`
 }
 
 // 初始化默认值
@@ -508,6 +524,12 @@ type ResultPermitMenuReturn struct {
 	ResultPermitMenu                     // 当前选中的权限
 	RoutParentMap    map[string][]string `json:"routParentMap"`
 	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
+	OpList           map[string][]OpOne
+}
+type OpOne string
+type Op struct {
+	PermitKey     string `json:"pk"  gorm:"column:permit_key"`
+	MenuPermitKey string `json:"-" gorm:"column:menu_permit_key"`
 }
 
 type ResultSystemMenu struct {
@@ -515,15 +537,15 @@ type ResultSystemMenu struct {
 	PermitKey string `json:"permit_key" gorm:"column:permit_key"`
 	Label     string `json:"label" gorm:"column:label" form:"label"`
 	Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
-	SortValue int    `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
+	SortValue int    `json:"sort_value,omitempty" gorm:"column:sort_value" form:"sort_value"`
 	Module    string `json:"module" gorm:"column:module" form:"module"`
 	Domain    string `json:"domain" gorm:"column:domain" form:"domain"`
 	Active    bool   `json:"active"`
 }
 type ResultPermitMenu struct {
-	Id        int                `json:"id"`
-	Path      string             `json:"path"`
-	Module    string             `json:"module"`
+	Id        int                `json:"-"`
+	Path      string             `json:"path,omitempty"`
+	Module    string             `json:"-"`
 	Name      string             `json:"name"`
 	Meta      PermitMeta         `json:"meta"`
 	Children  []ResultPermitMenu `json:"children"`

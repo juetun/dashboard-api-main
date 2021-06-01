@@ -22,6 +22,21 @@ type DaoServiceImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoServiceImpl) GetByKeys(keys ...string) (res []models.AdminApp, err error) {
+	res = make([]models.AdminApp, 0, len(keys))
+	var m models.AdminApp
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("unique_key IN(?)", keys).
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"keys": keys,
+			"err":  err.Error(),
+		}, "daoServiceImplGetByKeys")
+		return
+	}
+	return
+}
 func (r *DaoServiceImpl) GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error) {
 	var m models.AdminImport
 	var mMenu models.AdminMenu
@@ -103,10 +118,10 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 		dba = dba.Where("port = ?", arg.Port)
 	}
 	if arg.IsStop > 0 {
-		dba = dba.Where("is_stop = ?", arg.IsStop)
+		dba = dba.Where("`is_stop` = ?", arg.IsStop)
 	}
 	if arg.Desc != "" {
-		dba = dba.Where("desc LIKE ?", fmt.Sprintf("%%%s%%", arg.Desc))
+		dba = dba.Where("`desc` LIKE ?", fmt.Sprintf("%%%s%%", arg.Desc))
 	}
 	return
 }

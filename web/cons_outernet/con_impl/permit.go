@@ -180,8 +180,7 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
 
-	srv := srv_impl.NewPermitService(context)
-	res, err := srv.AdminGroupDelete(&arg)
+	res, err := srv_impl.NewPermitService(context).AdminGroupDelete(&arg)
 
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())
@@ -281,25 +280,28 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 }
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 
-	var arg wrappers.ArgMenuDelete
-	var err error
+	var (
+		arg wrappers.ArgMenuDelete
+		err error
+		res *wrappers.ResultMenuDelete
+	)
 
 	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
-	} else {
-		arg.Default()
-		arg.JwtUserMessage = r.GetUser(c)
+	}
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
 	}
 
 	// 记录日志
-	if res, err := srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
 		MenuDelete(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
-	} else {
-		r.Response(c, 0, res)
 	}
+	r.Response(c, 0, res)
 
 }
 
@@ -494,7 +496,7 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	if err=arg.Default(c);err!=nil{
+	if err = arg.Default(c); err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
