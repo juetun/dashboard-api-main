@@ -15,9 +15,13 @@ import (
 )
 
 type DaoPermit interface {
+	GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error)
+
+	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error)
+
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
 	DeleteImportByIds(id ...int) (err error)
-	GetImportMenuId(menuId int) (list []models.AdminImport, err error)
+	GetImportMenuId(menuId ...int) (list []models.AdminImport, err error)
 	CreateImport(data *models.AdminImport) (res bool, err error)
 	UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error)
 	GetAdminImportById(id ...int) (res []models.AdminImport, err error)
@@ -45,14 +49,14 @@ type DaoPermit interface {
 	UpdateAdminGroup(group *models.AdminGroup) (err error)
 	GetAdminGroupByIds(gIds ...int) (res []models.AdminGroup, err error)
 	GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error)
-	UpdateMenuByCondition(condition, data map[string]interface{}) (err error)
+	UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error)
 	Save(id int, data map[string]interface{}) (err error)
-	DeleteByIds(ids ...string) (err error)
+	DeleteMenuByIds(ids ...string) (err error)
 	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error)
 	Add(data *models.AdminMenu) (err error)
 	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int, dba *gorm.DB, err error)
 	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
-	GetMenuByCondition(condition map[string]interface{}) (res []models.AdminMenu, err error)
+	GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error)
 	GetMenu(menuId ...int) (res []models.AdminMenu, err error)
 	GetMenuByPermitKey(permitKey ...string) (res []models.AdminMenu, err error)
 	GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error)

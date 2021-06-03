@@ -49,6 +49,8 @@ type ArgAdminMenuWithCheck struct {
 }
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	r.BaseQuery.DefaultPage()
 	return
 }
 
@@ -120,6 +122,23 @@ type ArgDeleteImport struct {
 }
 type ResultDeleteImport struct {
 	Result bool `json:"result"`
+}
+type ArgImportList struct {
+	app_obj.JwtUserMessage
+	response.BaseQuery
+}
+type AdminImportList struct {
+	models.AdminImport
+}
+
+func (r *ArgImportList) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	r.BaseQuery.DefaultPage()
+	return
+}
+
+type ResultImportList struct {
+	*response.Pager
 }
 type ArgEditImport struct {
 	AppName       string   `json:"app_name" form:"app_name"`

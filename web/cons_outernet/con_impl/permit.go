@@ -234,6 +234,28 @@ func (r *ControllerPermit) DeleteImport(c *gin.Context) {
 	}
 }
 
+func (r *ControllerPermit) ImportList(c *gin.Context) {
+	var arg wrappers.ArgImportList
+	var err error
+	var res *wrappers.ResultImportList
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+
+	// 记录日志
+	if res, err = srv_impl.NewPermitService(base.CreateContext(&r.ControllerBase, c)).
+		ImportList(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+	return
+}
 func (r *ControllerPermit) EditImport(c *gin.Context) {
 	var arg wrappers.ArgEditImport
 	var err error

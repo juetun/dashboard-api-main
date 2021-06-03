@@ -10,6 +10,7 @@ package srv_impl
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -139,6 +140,7 @@ func (r *PermitService) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res
 	if err = dao.DeleteAdminGroupByIds(arg.IdString...); err != nil {
 		return
 	}
+	// 删除用户组权限
 	if err = dao.DeleteUserGroupPermitByGroupId(arg.IdString...); err != nil {
 		return
 	}
@@ -315,6 +317,38 @@ func (r *PermitService) editImportParam(arg *wrappers.ArgEditImport, value *mode
 
 	return
 }
+
+func (r *PermitService) ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error) {
+	var db *gorm.DB
+
+	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.BaseQuery),}
+	dao := dao_impl.NewDaoPermit(r.Context)
+
+	// 获取分页数据
+	if err = res.Pager.CallGetPagerData(func(pager *response.Pager) (err error) {
+		pager.TotalCount, db, err = dao.GetImportListCount(db, arg)
+		return
+	}, func(pager *response.Pager) (err error) {
+		var list []models.AdminImport
+		list, err = dao.GetImportListData(db, arg, pager)
+		pager.List, err = r.orgImportList(dao, list)
+		return
+	}); err != nil {
+		return
+	}
+	return
+}
+
+func (r *PermitService) orgImportList(dao daos.DaoPermit, list []models.AdminImport) (res []wrappers.AdminImportList, err error) {
+	res = make([]wrappers.AdminImportList, 0, len(list))
+	var dt wrappers.AdminImportList
+	for _, value := range list {
+		dt = wrappers.AdminImportList{AdminImport: value,}
+		res = append(res, dt)
+	}
+	return
+}
+
 func (r *PermitService) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
 	res = &wrappers.ResultEditImport{Result: false}
 	var (
@@ -430,10 +464,22 @@ func (r *PermitService) joinChecked(dao daos.DaoPermit, arg *wrappers.ArgGetImpo
 func (r *PermitService) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
 	res = &wrappers.ResultMenuDelete{}
 	dao := dao_impl.NewDaoPermit(r.Context)
-	if err = dao.DeleteByIds(arg.IdValue...); err != nil {
+
+	if err = dao.DeleteMenuByIds(arg.IdValue...); err != nil {
 		return
 	}
 	if err = dao.DeleteUserGroupPermit(models.PathTypePage, arg.IdValueNumber...); err != nil {
+		return
+	}
+
+	// 删除菜单下的所有接口权限
+	var importList []models.AdminImport
+	importList, err = dao.GetImportMenuId(arg.IdValueNumber...)
+	iIds := make([]int, 0, len(importList))
+	for _, value := range importList {
+		iIds = append(iIds, value.Id)
+	}
+	if err = dao.DeleteUserGroupPermit(models.PathTypeApi, iIds...); err != nil {
 		return
 	}
 	res.Result = true
@@ -463,9 +509,13 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 		} else if len(menus) > 0 {
 			menu = menus[0]
 		}
+
 		if arg.PermitKey != menu.PermitKey {
-			err = dao.UpdateMenuByCondition(map[string]interface{}{"module": menu.PermitKey,}, map[string]interface{}{"module": arg.PermitKey,})
-			if err != nil {
+			if err = dao.UpdateMenuByCondition(map[string]interface{}{"module": menu.PermitKey,}, map[string]interface{}{"module": arg.PermitKey,}); err != nil {
+				return
+			}
+		} else if arg.Module != menu.Module {
+			if err = r.updateChildModule(dao, menu.Id, arg.Module); err != nil {
 				return
 			}
 		}
@@ -488,6 +538,40 @@ func (r *PermitService) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.Resul
 	}
 	err = dao.Save(arg.Id, m.ToMapStringInterface())
 	res.Result = true
+	return
+}
+func (r *PermitService) getChildIds(dao daos.DaoPermit, parentId []string, ids *[]string) (err error) {
+	if len(parentId) == 0 {
+		return
+	}
+	var li []models.AdminMenu
+	if li, err = dao.GetMenuByCondition(fmt.Sprintf("parent_id IN (%s)", strings.Join(parentId, ","))); err != nil {
+		return
+	}
+	pIds := make([]string, 0, len(li))
+	for _, value := range li {
+		pIds = append(pIds, strconv.Itoa(value.Id))
+		*ids = append(*ids, strconv.Itoa(value.Id))
+	}
+
+	if err = r.getChildIds(dao, pIds, ids); err != nil {
+		return
+	}
+	return
+}
+func (r *PermitService) updateChildModule(dao daos.DaoPermit, parentId int, module string) (err error) {
+
+	ids := make([]string, 0, 20)
+	ids = append(ids, strconv.Itoa(parentId))
+	if err = r.getChildIds(dao, []string{strconv.Itoa(parentId)}, &ids); err != nil {
+		return
+	}
+	if err = dao.UpdateMenuByCondition(
+		fmt.Sprintf("id IN(%s)", strings.Join(ids, ",")),
+		map[string]interface{}{"module": module,},
+	); err != nil {
+		return
+	}
 	return
 }
 
@@ -1102,6 +1186,17 @@ func (r *PermitService) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultP
 		return
 	}
 
+	if arg.Module != "" {
+		var dt []models.AdminMenu
+		if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+			return
+		}
+		if len(dt) == 0 {
+			err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
+			return
+		}
+		arg.ParentId = dt[0].Id
+	}
 	// 获取接口权限列表
 	if res.OpList, err = r.getOpList(dao, arg); err != nil {
 		return
