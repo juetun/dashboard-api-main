@@ -13,7 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"

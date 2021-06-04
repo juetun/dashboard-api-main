@@ -9,7 +9,7 @@ package srv_impl
 import (
 	"encoding/json"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/models"
