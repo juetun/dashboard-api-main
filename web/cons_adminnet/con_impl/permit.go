@@ -10,7 +10,7 @@ package con_impl
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -19,7 +19,7 @@ type ControllerPermit struct {
 	base.ControllerBase
 }
 
-func NewControllerPermit() cons_outernet.Permit {
+func NewControllerPermit() cons_adminnet.Permit {
 	controller := &ControllerPermit{}
 	controller.ControllerBase.Init()
 	return controller

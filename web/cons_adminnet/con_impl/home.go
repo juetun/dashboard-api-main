@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -14,7 +14,7 @@ type ControllerHome struct {
 	base.ControllerBase
 }
 
-func NewControllerHome() cons_outernet.System {
+func NewControllerHome() cons_adminnet.System {
 	controller := &ControllerHome{}
 	controller.ControllerBase.Init()
 	return controller

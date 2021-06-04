@@ -16,7 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -39,7 +39,7 @@ func (r *ConServiceImpl) getJsonArg(c *gin.Context, data interface{}) (err error
 func (r *ConServiceImpl) Edit(c *gin.Context) {
 	var (
 		arg wrappers.ArgServiceEdit
- 		err error
+		err error
 		res *wrappers.ResultServiceEdit
 	)
 	if err = c.ShouldBind(&arg); err != nil {
@@ -95,7 +95,7 @@ func (r *ConServiceImpl) List(c *gin.Context) {
 	r.Response(c, 0, res, "success")
 }
 
-func NewConServiceImpl() cons_outernet.ConService {
+func NewConServiceImpl() cons_adminnet.ConService {
 	p := &ConServiceImpl{}
 	p.ControllerBase.Init()
 	return p

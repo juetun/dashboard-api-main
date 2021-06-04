@@ -66,7 +66,7 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 	}
 	var rpcUser ResultUserHttpRpc
 	var httpHeader = http.Header{}
-	httpHeader.Set(app_obj.HTTP_USER_TOKEN, r.Context.GinContext.GetHeader(app_obj.HTTP_USER_TOKEN))
+	httpHeader.Set(app_obj.HttpUserToken, r.Context.GinContext.GetHeader(app_obj.HttpUserToken))
 
 	request := &rpc.RequestOptions{
 		Context:     r.Context,

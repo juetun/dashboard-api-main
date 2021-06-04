@@ -5,16 +5,16 @@
 * @Version: 1.0.0
 * @Date 2020/9/16 12:04 上午
  */
-package outernet
+package adminnet
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet/con_impl"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet/con_impl"
 )
 
 func init() {
-	app_start.HandleFuncOuterNet = append(app_start.HandleFuncOuterNet, func(r *gin.Engine, urlPrefix string) {
+	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
 		controller := con_impl.NewControllerPermit()
 		h := r.Group(urlPrefix + "/permit")
 

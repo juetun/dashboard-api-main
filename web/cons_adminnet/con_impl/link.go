@@ -13,7 +13,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -22,7 +22,7 @@ type ControllerLink struct {
 	base.ControllerBase
 }
 
-func NewControllerLink() cons_outernet.Console {
+func NewControllerLink() cons_adminnet.Console {
 	controller := &ControllerLink{}
 	controller.ControllerBase.Init()
 	return controller

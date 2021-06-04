@@ -7,7 +7,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -16,7 +16,7 @@ type ControllerTag struct {
 	base.ControllerBase
 }
 
-func NewControllerTag() cons_outernet.Console {
+func NewControllerTag() cons_adminnet.Console {
 	controller := &ControllerTag{}
 	controller.ControllerBase.Init()
 	return controller

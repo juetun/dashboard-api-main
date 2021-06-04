@@ -10,7 +10,7 @@ require (
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.2.0
 	github.com/jinzhu/gorm v1.9.16
-	github.com/juetun/base-wrapper v0.0.67
+	github.com/juetun/base-wrapper v0.0.68
 	github.com/microcosm-cc/bluemonday v1.0.1
 	github.com/qiniu/go-sdk/v7 v7.9.6
 	github.com/russross/blackfriday/v2 v2.0.1

@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -20,7 +20,7 @@ type ControllerCategory struct {
 	base.ControllerBase
 }
 
-func NewControllerCategory() cons_outernet.Console {
+func NewControllerCategory() cons_adminnet.Console {
 	controller := &ControllerCategory{}
 	controller.ControllerBase.Init()
 	return controller

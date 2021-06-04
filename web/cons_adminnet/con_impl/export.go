@@ -10,7 +10,7 @@ package con_impl
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_outernet"
+	"github.com/juetun/dashboard-api-main/web/cons_adminnet"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -110,7 +110,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 
-func NewControllerExportData() cons_outernet.Export {
+func NewControllerExportData() cons_adminnet.Export {
 	controller := &ControllerExportData{}
 	controller.ControllerBase.Init()
 	return controller

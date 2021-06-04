@@ -1,4 +1,4 @@
-package cons_outernet
+package cons_adminnet
 
 import "github.com/gin-gonic/gin"
 

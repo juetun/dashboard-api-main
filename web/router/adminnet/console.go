@@ -1,7 +1,7 @@
-package outernet
+package adminnet
 
 func init() {
-	// app_start.HandleFuncOuterNet = append(app_start.HandleFuncOuterNet,
+	// app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet,
 	// 	func(r *gin.Engine, urlPrefix string) {
 	//
 	// 		consoleAuth := auth_impl.NewControllerAuth()
