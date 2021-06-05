@@ -60,6 +60,7 @@ func (r *DaoPermitImpl) GetImportListData(db *gorm.DB, arg *wrappers.ArgImportLi
 	res = []models.AdminImport{}
 	if err = r.fetchDb(db, arg).
 		Offset(pager.GetOffset()).
+		Order(arg.Order).
 		Limit(pager.PageSize).
 		Find(&res).
 		Error; err != nil {

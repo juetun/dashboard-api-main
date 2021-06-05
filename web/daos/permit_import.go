@@ -1,0 +1,16 @@
+/**
+* @Author:changjiang
+* @Description:
+* @File:permit_import
+* @Version: 1.0.0
+* @Date 2021/6/5 11:35 下午
+ */
+package daos
+
+import (
+	"github.com/juetun/dashboard-api-main/web/models"
+)
+
+type PermitImport interface {
+	GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error)
+}

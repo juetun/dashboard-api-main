@@ -273,7 +273,6 @@ func (r *PermitService) addSystemDefaultMenu(dao daos.DaoPermit, data *models.Ad
 func (r *PermitService) createImport(dao daos.DaoPermit, arg *wrappers.ArgEditImport) (res bool, err error) {
 	t := time.Now()
 	data := models.AdminImport{
-		MenuId:        arg.MenuId,
 		AppName:       arg.AppName,
 		AppVersion:    arg.AppVersion,
 		UrlPath:       arg.UrlPath,
@@ -320,7 +319,9 @@ func (r *PermitService) editImportParam(arg *wrappers.ArgEditImport, value *mode
 
 func (r *PermitService) ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error) {
 	var db *gorm.DB
-
+	if arg.Order == "" {
+		arg.Order = "updated_at desc"
+	}
 	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.BaseQuery),}
 	dao := dao_impl.NewDaoPermit(r.Context)
 
@@ -338,12 +339,110 @@ func (r *PermitService) ImportList(arg *wrappers.ArgImportList) (res *wrappers.R
 	}
 	return
 }
-
-func (r *PermitService) orgImportList(dao daos.DaoPermit, list []models.AdminImport) (res []wrappers.AdminImportList, err error) {
-	res = make([]wrappers.AdminImportList, 0, len(list))
-	var dt wrappers.AdminImportList
+func (r *PermitService) getImportId(l int, list []models.AdminImport) (importId []int) {
+	importId = make([]int, 0, l)
 	for _, value := range list {
-		dt = wrappers.AdminImportList{AdminImport: value,}
+		importId = append(importId, value.Id)
+	}
+	return
+}
+func (r *PermitService) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int]models.AdminMenu, err error) {
+	ll := len(list)
+	menuIds := make([]int, 0, ll)
+	for _, value := range list {
+		menuIds = append(menuIds, value.MenuId)
+	}
+	var adminMenu []models.AdminMenu
+	if adminMenu, err = dao.GetMenu(menuIds...); err != nil {
+		return
+	}
+	mapAdminMenu = make(map[int]models.AdminMenu, len(adminMenu))
+	var (
+		m          = make(map[int]int, len(adminMenu))
+		modules    = make([]string, 0, len(adminMenu))
+		modulesMap = make(map[string]string, len(adminMenu))
+	)
+	for _, value := range adminMenu {
+		if _, ok := modulesMap[value.Module]; !ok {
+			modules = append(modules, value.Module)
+		}
+	}
+
+	var dta []models.AdminMenu
+	if dta, err = dao.GetMenuByPermitKey(modules...); err != nil {
+		return
+	}
+
+	mapAdminMenuModule = make(map[string]models.AdminMenu, len(dta))
+	for _, value := range dta {
+		mapAdminMenuModule[value.PermitKey] = value
+	}
+
+	for _, value := range adminMenu {
+		if _, ok := m[value.Id]; !ok {
+			mapAdminMenu[value.Id] = value
+			m[value.Id] = value.Id
+		}
+	}
+
+	return
+}
+func (r *PermitService) getImportMenuGroup(dao daos.DaoPermit, l int, data []models.AdminImport) (res map[int][]wrappers.AdminImportListMenu, err error) {
+	importId := r.getImportId(l, data)
+	daoImportMenu := dao_impl.NewPermitImportImpl(r.Context)
+
+	var list []models.AdminMenuImport
+	var mapAdminMenu map[int]models.AdminMenu
+	var mapAdminMenuGroup map[string]models.AdminMenu
+
+	if list, err = daoImportMenu.GetImportMenuByImportIds(importId...); err != nil {
+		return
+	} else if mapAdminMenuGroup, mapAdminMenu, err = r.getImportMenuGroupMap(dao, list); err != nil {
+		return
+	}
+	res = make(map[int][]wrappers.AdminImportListMenu, l)
+
+	var (
+		dt  wrappers.AdminImportListMenu
+		dtm models.AdminMenu
+		ok  bool
+		ll  = len(list)
+	)
+
+	for _, value := range list {
+		if _, ok := res[value.ImportId]; !ok {
+			res[value.ImportId] = make([]wrappers.AdminImportListMenu, 0, ll)
+		}
+		dt = wrappers.AdminImportListMenu{
+			ImportId: value.Id,
+			MenuId:   value.MenuId,
+		}
+		if dtm, ok = mapAdminMenu[value.MenuId]; ok {
+			dt.MenuName = dtm.Label
+			dt.Id = dtm.Id
+			if _, ok := mapAdminMenuGroup[dtm.Module]; ok {
+				dt.SystemName = mapAdminMenuGroup[dtm.Module].Label
+				dt.SystemModuleId = mapAdminMenuGroup[dtm.Module].Id
+				dt.SystemMenuKey = mapAdminMenuGroup[dtm.Module].PermitKey
+			}
+		}
+		res[value.ImportId] = append(res[value.ImportId], dt)
+	}
+	return
+}
+func (r *PermitService) orgImportList(dao daos.DaoPermit, list []models.AdminImport) (res []wrappers.AdminImportList, err error) {
+	l := len(list)
+	res = make([]wrappers.AdminImportList, 0, l)
+	var dt wrappers.AdminImportList
+	var dta map[int][]wrappers.AdminImportListMenu
+	if dta, err = r.getImportMenuGroup(dao, l, list); err != nil {
+		return
+	}
+	for _, value := range list {
+		dt = wrappers.AdminImportList{AdminImport: value, Menu: []wrappers.AdminImportListMenu{}}
+		if _, ok := dta[value.Id]; ok {
+			dt.Menu = dta[value.Id]
+		}
 		res = append(res, dt)
 	}
 	return

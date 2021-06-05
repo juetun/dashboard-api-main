@@ -129,6 +129,16 @@ type ArgImportList struct {
 }
 type AdminImportList struct {
 	models.AdminImport
+	Menu []AdminImportListMenu `json:"menu"`
+}
+type AdminImportListMenu struct {
+	SystemModuleId int    `json:"system_module_id"`
+	MenuId         int    `json:"menu_id"`
+	Id             int    `json:"id"` // 接口
+	ImportId       int    `json:"import_id"`
+	MenuName       string `json:"menu_name"`
+	SystemMenuKey  string `json:"system_menu_key"`
+	SystemName     string `json:"system_name"`
 }
 
 func (r *ArgImportList) Default(c *gin.Context) (err error) {

@@ -21,7 +21,6 @@ const (
 type AdminImport struct {
 	Id            int        `gorm:"primary_key" json:"id" form:"id"`
 	PermitKey     string     `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
-	MenuId        int        `json:"menu_id" gorm:"column:menu_id" form:"menu_id"`
 	AppName       string     `json:"app_name" gorm:"column:app_name" form:"app_name"`
 	AppVersion    string     `json:"app_version" gorm:"column:app_version" form:"app_version"`
 	UrlPath       string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
