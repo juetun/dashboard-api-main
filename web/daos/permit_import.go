@@ -13,4 +13,6 @@ import (
 
 type PermitImport interface {
 	GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error)
+	UpdateByCondition(condition, data map[string]interface{}) (res bool, err error)
+	DeleteByCondition(condition map[string]interface{}) (res bool, err error)
 }

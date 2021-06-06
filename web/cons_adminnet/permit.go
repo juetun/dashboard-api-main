@@ -55,6 +55,8 @@ type Permit interface {
 
 	ImportList(c *gin.Context)
 
+	UpdateImportValue(c *gin.Context)
+
 	EditImport(c *gin.Context)
 
 	DeleteImport(c *gin.Context)

@@ -8,6 +8,8 @@
 package dao_impl
 
 import (
+	"fmt"
+
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -15,6 +17,50 @@ import (
 
 type PermitImportImpl struct {
 	base.ServiceDao
+}
+
+func (r *PermitImportImpl) DeleteByCondition(condition map[string]interface{}) (res bool, err error) {
+	var m models.AdminImport
+	if len(condition) == 0 {
+		err = fmt.Errorf("您没有选择要删除的数据")
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "permitImportImplDeleteByCondition0")
+		return
+	}
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).
+		Delete(&models.AdminImport{}).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "permitImportImplDeleteByCondition1")
+		return
+	}
+	return
+}
+
+func (r *PermitImportImpl) UpdateByCondition(condition, data map[string]interface{}) (res bool, err error) {
+	var m models.AdminImport
+	if len(condition) == 0 || len(data) == 0 {
+		err = fmt.Errorf("您没有选择要更新的数据")
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err.Error(),
+		}, "permitImportImplUpdateByCondition0")
+		return
+	}
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).Update(data).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err.Error(),
+		}, "permitImportImplUpdateByCondition1")
+		return
+	}
+	res = true
+	return
 }
 
 func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error) {

@@ -40,6 +40,7 @@ func init() {
 		h.POST("/get_import", controller.GetImport)         // 获取接口列表
 		h.POST("/edit_import", controller.EditImport)
 		h.POST("/import_list", controller.ImportList)
+		h.POST("/update_import_value", controller.UpdateImportValue)
 		h.DELETE("/delete_import/:id", controller.DeleteImport)
 		// 权限菜单列表
 		h.GET("/menu", controller.Menu)

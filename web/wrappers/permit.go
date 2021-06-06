@@ -127,6 +127,21 @@ type ArgImportList struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
 }
+type ArgUpdateImportValue struct {
+	app_obj.JwtUserMessage
+	Id     string `json:"id" form:"id"`
+	Column string `json:"column" form:"column"`
+	Val    string `json:"val" form:"val"`
+}
+
+func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
+	r.JwtUserMessage = GetUser(c)
+	return
+}
+
+type ResultUpdateImportValue struct {
+	Result bool `json:"result"`
+}
 type AdminImportList struct {
 	models.AdminImport
 	Menu []AdminImportListMenu `json:"menu"`
