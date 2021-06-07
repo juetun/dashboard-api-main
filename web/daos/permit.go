@@ -22,6 +22,7 @@ type DaoPermit interface {
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
 	DeleteImportByIds(id ...int) (err error)
 	GetImportMenuId(menuId ...int) (list []models.AdminImport, err error)
+	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
 	CreateImport(data *models.AdminImport) (res bool, err error)
 	UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error)
 	GetAdminImportById(id ...int) (res []models.AdminImport, err error)

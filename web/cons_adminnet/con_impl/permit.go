@@ -260,7 +260,7 @@ func (r *ControllerPermit) ImportList(c *gin.Context) {
 	var arg wrappers.ArgImportList
 	var err error
 	var res *wrappers.ResultImportList
-	if err = c.Bind(&arg); err != nil {
+	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}

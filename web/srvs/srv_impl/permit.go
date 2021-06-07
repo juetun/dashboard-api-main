@@ -53,8 +53,13 @@ func (r *PermitServiceImpl) UpdateImportValue(arg *wrappers.ArgUpdateImportValue
 		}
 
 	case "need_login", "default_open", "need_sign":
+		if arg.Val != "1" && arg.Val != "2" {
+			err = fmt.Errorf("您设置的值不正确")
+			return
+		}
 		data[arg.Column] = arg.Val
 		res.Result, err = dao.UpdateByCondition(condition, data)
+	case "":
 	default:
 		err = fmt.Errorf("您选择的数据值(column:%s)不正确", arg.Column)
 		return
@@ -439,7 +444,7 @@ func (r *PermitServiceImpl) getImportMenuGroup(dao daos.DaoPermit, l int, data [
 		ok  bool
 		ll  = len(list)
 	)
-
+	var dtt models.AdminMenu
 	for _, value := range list {
 		if _, ok := res[value.ImportId]; !ok {
 			res[value.ImportId] = make([]wrappers.AdminImportListMenu, 0, ll)
@@ -448,13 +453,15 @@ func (r *PermitServiceImpl) getImportMenuGroup(dao daos.DaoPermit, l int, data [
 			ImportId: value.Id,
 			MenuId:   value.MenuId,
 		}
+
 		if dtm, ok = mapAdminMenu[value.MenuId]; ok {
 			dt.MenuName = dtm.Label
 			dt.Id = dtm.Id
-			if _, ok := mapAdminMenuGroup[dtm.Module]; ok {
-				dt.SystemName = mapAdminMenuGroup[dtm.Module].Label
-				dt.SystemModuleId = mapAdminMenuGroup[dtm.Module].Id
-				dt.SystemMenuKey = mapAdminMenuGroup[dtm.Module].PermitKey
+			if dtt, ok = mapAdminMenuGroup[dtm.Module]; ok {
+				dt.SystemName = dtt.Label
+				dt.SystemModuleId = dtt.Id
+				dt.SystemMenuKey = dtt.PermitKey
+				dt.SystemIcon = dtt.Icon
 			}
 		}
 		res[value.ImportId] = append(res[value.ImportId], dt)
@@ -495,16 +502,17 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 		err = fmt.Errorf("您输入的应用(%s)不存在或已删除", arg.AppName)
 		return
 	}
-	if listImport, err = dao.GetImportMenuId(arg.MenuId); err != nil {
+	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath}); err != nil {
 		return
-	}
-	for _, value := range listImport {
-		if err = r.editImportParam(arg, &value); err != nil {
-			return
+	} else {
+		// 验证数据是否重复
+		for _, value := range listImport {
+			if err = r.editImportParam(arg, &value); err != nil {
+				return
+			}
 		}
 	}
 	data := map[string]interface{}{
-		`menu_id`:        arg.MenuId,
 		`app_name`:       arg.AppName,
 		`app_version`:    arg.AppVersion,
 		`url_path`:       arg.UrlPath,

@@ -27,6 +27,23 @@ type DaoPermitImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
+	list = []models.AdminImport{}
+	if len(condition) == 0 {
+		return
+	}
+	var m models.AdminImport
+
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).Find(&list).Limit(1000).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "daoPermitImplGetImportByCondition")
+		return
+	}
+	return
+}
+
 func NewDaoPermit(context ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}
 	p.SetContext(context...)
@@ -41,6 +58,18 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 	dba = db
 	if db == nil {
 		dba = r.Context.Db.Table(m.TableName())
+	}
+	if arg.AppName != "" {
+		dba = dba.Where("app_name = ?", arg.AppName)
+	}
+	if arg.NeedLogin > 0 {
+		dba = dba.Where("need_login = ?", arg.NeedLogin)
+	}
+	if arg.NeedSign > 0 {
+		dba = dba.Where("need_sign = ?", arg.NeedSign)
+	}
+	if arg.DefaultOpen > 0 {
+		dba = dba.Where("default_open = ?", arg.DefaultOpen)
 	}
 	return
 }
@@ -77,9 +106,14 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 	var adminUserGroupPermit models.AdminUserGroupPermit
 	var adminImport models.AdminImport
 	var adminMenu models.AdminMenu
+	var adminMenuImport models.AdminMenuImport
 	if arg.IsSuperAdmin { // 如果是超级管理员
-		if err = r.Context.Db.Table(adminImport.TableName()).Select("b.permit_key,c.permit_key AS menu_permit_key").
-			Joins(fmt.Sprintf("AS b LEFT JOIN  %s as c ON b.menu_id=c.id", adminMenu.TableName())).
+		if err = r.Context.Db.Table(adminImport.TableName()).
+			Select("b.permit_key,a.permit_key AS menu_permit_key").
+			Joins(fmt.Sprintf("AS b LEFT JOIN  %s as c ON c.import_id=b.id LEFT JOIN %s AS a  ON a.id = c.menu_id",
+				adminMenuImport.TableName(),
+				adminMenu.TableName())).
+			Where("b.deleted_at IS NULL AND a.deleted_at IS NULL AND c.deleted_at IS NULL").Unscoped().
 			Find(&res).
 			Error; err != nil {
 			r.Context.Error(map[string]interface{}{
@@ -90,9 +124,13 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 		}
 		return
 	}
-	if err = r.Context.Db.Table(adminUserGroupPermit.TableName()).Select("b.permit_key,c.permit_key AS menu_permit_key").
+
+	// 普通用户 先通过用户组权限查询权限 再关联 接口 和菜单界面
+	if err = r.Context.Db.Table(adminUserGroupPermit.TableName()).
+		Select("b.permit_key,d.permit_key AS menu_permit_key").
 		Joins(fmt.Sprintf("AS a LEFT JOIN  %s as b ON a.menu_id=b.id", adminImport.TableName())).
-		Joins(fmt.Sprintf(" LEFT JOIN  %s as c ON b.menu_id=c.id", adminMenu.TableName())).
+		Joins(fmt.Sprintf(" LEFT JOIN  %s as c ON c.import_id=b.id", adminMenuImport.TableName())).
+		Joins(fmt.Sprintf(" LEFT JOIN  %s as d ON c.menu_id=d.id", adminMenu.TableName())).
 		Where("a.path_type=? AND a.group_id IN (?)", models.PathTypeApi, arg.GroupId).
 		Find(&res).
 		Error; err != nil {
@@ -452,10 +490,8 @@ func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int) (
 	if arg.MenuId == 0 {
 		return
 	}
-	var m models.AdminImport
-	db = r.Context.Db.Table(m.TableName()).
-		Where("`menu_id` = ? AND `deleted_at` IS NULL", arg.MenuId).
-		Unscoped()
+
+	db = r.getImportListDb(nil, arg)
 	err = db.Count(count).Error
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -465,6 +501,33 @@ func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int) (
 	}
 	return
 }
+func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport) (res *gorm.DB) {
+	var m models.AdminMenuImport
+	var mi models.AdminImport
+	res = db
+	if db == nil {
+		res = r.Context.Db.Table(m.TableName()).Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b ON a.import_id=b.id", mi.TableName())).
+			Where("a.`menu_id` = ? AND a.`deleted_at` IS NULL", arg.MenuId).
+			Unscoped()
+	}
+
+	return
+}
+func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
+	db = r.getImportListDb(db, arg)
+	err = db.Select("b.*").Offset(arg.BaseQuery.GetOffset()).
+		Limit(arg.PageSize).
+		Find(&res).Error
+	if err != nil {
+		r.Context.Error(map[string]interface{}{
+			"arg": arg,
+			"err": err,
+		}, "daoPermitGetImportList")
+		return
+	}
+	return
+}
+
 func (r *DaoPermitImpl) GetSelectImportByImportId(groupId int, importId ...int) (res []models.AdminUserGroupPermit, err error) {
 	if len(importId) == 0 {
 		return
@@ -478,19 +541,6 @@ func (r *DaoPermitImpl) GetSelectImportByImportId(groupId int, importId ...int) 
 			"importId": importId,
 			"err":      err,
 		}, "daoPermitGetSelectImportByImportId")
-		return
-	}
-	return
-}
-func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
-	err = db.Offset(arg.BaseQuery.GetOffset()).
-		Limit(arg.PageSize).
-		Find(&res).Error
-	if err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg": arg,
-			"err": err,
-		}, "daoPermitGetImportList")
 		return
 	}
 	return

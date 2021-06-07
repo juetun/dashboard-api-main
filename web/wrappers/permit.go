@@ -126,6 +126,11 @@ type ResultDeleteImport struct {
 type ArgImportList struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
+	AppName     string `json:"app_name" form:"app_name"`
+	DefaultOpen uint8  `json:"default_open" form:"default_open"`
+	NeedLogin   uint8  `json:"need_login" form:"need_login"`
+	NeedSign    uint8  `json:"need_sign" form:"need_sign"`
+	UrlPath     string `json:"url_path" form:"url_path"`
 }
 type ArgUpdateImportValue struct {
 	app_obj.JwtUserMessage
@@ -153,6 +158,7 @@ type AdminImportListMenu struct {
 	ImportId       int    `json:"import_id"`
 	MenuName       string `json:"menu_name"`
 	SystemMenuKey  string `json:"system_menu_key"`
+	SystemIcon     string `json:"system_icon"`
 	SystemName     string `json:"system_name"`
 }
 
@@ -166,10 +172,9 @@ type ResultImportList struct {
 	*response.Pager
 }
 type ArgEditImport struct {
+	Id            int      `json:"id" form:"id"`
 	AppName       string   `json:"app_name" form:"app_name"`
 	AppVersion    string   `json:"app_version" form:"app_version"`
-	Id            int      `json:"id" form:"id"`
-	MenuId        int      `json:"menu_id" form:"menu_id"`
 	SortValue     int      `json:"sort_value" form:"sort_value"`
 	NeedLogin     uint8    `json:"need_login" form:"need_login"`
 	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
@@ -184,10 +189,7 @@ type ResultEditImport struct {
 }
 
 func (r *ArgEditImport) Default(c *gin.Context) (err error) {
-	if r.MenuId == 0 {
-		err = fmt.Errorf("您没有选择要添加接口权限的菜单")
-		return
-	}
+
 	if r.AppName == "" {
 		err = fmt.Errorf("请输入接口所属应用KEY")
 		return
