@@ -1,3 +1,4 @@
+//Package export
 /**
 * 导出任务单独逻辑处理
 * @Author:changjiang
@@ -42,7 +43,7 @@ func (r *ServiceActExport) Run() (res wrappers.ResultExportInit, err error) {
 	return
 }
 
-// 将数据内容添加到数据库
+//InsertDataToDb 将数据内容添加到数据库
 func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) {
 	extFileName := "xlsx"
 	dt = &models.ZExportData{
@@ -53,9 +54,7 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 		DownloadLink:  "",
 		CreateUserHid: r.args.User.UserId,
 	}
-	dao := dao_impl.NewDaoExport(r.Context)
-	_, err = dao.Create(dt)
-	if err != nil {
+	if _, err = dao_impl.NewDaoExportImpl(r.Context).Create(dt); err != nil {
 		return
 	}
 	return
@@ -64,11 +63,11 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 func (r *ServiceActExport) SetArgument(args *wrappers.ArgumentsExportInit) (p *ServiceActExport) {
 	arg, _ := json.Marshal(args)
 	r.argsString = string(arg)
-	r.Context.Error(
-		map[string]interface{}{
-			"message":  "export argument",
-			"content:": r.argsString},
-	)
+	//r.Context.Info(
+	//	map[string]interface{}{
+	//		"message":  "export argument",
+	//		"content:": r.argsString},
+	//	"ServiceActExportSetArgument")
 	r.args = args
 	return r
 }

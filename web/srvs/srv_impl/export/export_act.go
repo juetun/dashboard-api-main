@@ -1,3 +1,4 @@
+//Package export
 /**
 * 异步导出实现
 * @Author:changjiang
@@ -134,7 +135,7 @@ func (r *AsyncExport) getDataFinishAct(excel *ExcelOperate) {
 	// 更新Redis任务进度
 	r.UpdateRedisProgressValue()
 
-	err = dao_impl.NewDaoExport(r.Context).Update(&r.model)
+	err = dao_impl.NewDaoExportImpl(r.Context).Update(&r.model)
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message":  "update export progress to database is error ",
@@ -322,7 +323,7 @@ func (r *AsyncExport) getAccessUrl(argSheet *wrappers.ArgumentExportSheet) (res 
 				r.Context.Error(
 					map[string]interface{}{
 						"message": fmt.Sprintf("the app_name %s(%s) config domain is err ", value.Name, value.Key),
-						"err":     err}, )
+						"err":     err})
 				return
 			}
 			serverMessage = ServerConfig{
@@ -352,7 +353,7 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 	switch strings.ToUpper(artSheet.HttpMethod) {
 	case "POST":
 		args := r.getArgString(r.dealDefaultQuery(artSheet.Query))
-		r.Context.Error(map[string]interface{}{"message": fmt.Sprintf("the params: %s ", string(*args)),})
+		r.Context.Error(map[string]interface{}{"message": fmt.Sprintf("the params: %s ", string(*args))})
 		request = RequestObject{
 			ReSendTimes:        3,
 			Uri:                "",
@@ -384,7 +385,7 @@ func (r *AsyncExport) getData(artSheet *wrappers.ArgumentExportSheet) (res Pager
 		break
 	default:
 		err = fmt.Errorf("当前不支持%s方法", artSheet.HttpMethod)
-		r.Context.Error(map[string]interface{}{"desc": err.Error(),}, )
+		r.Context.Error(map[string]interface{}{"desc": err.Error()})
 		return
 	}
 

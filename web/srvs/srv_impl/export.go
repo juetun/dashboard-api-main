@@ -1,3 +1,4 @@
+//Package srv_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -8,6 +9,7 @@
 package srv_impl
 
 import (
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -34,7 +36,7 @@ func NewServiceExport(context ...*base.Context) (p *ServiceExport) {
 
 func (r *ServiceExport) List(args *wrappers.ArgumentsExportList) (res wrappers.ResultExportList, err error) {
 	res = wrappers.ResultExportList{List: []wrappers.ExportShowObject{}}
-	dao := dao_impl.NewDaoExport(r.Context)
+	dao := dao_impl.NewDaoExportImpl(r.Context)
 	list, err := dao.GetListByUser(args.User.UserId, args.Limit)
 	if err != nil {
 		return
@@ -72,13 +74,13 @@ func (r *ServiceExport) Init(args *wrappers.ArgumentsExportInit) (res wrappers.R
 
 func (r *ServiceExport) Progress(args *wrappers.ArgumentsExportProgress) (res wrappers.ResultExportProgress, err error) {
 	res = wrappers.ResultExportProgress{Data: map[string]int{}}
-	dao := dao_impl.NewDaoExport(r.Context)
+	dao := dao_impl.NewDaoExportImpl(r.Context)
 	list, err := dao.Progress(args)
 	if err != nil {
 		return
 	}
 	for _, value := range *list {
-		progress, _ := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),value.GetCacheKey()).Int()
+		progress, _ := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), value.GetCacheKey()).Int()
 		if progress <= 0 {
 			res.Data[value.Hid] = value.Progress
 		} else {
@@ -90,8 +92,8 @@ func (r *ServiceExport) Progress(args *wrappers.ArgumentsExportProgress) (res wr
 	return
 }
 
-// 更新超时数据
-func (r *ServiceExport) UpdateExpireData(dao *dao_impl.DaoExport, list *[]models.ZExportData) (err error) {
+//UpdateExpireData 更新超时数据
+func (r *ServiceExport) UpdateExpireData(dao daos.DaoExport, list *[]models.ZExportData) (err error) {
 	hIds := &[]string{}
 	for _, value := range *list {
 		// 如果导出任务 如果一天都未结束 那么就判定超时 ，退出任务
@@ -101,7 +103,7 @@ func (r *ServiceExport) UpdateExpireData(dao *dao_impl.DaoExport, list *[]models
 	}
 
 	if dao == nil {
-		dao = dao_impl.NewDaoExport(r.Context)
+		dao = dao_impl.NewDaoExportImpl(r.Context)
 	}
 	err = dao.UpdateByHIds(map[string]interface{}{
 		"status": web.ExportExpire,
