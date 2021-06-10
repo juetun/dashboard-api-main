@@ -1,3 +1,4 @@
+//Package export
 /**
 * @Author:changjiang
 * @Description:
@@ -44,8 +45,8 @@ func NewExcelOperate(context *base.Context) (r *ExcelOperate) {
 				Index:  0,
 			},
 		},
-		PathFileName:  "export.xlsx",
-		TotalLine: 0,
+		PathFileName: "export.xlsx",
+		TotalLine:    0,
 	}
 	r.FileHandler = excelize.NewFile()
 	return

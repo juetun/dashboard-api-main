@@ -1,3 +1,4 @@
+//Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -15,70 +16,100 @@ import (
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
-type DaoExport struct {
+type DaoExportImpl struct {
 	base.ServiceDao
 }
 
-func NewDaoExport(context ...*base.Context) (p *DaoExport) {
-	p = &DaoExport{}
+func NewDaoExportImpl(context ...*base.Context) (res daos.DaoExport) {
+	p := &DaoExportImpl{}
 	p.SetContext(context...)
 	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})
-	return
+	return p
 }
-func (r DaoExport) Update(model *models.ZExportData) (err error) {
+func (r DaoExportImpl) Update(model *models.ZExportData) (err error) {
 	var m models.ZExportData
-	err = r.Context.Db.Table(m.TableName()).
+	if err = r.Context.Db.Table(m.TableName()).
 		Where("hid = ?", model.Hid).
 		Update(model).
-		Error
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"model": model,
+			"err":   err.Error(),
+		}, "DaoExportImplUpdate")
+		return
+	}
 	return
 }
-func (r DaoExport) UpdateByHIds(data map[string]interface{}, hIds *[]string) (err error) {
+func (r DaoExportImpl) UpdateByHIds(data map[string]interface{}, hIds *[]string) (err error) {
 	if len(*hIds) < 1 {
 		return
 	}
 	var m models.ZExportData
-	err = r.Context.Db.Table(m.TableName()).
+	if err = r.Context.Db.Table(m.TableName()).
 		Where("hid in(?)", *hIds).
 		Update(data).
-		Error
-	return
-}
-func (r DaoExport) Create(model *models.ZExportData) (res bool, err error) {
-	res = true
-	err = utils.CreateForHID(r.Context.Db, model)
-	if err != nil {
-		res = false
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"data": data,
+			"hIds": hIds,
+			"err":  err.Error(),
+		}, "daoExportImplUpdateByHIds")
 		return
 	}
 	return
 }
-func (r DaoExport) Progress(args *wrappers.ArgumentsExportProgress) (res *[]models.ZExportData, err error) {
+func (r DaoExportImpl) Create(model *models.ZExportData) (res bool, err error) {
+	res = true
+	err = utils.CreateForHID(r.Context.Db, model)
+	if err != nil {
+		res = false
+		r.Context.Error(map[string]interface{}{
+			"model": model,
+			"err":   err.Error(),
+		}, "daoExportImplCreate")
+		return
+	}
+	return
+}
+func (r DaoExportImpl) Progress(args *wrappers.ArgumentsExportProgress) (res *[]models.ZExportData, err error) {
 	res = &[]models.ZExportData{}
 	if len(args.IdString) < 1 {
 		return
 	}
 	var m models.ZExportData
-	err = r.Context.Db.Table(m.TableName()).
+	if err = r.Context.Db.Table(m.TableName()).
 		Where("create_user_hid=? AND hid in (?)", args.User.UserId, args.IdString).
 		Find(&res).
-		Error
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"args": args,
+			"err":  err.Error(),
+		}, "daoExportImplProgress")
+		return
+	}
 	return
 }
-func (r DaoExport) GetListByUser(userHid string, limit int) (res *[]models.ZExportData, err error) {
+func (r DaoExportImpl) GetListByUser(userHid string, limit int) (res *[]models.ZExportData, err error) {
 	if limit == 0 {
 		limit = 12
 	}
 	var m models.ZExportData
 	res = &[]models.ZExportData{}
-	err = r.Context.Db.Table(m.TableName()).
+	if err = r.Context.Db.Table(m.TableName()).
 		Where("create_user_hid=?", userHid).
 		Order("created_at desc").
 		Limit(limit).
 		Find(&res).
-		Error
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"userHid": userHid,
+			"limit":   limit,
+			"err":     err.Error(),
+		}, "daoExportImplGetListByUser")
+		return
+	}
 	return
 }

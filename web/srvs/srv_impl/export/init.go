@@ -1,3 +1,4 @@
+//Package export
 /**
 * 导出任务单独逻辑处理
 * @Author:changjiang
@@ -53,7 +54,7 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 		DownloadLink:  "",
 		CreateUserHid: r.args.User.UserId,
 	}
-	dao := dao_impl.NewDaoExport(r.Context)
+	dao := dao_impl.NewDaoExportImpl(r.Context)
 	_, err = dao.Create(dt)
 	if err != nil {
 		return
