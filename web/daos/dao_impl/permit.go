@@ -71,6 +71,9 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 	if arg.DefaultOpen > 0 {
 		dba = dba.Where("default_open = ?", arg.DefaultOpen)
 	}
+	if arg.UrlPath != "" {
+		dba = dba.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%",arg.UrlPath))
+	}
 	return
 }
 func (r *DaoPermitImpl) GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error) {
