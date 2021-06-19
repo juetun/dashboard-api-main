@@ -322,6 +322,28 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 		r.Response(c, 0, res)
 	}
 }
+func (r *ControllerPermit) MenuImport(c *gin.Context) {
+	var arg wrappers.ArgMenuImport
+	var err error
+
+	if err = c.ShouldBind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+
+	// 记录日志
+	if res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+		MenuImport(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+}
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 
 	var (

@@ -1,4 +1,4 @@
-//Package dao_impl
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -26,6 +26,82 @@ import (
 
 type DaoPermitImpl struct {
 	base.ServiceDao
+}
+
+func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrappers.ArgMenuImport) (dba *gorm.DB) {
+	dba = db
+	if dba != nil {
+		return
+	}
+	var m models.AdminImport
+	dba = r.Context.Db.Table(m.TableName()).Unscoped().Where("deleted_at IS NULL")
+	if arg.AppName != "" {
+		dba = dba.Where("app_name = ?", arg.AppName)
+	}
+	if arg.UrlPath != "" {
+		dba = dba.Where("url_path LIKE ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
+	}
+	return
+}
+func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int) (db *gorm.DB, err error) {
+	db = r.getMenuImportCountDb(db, arg)
+	if err = db.Count(count).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"arg": arg,
+			"err": err.Error(),
+		}, "daoPermitImplMenuImportCount")
+		return
+	}
+	return
+}
+
+func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error) {
+	var data []models.AdminImport
+	db = r.getMenuImportCountDb(db, arg)
+	if err = db.Find(&data).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"arg": arg,
+			"err": err.Error(),
+		}, "daoPermitImplMenuImportList0")
+		return
+	}
+	if arg.MenuId > 0 {
+		iIds := make([]int, 0, len(data))
+		for _, value := range data {
+			iIds = append(iIds, value.Id)
+		}
+		if len(iIds) > 0 {
+			var m1 models.AdminMenuImport
+			var dt []models.AdminMenuImport
+			if err = r.Context.Db.Table(m1.TableName()).
+				Where("menu_id=? AND import_id IN (?)", arg.MenuId, iIds).
+				Find(&dt).Error; err != nil {
+				r.Context.Error(map[string]interface{}{
+					"arg":  arg,
+					"iIds": iIds,
+					"err":  err.Error(),
+				}, "daoPermitImplMenuImportList1")
+				return
+			}
+			var mv = make(map[int]int, len(iIds))
+			for _, it := range dt {
+				mv[it.ImportId] = it.ImportId
+			}
+
+			var dta wrappers.ResultMenuImportItem
+			for _, value := range data {
+				iIds = append(iIds, value.Id)
+				dta = wrappers.ResultMenuImportItem{
+					AdminImport: value,
+				}
+				if _, ok := mv[value.Id]; ok {
+					dta.Checked = true
+				}
+				res = append(res, dta)
+			}
+		}
+	}
+	return
 }
 
 func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
@@ -73,7 +149,7 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 		dba = dba.Where("default_open = ?", arg.DefaultOpen)
 	}
 	if arg.UrlPath != "" {
-		dba = dba.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%",arg.UrlPath))
+		dba = dba.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
 	}
 	return
 }

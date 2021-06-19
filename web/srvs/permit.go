@@ -48,6 +48,8 @@ type PermitService interface {
 
 	GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error)
 
+	MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error)
+
 	EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error)
 
 	ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error)

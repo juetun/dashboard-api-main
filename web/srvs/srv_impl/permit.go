@@ -312,7 +312,7 @@ func (r *PermitServiceImpl) createImport(dao daos.DaoPermit, arg *wrappers.ArgEd
 		AppName:       arg.AppName,
 		AppVersion:    arg.AppVersion,
 		UrlPath:       arg.UrlPath,
-		RequestMethod: strings.Join(arg.RequestMethod, ","),
+		RequestMethod: arg.RequestMethod,
 		SortValue:     arg.SortValue,
 		UpdatedAt:     t,
 		CreatedAt:     t,
@@ -356,7 +356,7 @@ func (r *PermitServiceImpl) editImportParam(arg *wrappers.ArgEditImport, value *
 func (r *PermitServiceImpl) ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error) {
 	var db *gorm.DB
 	if arg.Order == "" {
-		arg.Order = "updated_at desc"
+		arg.Order = "id desc"
 	}
 	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.BaseQuery),}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -502,7 +502,7 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 		err = fmt.Errorf("您输入的应用(%s)不存在或已删除", arg.AppName)
 		return
 	}
-	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath}); err != nil {
+	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath, "request_method": arg.RequestMethod}); err != nil {
 		return
 	} else {
 		// 验证数据是否重复
@@ -516,7 +516,7 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 		`app_name`:       arg.AppName,
 		`app_version`:    arg.AppVersion,
 		`url_path`:       arg.UrlPath,
-		`request_method`: strings.Join(arg.RequestMethod, ","),
+		`request_method`: arg.RequestMethod,
 		`sort_value`:     arg.SortValue,
 		`updated_at`:     arg.RequestTime,
 		"need_login":     arg.NeedLogin,
@@ -546,6 +546,24 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 		return
 	}
 	res.Result = true
+	return
+}
+
+func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
+	res = &wrappers.ResultMenuImport{
+		Pager: response.NewPager(response.PagerBaseQuery(arg.BaseQuery)),
+	}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var db *gorm.DB
+	if db, err = dao.MenuImportCount(arg, &res.TotalCount); err != nil {
+		return
+	}
+	if res.TotalCount == 0 {
+		return
+	}
+	if res.List, err = dao.MenuImportList(db, arg); err != nil {
+		return
+	}
 	return
 }
 func (r *PermitServiceImpl) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {

@@ -172,16 +172,16 @@ type ResultImportList struct {
 	*response.Pager
 }
 type ArgEditImport struct {
-	Id            int      `json:"id" form:"id"`
-	AppName       string   `json:"app_name" form:"app_name"`
-	AppVersion    string   `json:"app_version" form:"app_version"`
-	SortValue     int      `json:"sort_value" form:"sort_value"`
-	NeedLogin     uint8    `json:"need_login" form:"need_login"`
-	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
-	UrlPath       string   `json:"url_path" form:"url_path"`
-	RequestMethod []string `json:"request_method" form:"request_method"`
-	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
-	RequestTime   string   `json:"request_time" form:"-"`
+	Id            int    `json:"id" form:"id"`
+	AppName       string `json:"app_name" form:"app_name"`
+	AppVersion    string `json:"app_version" form:"app_version"`
+	SortValue     int    `json:"sort_value" form:"sort_value"`
+	NeedLogin     uint8  `json:"need_login" form:"need_login"`
+	NeedSign      uint8  `json:"need_sign" form:"need_sign"`
+	UrlPath       string `json:"url_path" form:"url_path"`
+	RequestMethod string `json:"request_method" form:"request_method"`
+	DefaultOpen   uint8  `json:"default_open" gorm:"column:default_open" form:"default_open"`
+	RequestTime   string `json:"request_time" form:"-"`
 }
 
 type ResultEditImport struct {
@@ -202,13 +202,10 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 		r.AppVersion = "1.0"
 	}
 	r.RequestTime = utils.DateTime(time.Now())
-	methods := make([]string, 0, len(r.RequestMethod))
-	for _, value := range r.RequestMethod {
-		if value != "" {
-			methods = append(methods, value)
-		}
+	if r.RequestMethod == "" {
+		err = fmt.Errorf("请选择请求方法")
+		return
 	}
-	r.RequestMethod = methods
 	return
 }
 
@@ -217,14 +214,29 @@ type DaoOrderBy struct {
 	SortFormat string `json:"sort_format"` // 排序方式
 }
 
+type ResultMenuImport struct {
+	*response.Pager
+}
+type ResultMenuImportItem struct {
+	models.AdminImport
+	Checked bool `json:"checked,omitempty"` // 是否要查看选中权限情况
+}
+type ArgMenuImport struct {
+	app_obj.JwtUserMessage
+	response.BaseQuery
+	MenuId  int    `json:"menu_id" form:"menu_id"`
+	AppName string `json:"app_name" form:"app_name"`
+	UrlPath string `json:"url_path" form:"url_path"`
+}
+
+func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
+	return
+}
+
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
-	// PageNo   int    `form:"page_no" json:"page_no,omitempty"`
-	// PageSize int    `form:"page_size" json:"page_size,omitempty"`
-	Order   string `form:"order" json:"order,omitempty"`
 	Select  string `form:"select" json:"select,omitempty"`
-	IsDel   int    `form:"is_del" json:"is_del,omitempty"`
 	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
 	Checked bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
 	GroupId int    `json:"group_id,omitempty" form:"group_id"`
