@@ -38,8 +38,9 @@ func init() {
 		h.POST("/admin_menu_save", controller.MenuSave)     // 修改菜单
 		h.POST("/admin_menu_delete", controller.MenuDelete) // 删除菜单
 		h.POST("/get_import", controller.GetImport)         // 获取接口列表
-		h.POST("/menu_import", controller.MenuImport)         // 获取接口列表
+		h.POST("/menu_import", controller.MenuImport)       // 获取接口列表
 		h.POST("/edit_import", controller.EditImport)
+		h.POST("/menu_import_set", controller.MenuImportSet) // 界面接口设置
 		h.POST("/import_list", controller.ImportList)
 		h.POST("/update_import_value", controller.UpdateImportValue)
 		h.DELETE("/delete_import/:id", controller.DeleteImport)

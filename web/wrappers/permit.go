@@ -233,6 +233,36 @@ func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
 	return
 }
 
+type ArgMenuImportSet struct {
+	app_obj.JwtUserMessage
+	MenuId    int    `json:"menu_id" form:"menu_id"`
+	ImportId  string `json:"import_id" form:"import_id"`
+	ImportIds []int  `json:"-" form:"-"`
+	Type      string `json:"type" form:"type"`
+}
+type ResultMenuImportSet struct {
+	Result bool `json:"result"`
+}
+
+func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
+	if r.Type != "delete" && r.Type != "add" {
+		err = fmt.Errorf("type must be delete or add")
+		return
+	}
+	iIds := strings.Split(r.ImportId, ",")
+	r.ImportIds = make([]int, 0, len(iIds))
+	for _, value := range iIds {
+		if value == "" {
+			continue
+		}
+		id, _ := strconv.Atoi(value)
+		if id > 0 {
+			r.ImportIds = append(r.ImportIds, id)
+		}
+	}
+	return
+}
+
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery

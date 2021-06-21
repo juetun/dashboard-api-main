@@ -25,6 +25,30 @@ func NewControllerPermit() cons_adminnet.Permit {
 	return controller
 }
 
+func (r *ControllerPermit) MenuImportSet(c *gin.Context) {
+	var arg wrappers.ArgMenuImportSet
+	var err error
+
+	if err = c.Bind(&arg); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+
+	arg.JwtUserMessage = r.GetUser(c)
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, nil, err.Error())
+		return
+	}
+
+	// 记录日志
+	if res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+		MenuImportSet(&arg); err != nil {
+		r.Response(c, 500000002, nil, err.Error())
+		return
+	} else {
+		r.Response(c, 0, res)
+	}
+}
 func (r *ControllerPermit) GetMenu(c *gin.Context) {
 	var arg wrappers.ArgGetMenu
 	var err error

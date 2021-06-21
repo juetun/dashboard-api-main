@@ -13,10 +13,10 @@ import (
 
 type AdminMenuImport struct {
 	Id        int        `gorm:"primary_key" json:"id" form:"id"`
-	MenuId    int        `json:"menu_id" gorm :"column:menu_id"`
-	ImportId  int        `json:"import_id" gorm :"column:import_id"`
-	CreatedAt time.Time  `json:"-" gorm :"column:created_at"`
-	UpdatedAt time.Time  `json:"-" gorm :"column:updated_at"`
+	MenuId    int        `json:"menu_id" gorm:"column:menu_id"`
+	ImportId  int        `json:"import_id" gorm:"column:import_id"`
+	CreatedAt time.Time  `json:"-" gorm:"column:created_at"`
+	UpdatedAt time.Time  `json:"-" gorm:"column:updated_at"`
 	DeletedAt *time.Time `json:"-" gorm:"column:deleted_at"`
 }
 

@@ -55,6 +55,8 @@ type Permit interface {
 
 	MenuImport(c *gin.Context)
 
+	MenuImportSet(c *gin.Context)
+
 	ImportList(c *gin.Context)
 
 	UpdateImportValue(c *gin.Context)
