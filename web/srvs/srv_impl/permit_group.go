@@ -33,16 +33,9 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	if arg.Type == "delete" {
 		dt.DeletedAt = &t
 		for _, value := range arg.ImportIds {
-			dt = models.AdminMenuImport{
-				MenuId:    arg.MenuId,
-				ImportId:  value,
-				CreatedAt: t,
-				UpdatedAt: t,
+			if value == 0 {
+				continue
 			}
-			dts = append(dts, dt)
-		}
-	} else {
-		for _, value := range arg.ImportIds {
 			dt = models.AdminMenuImport{
 				MenuId:    arg.MenuId,
 				ImportId:  value,
@@ -52,11 +45,22 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 			}
 			dts = append(dts, dt)
 		}
+	} else {
+		for _, value := range arg.ImportIds {
+			if value == 0 {
+				continue
+			}
+			dt = models.AdminMenuImport{
+				MenuId:    arg.MenuId,
+				ImportId:  value,
+				CreatedAt: t,
+				UpdatedAt: t,
+			}
+			dts = append(dts, dt)
+		}
 	}
 	if err = dao_impl.NewPermitImportImpl(r.Context).
-		BatchMenuImport(m.TableName(), []models.AdminMenuImport{
-			dt,
-		}); err != nil {
+		BatchMenuImport(m.TableName(), dts); err != nil {
 		return
 	}
 

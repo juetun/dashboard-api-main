@@ -58,7 +58,7 @@ func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int)
 func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error) {
 	var data []models.AdminImport
 	db = r.getMenuImportCountDb(db, arg)
-	if err = db.Find(&data).Error; err != nil {
+	if err = db.Offset(arg.GetOffset()).Limit(arg.PageSize).Find(&data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),

@@ -635,9 +635,10 @@ type ResultPermitMenu struct {
 	Path      string             `json:"path,omitempty"`
 	Module    string             `json:"-"`
 	Name      string             `json:"name"`
+	Label     string             `json:"label"`
 	Meta      PermitMeta         `json:"meta"`
 	Children  []ResultPermitMenu `json:"children"`
-	Component interface{}        `json:"component"`
+	Component interface{}        `json:"component,omitempty"`
 }
 type AdminMenu struct {
 	ID         int    `json:"id"`
