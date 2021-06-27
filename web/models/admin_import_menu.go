@@ -12,12 +12,14 @@ import (
 )
 
 type AdminMenuImport struct {
-	Id        int        `gorm:"primary_key" json:"id" form:"id"`
-	MenuId    int        `json:"menu_id" gorm:"column:menu_id"`
-	ImportId  int        `json:"import_id" gorm:"column:import_id"`
-	CreatedAt time.Time  `json:"-" gorm:"column:created_at"`
-	UpdatedAt time.Time  `json:"-" gorm:"column:updated_at"`
-	DeletedAt *time.Time `json:"-" gorm:"column:deleted_at"`
+	Id            int        `gorm:"primary_key" json:"id" form:"id"`
+	MenuId        int        `json:"menu_id" gorm:"column:menu_id"`
+	MenuModule    string     `json:"menu_module" gorm:"column:menu_module"`
+	ImportAppName string     `json:"import_app_name" gorm:"column:import_app_name"`
+	ImportId      int        `json:"import_id" gorm:"column:import_id"`
+	CreatedAt     time.Time  `json:"-" gorm:"column:created_at"`
+	UpdatedAt     time.Time  `json:"-" gorm:"column:updated_at"`
+	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
 }
 
 func (r *AdminMenuImport) TableName() string {

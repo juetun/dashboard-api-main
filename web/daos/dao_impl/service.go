@@ -38,11 +38,11 @@ func (r *DaoServiceImpl) GetByKeys(keys ...string) (res []models.AdminApp, err e
 	return
 }
 func (r *DaoServiceImpl) GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error) {
-	var m models.AdminImport
-	var mMenu models.AdminMenu
-	if err = r.Context.Db.Table(m.TableName()).Select("DISTINCT app_name").
-		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON a.menu_id=b.id ", mMenu.TableName())).
-		Where("b.module=?  AND a.deleted_at IS NULL AND b.deleted_at IS NULL", module).Find(&res).Error; err != nil {
+	var ami models.AdminMenuImport
+	if err = r.Context.Db.Table(ami.TableName()).
+		Select("DISTINCT import_app_name as app_name").
+		Where("`menu_module` = ?  AND `deleted_at` IS NULL", module).
+		Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"module": module,
 			"err":    err.Error(),
@@ -103,16 +103,16 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 		return
 	}
 	if len(arg.UniqueKeys) > 0 {
-		dba = dba.Where("unique_key IN (?)", arg.UniqueKeys)
+		dba = dba.Where("`unique_key` IN (?)", arg.UniqueKeys)
 	}
 	if arg.Name != "" {
-		dba = dba.Where("name LIKE ?", fmt.Sprintf("%%%s%%", arg.Name))
+		dba = dba.Where("`name` LIKE ?", fmt.Sprintf("%%%s%%", arg.Name))
 	}
 	if arg.Id > 0 {
-		dba = dba.Where("id = ?", arg.Id)
+		dba = dba.Where("`id` = ?", arg.Id)
 	}
 	if arg.UniqueKey != "" {
-		dba = dba.Where("unique_key LIKE ?", fmt.Sprintf("%%%s%%", arg.UniqueKey))
+		dba = dba.Where("`unique_key` LIKE ?", fmt.Sprintf("%%%s%%", arg.UniqueKey))
 	}
 	if arg.Port > 0 {
 		dba = dba.Where("port = ?", arg.Port)

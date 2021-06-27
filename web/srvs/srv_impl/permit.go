@@ -1656,18 +1656,23 @@ func (r *PermitServiceImpl) GetAppConfig(arg *wrappers.ArgGetAppConfig) (res *wr
 	err = r.getAppConfigListByModule(dao, arg, res)
 	return
 }
-func (r *PermitServiceImpl) getAppConfigListByModule(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
-	var (
-		importMenus []wrappers.ImportMenu
-		list        []models.AdminApp
-	)
+func (r *PermitServiceImpl) getImportMenu(dao daos.DaoService, arg *wrappers.ArgGetAppConfig) (uniqueKeys []string, err error) {
+	var importMenus []wrappers.ImportMenu
 	if importMenus, err = dao.GetImportMenuByModule(arg.Module); err != nil {
 		return
 	}
-	uniqueKeys := make([]string, 0, len(importMenus))
+	uniqueKeys = make([]string, 0, len(importMenus))
 	for _, it := range importMenus {
 		uniqueKeys = append(uniqueKeys, it.AppName)
 	}
+	return
+}
+func (r *PermitServiceImpl) getAppConfigListByModule(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
+	var (
+		list       []models.AdminApp
+		uniqueKeys []string
+	)
+	uniqueKeys, err = r.getImportMenu(dao, arg)
 
 	if list, err = dao.GetList(nil, &wrappers.ArgServiceList{
 		UniqueKeys: uniqueKeys,
