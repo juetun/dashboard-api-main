@@ -190,6 +190,21 @@ func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.
 	}
 	return
 }
+func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
+
+	var m models.AdminMenuImport
+	if err = r.Context.Db.Table(m.TableName()).
+		Where(condition).
+		Update(data).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "permitImportImplUpdateMenuImport")
+		return
+	}
+	return
+}
 
 func NewPermitImportImpl(context ...*base.Context) daos.PermitImport {
 	p := &PermitImportImpl{}

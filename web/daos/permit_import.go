@@ -12,6 +12,7 @@ import (
 )
 
 type PermitImport interface {
+	UpdateMenuImport(condition string, data map[string]interface{}) (err error)
 
 	BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error)
 

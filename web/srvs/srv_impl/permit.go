@@ -541,7 +541,15 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 	if dt[0].PermitKey == "" {
 		data["permit_key"] = m.GetPathName()
 	}
+	// 如果更新了app_name
+	if dt[0].AppName != arg.AppName {
+		if err = dao_impl.NewPermitImportImpl(r.Context).
+			UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
+				map[string]interface{}{"import_app_name": arg.AppName,}, ); err != nil {
+			return
+		}
 
+	}
 	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, data); err != nil {
 		return
 	}
@@ -671,9 +679,11 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 				return
 			}
 		} else if arg.Module != menu.Module {
+			// 更新子菜单的 module
 			if err = r.updateChildModule(dao, menu.Id, arg.Module); err != nil {
 				return
 			}
+
 		}
 
 	}
@@ -696,6 +706,7 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 	res.Result = true
 	return
 }
+
 func (r *PermitServiceImpl) getChildIds(dao daos.DaoPermit, parentId []string, ids *[]string) (err error) {
 	if len(parentId) == 0 {
 		return
@@ -728,6 +739,15 @@ func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermit, parentId int, 
 	); err != nil {
 		return
 	}
+
+	ids = append(ids, strconv.Itoa(parentId))
+	// 更新菜单接口关系表的menu_module
+	if err = dao_impl.NewPermitImportImpl(r.Context).
+		UpdateMenuImport(fmt.Sprintf("menu_id IN('%s')", strings.Join(ids, "','")),
+			map[string]interface{}{"module": module,}, ); err != nil {
+		return
+	}
+
 	return
 }
 

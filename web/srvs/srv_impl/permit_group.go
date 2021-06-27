@@ -27,6 +27,22 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	}
 	var m models.AdminMenuImport
 	t := time.Now()
+	var menuName string
+	var menus []models.AdminMenu
+	dao := dao_impl.NewDaoPermit(r.Context)
+	if menus, err = dao.GetMenu(arg.MenuId); err != nil {
+		return
+	} else if len(menus) > 0 {
+		menuName = menus[0].Module
+	}
+	var importList []models.AdminImport
+	if importList, err = dao.GetAdminImportById(arg.ImportIds...); err != nil {
+		return
+	}
+	var mapImport = make(map[int]string, len(importList))
+	for _, value := range importList {
+		mapImport[value.Id] = value.AppName
+	}
 
 	var dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
 	var dt models.AdminMenuImport
@@ -37,12 +53,15 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 				continue
 			}
 			dt = models.AdminMenuImport{
-				MenuId:    arg.MenuId,
-				ImportId:  value,
-				CreatedAt: t,
-				UpdatedAt: t,
-				DeletedAt: &t,
+				MenuId:        arg.MenuId,
+				MenuModule:    menuName,
+				ImportId:      value,
+				ImportAppName: "",
+				CreatedAt:     t,
+				UpdatedAt:     t,
+				DeletedAt:     &t,
 			}
+			dt.ImportAppName, _ = mapImport[dt.ImportId]
 			dts = append(dts, dt)
 		}
 	} else {
@@ -51,11 +70,14 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 				continue
 			}
 			dt = models.AdminMenuImport{
-				MenuId:    arg.MenuId,
-				ImportId:  value,
-				CreatedAt: t,
-				UpdatedAt: t,
+				MenuId:        arg.MenuId,
+				MenuModule:    menuName,
+				ImportId:      value,
+				ImportAppName: "",
+				CreatedAt:     t,
+				UpdatedAt:     t,
 			}
+			dt.ImportAppName, _ = mapImport[dt.ImportId]
 			dts = append(dts, dt)
 		}
 	}
