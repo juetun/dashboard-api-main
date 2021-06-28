@@ -148,6 +148,9 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 	if arg.DefaultOpen > 0 {
 		dba = dba.Where("default_open = ?", arg.DefaultOpen)
 	}
+	if arg.PermitKey != "" {
+		dba = dba.Where("permit_key = ?", arg.PermitKey)
+	}
 	if arg.UrlPath != "" {
 		dba = dba.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
 	}
@@ -514,8 +517,12 @@ func (r *DaoPermitImpl) GetDefaultOpenImportByMenuIds(menuId ...int) (res []mode
 		return
 	}
 	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("menu_id IN(?) AND default_open=?", menuId, models.DefaultOpen).
+	var ami models.AdminMenuImport
+	if err = r.Context.Db.Table(ami.TableName()).
+		Unscoped().
+		Select(`b.*`).
+		Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
+		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ", menuId, models.DefaultOpen).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -532,18 +539,22 @@ func (r *DaoPermitImpl) GetDefaultImportByMenuIds(pageType, module string, menuI
 		return
 	}
 	var m models.AdminImport
-	db := r.Context.Db.Table(m.TableName())
+	var db *gorm.DB
 	switch pageType {
 	case models.PathTypePage:
-		db = db.Where("menu_id IN(?) ", menuId)
+		var ami models.AdminMenuImport
+		db = r.Context.Db.Table(ami.TableName()).
+			Where("a.menu_id IN(?) AND `a`.`deleted_at` IS NULL", menuId).
+			Unscoped().
+			Select("b.*").
+			Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b ON b.`id` = a.import_id", m.TableName()))
 	case models.PathTypeApi:
-		db = db.Where("id IN(?) ", menuId)
+		db = r.Context.Db.Table(m.TableName()).Where("`id` IN(?) ", menuId)
 	default:
 		err = fmt.Errorf("pathtype is error")
 		return
 	}
-	if err = db.
-		Find(&res).
+	if err = db.Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"menuId": menuId,
@@ -586,9 +597,35 @@ func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport)
 	var mi models.AdminImport
 	res = db
 	if db == nil {
-		res = r.Context.Db.Table(m.TableName()).Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b ON a.import_id=b.id", mi.TableName())).
+		res = r.Context.Db.Table(m.TableName()).
+			Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b ON a.import_id=b.id", mi.TableName())).
 			Where("a.`menu_id` = ? AND a.`deleted_at` IS NULL", arg.MenuId).
 			Unscoped()
+
+		if arg.AppName != "" {
+			res = res.Where("b.`app_name` = ?", arg.AppName)
+		}
+		if arg.NeedLogin > 0 {
+			res = res.Where("b.need_login = ?", arg.NeedLogin)
+		}
+		if arg.NeedSign > 0 {
+			res = res.Where("b.need_sign = ?", arg.NeedSign)
+		}
+		if arg.DefaultOpen > 0 {
+			res = res.Where("b.default_open = ?", arg.DefaultOpen)
+		}
+		if arg.PermitKey != "" {
+			res = res.Where("b.permit_key = ?", arg.PermitKey)
+		}
+		if arg.UrlPath != "" {
+			res = res.Where("b.url_path LIKE ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
+		}
+		// PermitKey   string `json:"permit_key" form:"permit_key"`
+		// AppName     string `json:"app_name" form:"app_name"`
+		// DefaultOpen uint8  `json:"default_open" form:"default_open"`
+		// NeedLogin   uint8  `json:"need_login" form:"need_login"`
+		// NeedSign    uint8  `json:"need_sign" form:"need_sign"`
+		// UrlPath     string `json:"url_path" form:"url_path"`
 	}
 
 	return

@@ -443,19 +443,21 @@ func (r *ControllerPermit) MenuAdd(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
-	var arg wrappers.ArgAdminMenuWithCheck
-	err := c.Bind(&arg)
-	if err != nil {
+	var (
+		arg wrappers.ArgAdminMenuWithCheck
+		res *wrappers.ResultMenuWithCheck
+		err error
+	)
+	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, err.Error())
 		return
 	}
 	if err = arg.Default(c); err != nil {
 		return
 	}
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminMenuWithCheck(&arg)
 
-	if err != nil {
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+		AdminMenuWithCheck(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
