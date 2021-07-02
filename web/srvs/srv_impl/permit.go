@@ -36,9 +36,7 @@ func NewPermitServiceImpl(context ...*base.Context) srvs.PermitService {
 
 func (r *PermitServiceImpl) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error) {
 	res = &wrappers.ResultUpdateImportValue{}
-	var condition = map[string]interface{}{
-		"id": arg.Id,
-	}
+	var condition = fmt.Sprintf("id IN (%s)", strings.Join(arg.Ids, ","))
 	dao := dao_impl.NewPermitImportImpl(r.Context)
 	var data = make(map[string]interface{}, 1)
 	t := time.Now().Format("2006-01-02 15:04:05")

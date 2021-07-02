@@ -126,6 +126,7 @@ type ResultDeleteImport struct {
 type ArgImportList struct {
 	app_obj.JwtUserMessage
 	response.BaseQuery
+	PermitKey   string `json:"permit_key" form:"permit_key"`
 	AppName     string `json:"app_name" form:"app_name"`
 	DefaultOpen uint8  `json:"default_open" form:"default_open"`
 	NeedLogin   uint8  `json:"need_login" form:"need_login"`
@@ -134,13 +135,30 @@ type ArgImportList struct {
 }
 type ArgUpdateImportValue struct {
 	app_obj.JwtUserMessage
-	Id     string `json:"id" form:"id"`
-	Column string `json:"column" form:"column"`
-	Val    string `json:"val" form:"val"`
+	Id     string   `json:"id" form:"id"`
+	Ids    []string `json:"-" form:"-"`
+	Column string   `json:"column" form:"column"`
+	Val    string   `json:"val" form:"val"`
 }
 
 func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
+	if r.Id == "" {
+		err = fmt.Errorf("请选择要修改的数据")
+		return
+	}
+	ids := strings.Split(r.Id, ",")
+	for _, value := range ids {
+		if value == "" {
+			continue
+		}
+		r.Ids = append(r.Ids, value)
+	}
+	if len(r.Ids) == 0 {
+		err = fmt.Errorf("请选择要修改的数据")
+		return
+	}
+
 	return
 }
 
@@ -270,6 +288,13 @@ type ArgGetImport struct {
 	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
 	Checked bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
 	GroupId int    `json:"group_id,omitempty" form:"group_id"`
+
+	PermitKey   string `json:"permit_key" form:"permit_key"`
+	AppName     string `json:"app_name" form:"app_name"`
+	DefaultOpen uint8  `json:"default_open" form:"default_open"`
+	NeedLogin   uint8  `json:"need_login" form:"need_login"`
+	NeedSign    uint8  `json:"need_sign" form:"need_sign"`
+	UrlPath     string `json:"url_path" form:"url_path"`
 }
 type AdminImport struct {
 	models.AdminImport

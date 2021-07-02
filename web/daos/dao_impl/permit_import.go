@@ -128,9 +128,9 @@ func (r *PermitImportImpl) getColumnName(s string) (res string) {
 	return
 }
 
-func (r *PermitImportImpl) DeleteByCondition(condition map[string]interface{}) (res bool, err error) {
+func (r *PermitImportImpl) DeleteByCondition(condition interface{}) (res bool, err error) {
 	var m models.AdminImport
-	if len(condition) == 0 {
+	if condition == nil {
 		err = fmt.Errorf("您没有选择要删除的数据")
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
@@ -149,9 +149,9 @@ func (r *PermitImportImpl) DeleteByCondition(condition map[string]interface{}) (
 	return
 }
 
-func (r *PermitImportImpl) UpdateByCondition(condition, data map[string]interface{}) (res bool, err error) {
+func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
 	var m models.AdminImport
-	if len(condition) == 0 || len(data) == 0 {
+	if condition == nil || len(data) == 0 {
 		err = fmt.Errorf("您没有选择要更新的数据")
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
