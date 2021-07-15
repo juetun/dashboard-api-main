@@ -10,12 +10,12 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/cons_admin/con_impl"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admin/impl"
 )
 
 func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
-		controller := con_impl.NewControllerPermit()
+		controller := con_impl2.NewControllerPermit()
 		h := r.Group(urlPrefix + "/permit")
 
 		h.POST("/admin_user", controller.AdminUser)

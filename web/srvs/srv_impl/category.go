@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
@@ -13,11 +14,11 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type CategoryService struct {
@@ -62,7 +63,7 @@ func (r *CategoryService) DelCateRel(cateId int) {
 		r.Error("message", "service.DelCateRel", "err", err.Error())
 		return
 	}
-	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(), common.Conf.CateListKey)
 	return
 }
 
@@ -70,7 +71,7 @@ func (r *CategoryService) CateStore(cs wrappers.CateStore) (res bool, err error)
 
 	defaultCate := new(models.ZCategories)
 	err = r.Context.Db.Where("name = ?", cs.Name).Find(defaultCate).Error
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		r.Error("message", "service.CateStore", "err", err.Error())
 		return
 	}
@@ -83,7 +84,7 @@ func (r *CategoryService) CateStore(cs wrappers.CateStore) (res bool, err error)
 		var cate models.ZCategories
 		err = r.Context.Db.Where("id=?", cs.ParentId).Find(&cate).Error
 		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
+			if err == gorm.ErrRecordNotFound {
 				err = errors.New("你输入的分类上级分类不存在或已删除")
 				return
 			}
@@ -108,7 +109,7 @@ func (r *CategoryService) CateStore(cs wrappers.CateStore) (res bool, err error)
 		r.Error("message", "service.CateStore", "err", err.Error())
 		return
 	}
-	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(), common.Conf.CateListKey)
 	res = true
 	return
 }
@@ -143,12 +144,12 @@ func (r *CategoryService) CateUpdate(cateId int, cs wrappers.CateStore) (res boo
 		ParentId:    cs.ParentId,
 	}
 	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).
-		Where("id =?", cateId).Update(cateUpdate).Error
+		Where("id =?", cateId).Updates(cateUpdate).Error
 	if err != nil {
 		r.Error("message", "service.CateUpdate", "err", err.Error())
 		return false, err
 	}
-	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.CateListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(), common.Conf.CateListKey)
 	return true, nil
 }
 
@@ -181,7 +182,7 @@ func (r *CategoryService) GetSimilar(beginId []int, resIds []int, level int) (be
 
 }
 
-// 根据文章ID获取文章的分类
+// GetPostCateByPostIds 根据文章ID获取文章的分类
 func (r *CategoryService) GetPostCateByPostIds(postIds []string) (res *map[string]wrappers.PostShow, err error) {
 	res = &map[string]wrappers.PostShow{}
 	if len(postIds) == 0 {
@@ -195,7 +196,10 @@ func (r *CategoryService) GetPostCateByPostIds(postIds []string) (res *map[strin
 		return
 	}
 	cateIds := r.uniqueCateId(&dt)
-	mp, err := r.GetCategoryByIds(cateIds)
+	var mp *map[string]models.ZCategories
+	if mp, err = r.GetCategoryByIds(cateIds); err != nil {
+		return
+	}
 	for _, value := range dt {
 		p := wrappers.PostShow{
 			ZPostCate: value,
@@ -237,17 +241,18 @@ func (r *CategoryService) uniqueCateId(dt *[]models.ZPostCate) *[]string {
 	return &cateIds
 }
 
-func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCategories, err error) {
+func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCategories, e error) {
 	postCate := new(models.ZPostCate)
+	var err error
 	err = r.Context.Db.Table((&models.ZPostCate{}).TableName()).Select("cate_id").Where("post_id = ?", postId).
 		Find(postCate).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			r.Error("message", "service.GetPostCateByPostId", "err", "there has not data")
-			return cates, errors.New("can not get the post cate")
+		if err != gorm.ErrRecordNotFound {
+			return
 		}
+		e = err
 		r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
-		return cates, err
+		return
 	}
 
 	cates = new(models.ZCategories)
@@ -256,14 +261,14 @@ func (r *CategoryService) GetPostCateByPostId(postId int) (cates *models.ZCatego
 		Select("id,name,display_name,seo_desc").
 		Find(cates).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			r.Error("message", "service.GetPostCateByPostId", "err", "there has not data")
-			return cates, errors.New("can not get the post cate")
+		if err == gorm.ErrRecordNotFound {
+			return
 		}
+		e = err
 		r.Error("message", "service.GetPostCateByPostId", "err", err.Error())
-		return cates, err
+		return
 	}
-	return cates, nil
+	return
 
 }
 
@@ -307,7 +312,7 @@ func (r *CategoryService) GetPostCates(postId *[]int) (res *map[string]models.ZP
 	return res, err
 }
 
-// Get the cate list what by parent sort
+// CateListBySort Get the cate list what by parent sort
 func (r *CategoryService) CateListBySort() (res []wrappers.Category, err error) {
 	res = make([]wrappers.Category, 0)
 	cacheKey := common.Conf.CateListKey
@@ -316,7 +321,7 @@ func (r *CategoryService) CateListBySort() (res []wrappers.Category, err error) 
 		r.Error("message", "service.CateListBySort redis connect is err", "err", err.Error())
 		return
 	}
-	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -371,7 +376,7 @@ func (r *CategoryService) doCacheCateList(cacheKey string) ([]wrappers.Category,
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(), cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Error("message", "service.CateListBySort", "err", err.Error())
 		return nil, err

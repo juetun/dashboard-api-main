@@ -1,4 +1,11 @@
-package con_impl
+// Package impl
+/**
+ * Created by GoLand.
+ * User: xzghua@gmail.com
+ * Date: 2018-12-27
+ * Time: 00:14
+ */
+package impl
 
 import (
 	"path/filepath"
@@ -9,155 +16,165 @@ import (
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
+	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
-type ControllerTrash struct {
+type ControllerPost struct {
 	base.ControllerBase
 }
 
-func NewControllerTrash() cons_admin.Trash {
-	controller := &ControllerTrash{}
+func NewControllerPost() cons_admin2.Console {
+	controller := &ControllerPost{}
 	controller.ControllerBase.Init()
 	return controller
 }
 
-func (r *ControllerTrash) Index(c *gin.Context) {
+func (r *ControllerPost) Index(c *gin.Context) {
+	var arg response.PageQuery
 
-	pager := response.NewPager()
 	var err error
-	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	arg.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.DefaultPage()
-	offset := pager.GetOffset()
+	arg.DefaultPage()
+	offset := arg.GetOffset()
+	pager := response.NewPager(response.PagerBaseQuery(arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, false)
-
-	var postList = &[]wrappers.ConsolePostList{}
+	postList := &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
 		postList, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, false)
 		if err != nil {
-			r.Log.Logger.Errorln("message", "console.Index", "err", err.Error())
 			r.Response(c, 500000000, nil)
 			return
 		}
 	}
-
 	data := make(map[string]interface{})
 	data["list"] = postList
 	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
-
 	r.Response(c, 0, data)
 	return
 }
-func (r *ControllerTrash) Create(c *gin.Context) {
+
+func (r *ControllerPost) Create(c *gin.Context) {
 	srv := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 	cates, err := srv.CateListBySort()
 
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	srvTag := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
 	tags, err := srvTag.AllTags()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
 	data := make(map[string]interface{})
 	data["cates"] = cates
 	data["tags"] = tags
 	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
-	r.Response(c, 0, data)
+	r.Response(c, 0, data, "添加成功")
 	return
 }
-func (r *ControllerTrash) Store(c *gin.Context) {
+
+func (r *ControllerPost) Store(c *gin.Context) {
+
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Logger.Errorln("message", "post.Store", "error", "get request_params from context fail")
-		r.Response(c, 401000004, nil)
+		r.Response(c, 401000004, nil, "参数异常")
 		return
 	}
 	var ps wrappers.PostStore
 	ps, ok := requestJson.(wrappers.PostStore)
 	if !ok {
 		r.Log.Logger.Errorln("message", "post.Store", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "参数异常")
 		return
 	}
 	userId := r.GetUser(c).UserId
-	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
-	srv.PostStore(ps, userId)
-	r.Response(c, 0, nil)
+	srvPost := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
+	srvPost.PostStore(ps, userId)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
-func (r *ControllerTrash) Edit(c *gin.Context) {
+
+func (r *ControllerPost) Edit(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
-	if err != nil {
-		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
-		r.Response(c, 500000000, nil)
-		return
-	}
-	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
-	srvTag := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
-	srvCate := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
 
-	post, err := srv.PostDetail(postIdInt)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000002, nil, err.Error())
 		return
 	}
-	postTags, err := srv.PostIdTag(postIdInt)
+	srvPost := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
+	post, err := srvPost.PostDetail(postIdInt)
 	if err != nil {
-		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Log.Logger.Errorln("message", "console.Edit(116)", "err", err.Error())
+		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
-	postCate, err := srvCate.PostCate(postIdInt)
+
+	srvCate := srv_impl.NewCategoryService(base.CreateContext(&r.ControllerBase, c))
+	srvTag := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
+	postTags, err := srvPost.PostIdTag(postIdInt)
 	if err != nil {
-		r.Log.Logger.Errorln("message", "console.Edit", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Log.Logger.Errorln("message", "console.Edit(125)", "err", err.Error())
+		r.Response(c, 500000005, nil)
+		return
+	}
+	var postCate *map[string]models.ZPostCate
+	postCate, err = srvCate.GetPostCates(&[]int{postIdInt})
+	if err != nil {
+		r.Log.Logger.Errorln("message", "console.Edit(12)", "err", err.Error())
+		r.Response(c, 500000006, nil)
 		return
 	}
 	data := make(map[string]interface{})
 	posts := make(map[string]interface{})
 	posts["post"] = post
-	posts["postCate"] = postCate
+	posts["postCate"] = 0
+	if _, ok := (*postCate)[postIdStr]; ok {
+		posts["postCate"] = (*postCate)[postIdStr].CateId
+	}
+
 	posts["postTag"] = postTags
 	data["post"] = posts
 	cates, err := srvCate.CateListBySort()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000007, nil)
 		return
 	}
 	tags, err := srvTag.AllTags()
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Create", "err", err.Error())
-		r.Response(c, 500000000, nil)
+		r.Response(c, 500000008, nil)
 		return
 	}
 	data["cates"] = cates
 	data["tags"] = tags
 	data["imgUploadUrl"] = common.Conf.ImgUploadUrl
-	r.Response(c, 0, data)
+	r.Response(c, 0, data, "操作成功")
 	return
 }
-func (r *ControllerTrash) Update(c *gin.Context) {
+
+func (r *ControllerPost) Update(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
 
@@ -170,22 +187,23 @@ func (r *ControllerTrash) Update(c *gin.Context) {
 	requestJson, exists := c.Get("json")
 	if !exists {
 		r.Log.Logger.Errorln("message", "post.Store", "error", "get request_params from context fail")
-		r.Response(c, 400001003, nil)
+		r.Response(c, 400001003, nil, "参数格式异常")
 		return
 	}
+	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	var ps wrappers.PostStore
 	ps, ok := requestJson.(wrappers.PostStore)
 	if !ok {
 		r.Log.Logger.Errorln("message", "post.Store", "error", "request_params turn to error")
-		r.Response(c, 400001001, nil)
+		r.Response(c, 400001001, nil, "参数格式异常")
 		return
 	}
-	srv := srv_impl.NewConsolePostService()
 	srv.PostUpdate(postIdInt, ps)
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
-func (r *ControllerTrash) Destroy(c *gin.Context) {
+
+func (r *ControllerPost) Destroy(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
 
@@ -201,27 +219,29 @@ func (r *ControllerTrash) Destroy(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	r.Response(c, 0, nil)
+	r.Response(c, 0, nil, "操作成功")
 	return
 }
-func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 
-	pager := response.NewPager()
+func (r *ControllerPost) TrashIndex(c *gin.Context) {
+	var arg response.PageQuery
+
 	var err error
-	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	arg.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.DefaultPage()
-	offset := pager.GetOffset()
-
+	arg.DefaultPage()
+	offset := arg.GetOffset()
+	pager := response.NewPager(response.PagerBaseQuery(arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
+	var dba *gorm.DB
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, true)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
@@ -241,10 +261,12 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	data := make(map[string]interface{})
 	data["list"] = postList
 	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
+
 	r.Response(c, 0, data)
 	return
 }
-func (r *ControllerTrash) UnTrash(c *gin.Context) {
+
+func (r *ControllerPost) UnTrash(c *gin.Context) {
 	postIdStr := c.Param("id")
 	postIdInt, err := strconv.Atoi(postIdStr)
 
@@ -263,7 +285,8 @@ func (r *ControllerTrash) UnTrash(c *gin.Context) {
 	r.Response(c, 0, nil, "操作成功")
 	return
 }
-func (r *ControllerTrash) ImgUpload(c *gin.Context) {
+
+func (r *ControllerPost) ImgUpload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -279,6 +302,7 @@ func (r *ControllerTrash) ImgUpload(c *gin.Context) {
 		r.Response(c, 401000005, nil)
 		return
 	}
+
 	srvQiniu := srv_impl.NewQiuNiuService(base.CreateContext(&r.ControllerBase, c))
 	// Default upload both
 	data := make(map[string]interface{})
@@ -294,7 +318,6 @@ func (r *ControllerTrash) ImgUpload(c *gin.Context) {
 	} else {
 		data["path"] = common.Conf.AppImgUrl + filename
 	}
-
 	r.Response(c, 0, data)
 	return
 }

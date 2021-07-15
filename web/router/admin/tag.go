@@ -3,14 +3,14 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/cons_admin/con_impl"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admin/impl"
 	"github.com/juetun/dashboard-api-main/web/validate"
 )
 
 func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
 		tag := r.Group(urlPrefix + "/console")
-		consoleTag := con_impl.NewControllerTag()
+		consoleTag := con_impl2.NewControllerTag()
 		tagV := validate.NewValidate().NewTagV.MyValidate()
 		tag.GET("/tag", consoleTag.Index)
 		tag.POST("/tag", tagV, consoleTag.Store)

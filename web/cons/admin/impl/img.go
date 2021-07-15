@@ -1,4 +1,4 @@
-package con_impl
+package impl
 
 import (
 	"path/filepath"

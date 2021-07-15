@@ -1,3 +1,4 @@
+// Package impl
 /**
  * Created by GoLand.
  * User: zhu
@@ -5,7 +6,7 @@
  * Date: 2019-05-17
  * Time: 11:18
  */
-package con_impl
+package impl
 
 import "C"
 import (

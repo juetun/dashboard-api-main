@@ -3,15 +3,15 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/cons_admin/con_impl"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admin/impl"
 	"github.com/juetun/dashboard-api-main/web/validate"
 )
 
 func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
-		post := con_impl.NewControllerPost()
-		trash := con_impl.NewControllerTrash()
-		img := con_impl.NewControllerImg()
+		post := con_impl2.NewControllerPost()
+		trash := con_impl2.NewControllerTrash()
+		img := con_impl2.NewControllerImg()
 
 		c := r.Group(urlPrefix + "/console")
 		postV := validate.NewValidate().NewPostV.MyValidate()

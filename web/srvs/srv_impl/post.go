@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
@@ -12,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
@@ -323,7 +324,7 @@ func (r *ConsolePostService) PostStore(ps wrappers.PostStore, userId string) {
 	newPostCreate := models.ZPosts{
 		Uid: uid,
 	}
-	err = session.Where("id = ?", postCreate.Id).Update(newPostCreate).Error
+	err = session.Where("id = ?", postCreate.Id).Updates(newPostCreate).Error
 	if err != nil {
 		r.Context.Error( map[string]interface{}{
 			"message": "service.PostStore",
@@ -572,7 +573,7 @@ func (r *ConsolePostService) PostUpdate(postId int, ps wrappers.PostStore) (err 
 
 	err = session.Table((&models.ZPosts{}).TableName()).
 		Where("id = ?", postId).
-		Update(postUpdate).
+		Updates(postUpdate).
 		Error
 	if err != nil {
 		r.Context.Error( map[string]interface{}{

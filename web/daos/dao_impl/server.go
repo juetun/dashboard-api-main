@@ -1,3 +1,4 @@
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -20,7 +21,7 @@ type DaoAppPath struct {
 func NewDaoAppPath(context ...*base.Context) (p *DaoAppPath) {
 	p = &DaoAppPath{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})
@@ -28,7 +29,7 @@ func NewDaoAppPath(context ...*base.Context) (p *DaoAppPath) {
 }
 
 func (r *DaoAppPath) GetAllApp() (res *[]models.ZAppPath, err error) {
-	res= &[]models.ZAppPath{}
+	res = &[]models.ZAppPath{}
 	var m models.ZAppPath
 	err = r.Context.Db.
 		Table(m.TableName()).

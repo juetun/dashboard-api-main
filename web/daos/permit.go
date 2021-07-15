@@ -1,3 +1,4 @@
+// Package daos
 /**
 * @Author:changjiang
 * @Description:
@@ -8,10 +9,10 @@
 package daos
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type DaoPermit interface {

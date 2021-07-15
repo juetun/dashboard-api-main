@@ -1,3 +1,4 @@
+// Package impl
 /**
 * @Author:changjiang
 * @Description:
@@ -5,12 +6,12 @@
 * @Version: 1.0.0
 * @Date 2020/9/16 12:06 上午
  */
-package con_impl
+package impl
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -19,7 +20,7 @@ type ControllerPermit struct {
 	base.ControllerBase
 }
 
-func NewControllerPermit() cons_admin.Permit {
+func NewControllerPermit() cons_admin2.Permit {
 	controller := &ControllerPermit{}
 	controller.ControllerBase.Init()
 	return controller

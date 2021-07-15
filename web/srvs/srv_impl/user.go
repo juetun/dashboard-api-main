@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
@@ -28,7 +29,7 @@ func NewUserService(context ...*base.Context) (p *UserService) {
 	return
 }
 
-// 根据用户HID获取用户信息
+// GetUserById 根据用户HID获取用户信息
 func (r *UserService) GetUserById(userId string) (user *models.UserMain, err error) {
 	user = &models.UserMain{}
 	if userId == "" {
@@ -37,19 +38,17 @@ func (r *UserService) GetUserById(userId string) (user *models.UserMain, err err
 
 	users, err := r.GetUserByIds([]string{userId})
 	if err != nil {
-		return
-	}
-	if len(users) > 0 {
-		*user = users[0]
-	}
-	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "service.GetUserById",
 			"userId":  userId,
 			"error":   err.Error(),
 		})
-
+		return
 	}
+	if len(users) > 0 {
+		*user = users[0]
+	}
+
 	return
 }
 
@@ -101,7 +100,7 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 }
 
 func (r *UserService) GetUserMapByIds(userId []string) (user *map[string]models.UserMain, err error) {
-
+	user = &map[string]models.UserMain{}
 	users, err := r.GetUserByIds(userId)
 	for _, value := range users {
 		(*user)[value.UserHid] = value

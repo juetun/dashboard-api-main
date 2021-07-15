@@ -1,3 +1,4 @@
+// Package wrappers
 /**
 * @Author:changjiang
 * @Description:
@@ -27,7 +28,7 @@ type (
 	}
 	ArgServiceList struct {
 		app_obj.JwtUserMessage
-		response.BaseQuery
+		response.PageQuery
 		Name       string   `json:"name" form:"name"`
 		Id         int      `json:"id" form:"id" `
 		UniqueKey  string   `json:"unique_key" form:"unique_key"`

@@ -1,6 +1,6 @@
+// Package srv_impl
 /**
  * Created by GoLand.
- * User: xzghua@gmail.com
  * Date: 2019-01-12
  * Time: 01:57
  */
@@ -14,11 +14,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type TagService struct {
@@ -38,7 +38,7 @@ func (r *TagService) TagStore(ts wrappers.TagStore) (err error) {
 		Where("name = ?", ts.Name).
 		Find(tag).
 		Error
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.TagStore", "error": err,
@@ -64,7 +64,7 @@ func (r *TagService) TagStore(ts wrappers.TagStore) (err error) {
 		Num:         0,
 	}
 	err = dba.Create(tagInsert).Error
-	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.TagListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(), common.Conf.TagListKey)
 	return
 }
 func (r *TagService) GetPostTagsByPostIds(postIds []string) (res *map[int][]wrappers.ConsoleTag, err error) {
@@ -86,7 +86,10 @@ func (r *TagService) GetPostTagsByPostIds(postIds []string) (res *map[int][]wrap
 		return
 	}
 	tagIds := r.uniqueTagId(&dt)
-	mp, err := r.GetTagsMapByIds(tagIds)
+	var mp *map[int]models.ZTags
+	if mp, err = r.GetTagsMapByIds(tagIds); err != nil {
+		return
+	}
 	for _, value := range dt {
 		if _, ok := (*res)[value.PostId]; !ok {
 			(*res)[value.PostId] = make([]wrappers.ConsoleTag, 0)
@@ -161,9 +164,11 @@ func (r *TagService) GetPostTagsByPostId(postId int) (tagsArr []int, err error) 
 				"postId":  postId,
 			},
 		)
-		return nil, nil
+		return
 	}
-	defer rows.Close()
+	defer func() {
+		err = rows.Close()
+	}()
 	for rows.Next() {
 		postTag := new(models.ZPostTag)
 		err = rows.Scan(postTag)
@@ -191,7 +196,7 @@ func (r *TagService) TagUpdate(tagId int, ts wrappers.TagStore) (err error) {
 		Where("name = ? AND id!=?", ts.Name, tagId).
 		Find(tag).
 		Error
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.GetPostTagsByPostId",
@@ -222,7 +227,7 @@ func (r *TagService) TagUpdate(tagId int, ts wrappers.TagStore) (err error) {
 		SeoDesc:     ts.SeoDesc,
 	}
 	err = r.getTableDb().Where("id=?", tagId).
-		Update(tagUpdate).Error
+		Updates(tagUpdate).Error
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{
@@ -262,7 +267,7 @@ func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models
 			map[string]interface{}{
 				"message": "service.TagsIndex",
 				"error":   err,
-				"limit":  limit,
+				"limit":   limit,
 				"offset":  offset,
 			},
 		)
@@ -274,12 +279,12 @@ func (r *TagService) TagsIndex(limit int, offset int) (num int64, tags []*models
 			Offset(offset).
 			Find(&tags).
 			Error
-		if err!=nil{
+		if err != nil {
 			r.Context.Error(
 				map[string]interface{}{
 					"message": "service.TagsIndex",
 					"error":   err,
-					"limit":  limit,
+					"limit":   limit,
 					"offset":  offset,
 				},
 			)
@@ -299,25 +304,25 @@ func (r *TagService) DelTagRel(tagId int) {
 			map[string]interface{}{
 				"message": "service.DelTagRel",
 				"error":   err,
-				"tagId":  tagId,
- 			},
+				"tagId":   tagId,
+			},
 		)
- 		return
+		return
 	}
 	tag := new(models.ZTags)
 	err = session.Where("id=?", tagId).Delete(tag).Error
 	if err != nil {
 		_ = session.Rollback()
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.DelTagRel1",
 				"error":   err,
-				"tagId":  tagId,
+				"tagId":   tagId,
 			},
 		)
 		return
 	}
-	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(),common.Conf.TagListKey)
+	r.Context.CacheClient.Del(r.Context.GinContext.Request.Context(), common.Conf.TagListKey)
 	return
 }
 func (r *TagService) CommonData() (h gin.H, err error) {
@@ -345,11 +350,11 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 	srv := NewCategoryService()
 	cates, err := srv.CateListBySort()
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.Index.CommonData",
 				"error":   err,
- 			},
+			},
 		)
 		return
 	}
@@ -364,7 +369,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 	tags, err := r.AllTags()
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.Index.CommonData1",
 				"error":   err,
@@ -376,7 +381,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 	srvLink := NewLinkService()
 	links, err := srvLink.AllLink()
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.Index.CommonData2",
 				"error":   err,
@@ -388,7 +393,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 	system, err := srvSystem.IndexSystem()
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
 				"message": "service.Index.CommonData3",
 				"error":   err,
@@ -405,11 +410,11 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 
 func (r *TagService) AllTags() ([]models.ZTags, error) {
 	cacheKey := common.Conf.TagListKey
-	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
 	if err == redis.Nil {
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
- 			r.Context.Error(
+			r.Context.Error(
 				map[string]interface{}{
 					"message": "service.AllTags",
 					"error":   err,
@@ -456,33 +461,33 @@ func (r *TagService) AllTags() ([]models.ZTags, error) {
 func (r *TagService) doCacheTagList(cacheKey string) ([]models.ZTags, error) {
 	tags, err := r.tags()
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
-				"message": "service.doCacheTagList",
-				"error":   err,
-				"cacheKey":   cacheKey,
+				"message":  "service.doCacheTagList",
+				"error":    err,
+				"cacheKey": cacheKey,
 			},
 		)
 		return tags, err
 	}
 	jsonRes, err := json.Marshal(&tags)
 	if err != nil {
- 		r.Context.Error(
+		r.Context.Error(
 			map[string]interface{}{
-				"message": "service.doCacheTagList1",
-				"error":   err,
-				"cacheKey":   cacheKey,
+				"message":  "service.doCacheTagList1",
+				"error":    err,
+				"cacheKey": cacheKey,
 			},
 		)
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(), cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{
-				"message": "service.doCacheTagList2",
-				"error":   err,
-				"cacheKey":   cacheKey,
+				"message":  "service.doCacheTagList2",
+				"error":    err,
+				"cacheKey": cacheKey,
 			},
 		)
 		return nil, err
@@ -498,9 +503,9 @@ func (r *TagService) tags() ([]models.ZTags, error) {
 			map[string]interface{}{
 				"message": "service.Tags",
 				"error":   err,
- 			},
+			},
 		)
- 		return tags, err
+		return tags, err
 	}
 
 	return tags, nil

@@ -1,3 +1,4 @@
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -24,7 +25,7 @@ type DaoPostTag struct {
 func NewDaoPostTag(context ...*base.Context) (p *DaoPostTag) {
 	p = &DaoPostTag{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db,p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})

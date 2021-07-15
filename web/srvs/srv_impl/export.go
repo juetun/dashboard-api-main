@@ -1,4 +1,4 @@
-//Package srv_impl
+// Package srv_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -9,8 +9,9 @@
 package srv_impl
 
 import (
-	"github.com/juetun/dashboard-api-main/web/daos"
 	"time"
+
+	"github.com/juetun/dashboard-api-main/web/daos"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -29,7 +30,7 @@ type ServiceExport struct {
 func NewServiceExport(context ...*base.Context) (p *ServiceExport) {
 	p = &ServiceExport{}
 	p.SetContext(context...)
-	p.Context.CacheClient = app_obj.GetRedisClient()
+	p.Context.CacheClient, p.Context.CacheName = app_obj.GetRedisClient()
 	return
 
 }
@@ -92,7 +93,7 @@ func (r *ServiceExport) Progress(args *wrappers.ArgumentsExportProgress) (res wr
 	return
 }
 
-//UpdateExpireData 更新超时数据
+// UpdateExpireData 更新超时数据
 func (r *ServiceExport) UpdateExpireData(dao daos.DaoExport, list *[]models.ZExportData) (err error) {
 	hIds := &[]string{}
 	for _, value := range *list {

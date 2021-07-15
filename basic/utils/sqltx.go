@@ -5,8 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/juetun/dashboard-api-main/basic/utils/hashid"
-
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type HashModel interface {

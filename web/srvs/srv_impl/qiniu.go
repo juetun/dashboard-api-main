@@ -1,3 +1,4 @@
+// Package srv_impl
 package srv_impl
 
 import (
@@ -10,7 +11,7 @@ import (
 	"github.com/qiniu/go-sdk/v7/storage"
 )
 
-// 自定义返回值结构体
+// MyPutRet 自定义返回值结构体
 type MyPutRet struct {
 	Key    string
 	Hash   string
@@ -29,7 +30,7 @@ func NewQiuNiuService(context ...*base.Context) (p *QiuNiuService) {
 	return
 }
 
-// Upload file to Qiniu
+// Qiniu Upload file to Qiniu
 // LocalFile is the local file, such as "./static/images/uploads/2.jpeg"
 // FileName is the name what  qiniu name as
 // The storage Zone is default

@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2021/5/22 5:17 下午
  */
-package cons_admin
+package admin
 
 import (
 	"github.com/gin-gonic/gin"

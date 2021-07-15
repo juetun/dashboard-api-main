@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -19,6 +19,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type SrvServiceImpl struct {
@@ -37,7 +38,9 @@ func (r *SrvServiceImpl) add(dao daos.DaoService, arg *wrappers.ArgServiceEdit) 
 		CreatedAt:  t,
 		UpdatedAt:  t,
 	}
-	dt.MarshalHosts()
+	if err = dt.MarshalHosts(); err != nil {
+		return
+	}
 	if err = dao.Create(dt); err != nil {
 		return
 	}
@@ -60,7 +63,9 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 	}
 	t := base.TimeNormal{Time: time.Now()}
 	apps[0].HostConfig = arg.HostConfig
-	apps[0].MarshalHosts()
+	if err = apps[0].MarshalHosts(); err != nil {
+		return
+	}
 	data := map[string]interface{}{
 		"unique_key": arg.UniqueKey,
 		"port":       arg.Port,
@@ -102,7 +107,9 @@ func (r *SrvServiceImpl) Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDe
 		err = fmt.Errorf("您要查看的服务信息不存在或已删除")
 		return
 	}
-	dt[0].UnmarshalHosts()
+	if err=dt[0].UnmarshalHosts();err!=nil{
+		return
+	}
 	res.AdminApp = dt[0]
 	return
 }

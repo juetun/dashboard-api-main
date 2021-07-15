@@ -1,5 +1,5 @@
-//Package daos
-//@Copyright (c) 2021.
+// Package daos
+// @Copyright (c) 2021.
 // @Author ${USER}
 // @Date ${DATE}
 package daos

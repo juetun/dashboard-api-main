@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
@@ -65,7 +66,7 @@ func (r *LinkService) LinkUpdate(ls wrappers.LinkStore, linkId int) (err error) 
 	}
 	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
 		Where("id=?", linkId).
-		Update(&linkUpdate).Error
+		Updates(&linkUpdate).Error
 	return
 }
 
@@ -78,9 +79,9 @@ func (r *LinkService) LinkDestroy(linkId int) (err error) {
 }
 
 func (r *LinkService) LinkCnt() (cnt int64, err error) {
-	link := new(models.ZLinks)
+
 	err = r.Context.Db.Table((&models.ZLinks{}).TableName()).
-		Count(link).
+		Count(&cnt).
 		Error
 	return
 }
@@ -88,7 +89,7 @@ func (r *LinkService) LinkCnt() (cnt int64, err error) {
 func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 
 	cacheKey := common.Conf.LinkIndexKey
-	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
 	if err == redis.Nil {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
@@ -106,7 +107,7 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 			"err":      err,
 			"cacheKey": cacheKey,
 		})
- 		return nil, err
+		return nil, err
 	}
 
 	err = json.Unmarshal([]byte(cacheRes), &links)
@@ -116,7 +117,7 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 			"err":      err,
 			"cacheKey": cacheKey,
 		})
- 		links, err = r.doCacheLinkList(cacheKey)
+		links, err = r.doCacheLinkList(cacheKey)
 		if err != nil {
 			r.Context.Error(map[string]interface{}{
 				"message":  "service.AllLink3",
@@ -136,7 +137,7 @@ func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, e
 		Find(&links).
 		Error
 	if err != nil {
- 		r.Context.Error(map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message":  "service.doCacheLinkList",
 			"err":      err,
 			"cacheKey": cacheKey,
@@ -145,16 +146,16 @@ func (r *LinkService) doCacheLinkList(cacheKey string) (links []models.ZLinks, e
 	}
 	jsonRes, err := json.Marshal(&links)
 	if err != nil {
- 		r.Context.Error(map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message":  "service.doCacheLinkList1",
 			"err":      err,
 			"cacheKey": cacheKey,
 		})
 		return nil, err
 	}
-	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(), cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
- 		r.Context.Error(map[string]interface{}{
+		r.Context.Error(map[string]interface{}{
 			"message":  "service.doCacheLinkList2",
 			"err":      err,
 			"cacheKey": cacheKey,

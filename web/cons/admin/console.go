@@ -4,7 +4,7 @@
  * Date: 2018-12-27
  * Time: 00:07
  */
-package cons_admin
+package admin
 
 import "github.com/gin-gonic/gin"
 

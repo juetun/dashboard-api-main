@@ -1,3 +1,4 @@
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -10,12 +11,12 @@ package dao_impl
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type DaoServiceImpl struct {
@@ -54,7 +55,7 @@ func (r *DaoServiceImpl) GetImportMenuByModule(module string) (res []wrappers.Im
 
 func (r *DaoServiceImpl) Update(condition, data map[string]interface{}) (err error) {
 	var m models.AdminApp
-	if err = r.Context.Db.Model(&m).Where(condition).Update(data).Error; err != nil {
+	if err = r.Context.Db.Model(&m).Where(condition).Updates(data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"data":      data,
@@ -127,13 +128,15 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 }
 func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int, dba *gorm.DB, err error) {
 	dba = r.fetchGetDb(db, arg)
-	if err = dba.Count(&total).Error; err != nil {
+	var c int64
+	if err = dba.Count(&c).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "DaoServiceImplGetCount")
 		return
 	}
+	total = int(c)
 	return
 }
 
@@ -142,10 +145,10 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 		db = r.fetchGetDb(db, arg)
 	}
 	if page != nil {
-		if page.Order != "" {
-			db = db.Order(page.Order)
+		if arg.PageQuery.Order != "" {
+			db = db.Order(arg.PageQuery.Order)
 		}
-		db = db.Offset(page.GetOffset()).Limit(page.PageSize)
+		db = db.Offset(arg.PageQuery.GetOffset()).Limit(page.PageSize)
 	}
 	if err = db.Find(&list).Error; err != nil {
 		return
@@ -156,7 +159,7 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 func NewDaoServiceImpl(context ...*base.Context) daos.DaoService {
 	p := &DaoServiceImpl{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})

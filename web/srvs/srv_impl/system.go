@@ -1,17 +1,17 @@
+// Package srv_impl
 /**
- * Created by GoLand.
- * User: xzghua@gmail.com
- * Date: 2019-05-07
- * Time: 22:12
+* Created by GoLand.
+* Date: 2019-05-07
+* Time: 22:12
  */
 package srv_impl
 
 import (
 	"encoding/json"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/base"
@@ -31,22 +31,20 @@ func NewSystemService(context ...*base.Context) (p *SystemService) {
 }
 func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 	system = new(models.ZBaseSys)
-	err = r.Context.Db.
+	var e error
+	e = r.Context.Db.
 		Table(system.TableName()).
 		Find(system).
 		Error
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) { // 如果没有查询到数据
-			err = nil
-			return
-		}
+	if e != nil && e != gorm.ErrRecordNotFound {
+		err = e
 		r.Context.Error(
 			map[string]interface{}{
-
 				"message": "service.GetSystemList",
-				"err":     err.Error(),
+				"err":     e.Error(),
 			},
 		)
+
 		return
 	}
 	return
@@ -65,14 +63,14 @@ func (r *SystemService) SystemUpdate(sId int, ss wrappers.ConsoleSystem) (err er
 		return
 	}
 	err = r.Context.Db.Table((&models.ZBaseSys{}).TableName()).Where("id=?", sId).
-		Update(&systemUpdate).
+		Updates(&systemUpdate).
 		Error
 	return err
 }
 
 func (r *SystemService) IndexSystem() (system *models.ZBaseSys, err error) {
 	cacheKey := common.Conf.SystemIndexKey
-	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(),cacheKey).Result()
+	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
 	if err == redis.Nil {
 		system, err := r.doCacheIndexSystem(cacheKey)
 		if err != nil {
@@ -143,7 +141,7 @@ func (r *SystemService) doCacheIndexSystem(cacheKey string) (system *models.ZBas
 		)
 		return system, err
 	}
-	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(),cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
+	err = r.Context.CacheClient.Set(r.Context.GinContext.Request.Context(), cacheKey, jsonRes, time.Duration(common.Conf.DataCacheTimeDuration)*time.Hour).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{

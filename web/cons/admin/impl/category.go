@@ -1,17 +1,18 @@
+// Package impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
  * Date: 2019-01-12
  * Time: 23:06
  */
-package con_impl
+package impl
 
 import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -20,7 +21,7 @@ type ControllerCategory struct {
 	base.ControllerBase
 }
 
-func NewControllerCategory() cons_admin.Console {
+func NewControllerCategory() cons_admin2.Console {
 	controller := &ControllerCategory{}
 	controller.ControllerBase.Init()
 	return controller

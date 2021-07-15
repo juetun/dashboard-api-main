@@ -1,10 +1,10 @@
+// Package impl
 /**
  * Created by GoLand.
- * User: xzghua@gmail.com
  * Date: 2019-05-06
  * Time: 23:33
  */
-package con_impl
+package impl
 
 import (
 	"strconv"
@@ -13,7 +13,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	"github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -22,29 +22,30 @@ type ControllerLink struct {
 	base.ControllerBase
 }
 
-func NewControllerLink() cons_admin.Console {
+func NewControllerLink() admin.Console {
 	controller := &ControllerLink{}
 	controller.ControllerBase.Init()
 	return controller
 }
 
 func (r *ControllerLink) Index(c *gin.Context) {
+	var arg response.PageQuery
 
-	pager := response.NewPager()
 	var err error
 
-	if pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo))); err != nil {
+	if arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo))); err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	arg.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	pager.DefaultPage()
+	arg.DefaultPage()
+	pager := response.NewPager(response.PagerBaseQuery(arg))
 	srv := srv_impl.NewLinkService(base.CreateContext(&r.ControllerBase, c))
-	links, cnt, err := srv.LinkList(pager.GetOffset(), pager.PageSize)
+	links, cnt, err := srv.LinkList(arg.GetOffset(), pager.PageSize)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Link.Index2", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())

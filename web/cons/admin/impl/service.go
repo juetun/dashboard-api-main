@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2021/5/22 5:16 下午
  */
-package con_impl
+package impl
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -95,7 +95,7 @@ func (r *ConServiceImpl) List(c *gin.Context) {
 	r.Response(c, 0, res, "success")
 }
 
-func NewConServiceImpl() cons_admin.ConService {
+func NewConServiceImpl() cons_admin2.ConService {
 	p := &ConServiceImpl{}
 	p.ControllerBase.Init()
 	return p

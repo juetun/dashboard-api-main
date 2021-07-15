@@ -1,4 +1,4 @@
-//Package dao_impl
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -23,7 +23,7 @@ type DaoExportImpl struct {
 func NewDaoExportImpl(context ...*base.Context) (res daos.DaoExport) {
 	p := &DaoExportImpl{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})
@@ -33,7 +33,7 @@ func (r DaoExportImpl) Update(model *models.ZExportData) (err error) {
 	var m models.ZExportData
 	if err = r.Context.Db.Table(m.TableName()).
 		Where("hid = ?", model.Hid).
-		Update(model).
+		Updates(model).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"model": model,
@@ -50,7 +50,7 @@ func (r DaoExportImpl) UpdateByHIds(data map[string]interface{}, hIds *[]string)
 	var m models.ZExportData
 	if err = r.Context.Db.Table(m.TableName()).
 		Where("hid in(?)", *hIds).
-		Update(data).
+		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"data": data,

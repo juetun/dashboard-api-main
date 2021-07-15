@@ -1,4 +1,4 @@
-package con_impl
+package impl
 
 import (
 	"strconv"
@@ -7,7 +7,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -16,28 +16,29 @@ type ControllerTag struct {
 	base.ControllerBase
 }
 
-func NewControllerTag() cons_admin.Console {
+func NewControllerTag() cons_admin2.Console {
 	controller := &ControllerTag{}
 	controller.ControllerBase.Init()
 	return controller
 }
 
 func (r *ControllerTag) Index(c *gin.Context) {
-	pager := response.NewPager()
-	var err error
-	pager.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
-	if err != nil {
-		r.Response(c, 500000000, nil, err.Error())
-		return
-	}
-	pager.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
-	if err != nil {
-		r.Response(c, 500000000, nil, err.Error())
-		return
-	}
-	pager.DefaultPage()
-	offset := pager.GetOffset()
+	var arg response.PageQuery
 
+	var err error
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	arg.PageSize, err = strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(response.DefaultPageSize)))
+	if err != nil {
+		r.Response(c, 500000000, nil, err.Error())
+		return
+	}
+	arg.DefaultPage()
+	offset := arg.GetOffset()
+	pager := response.NewPager(response.PagerBaseQuery(arg))
 	srv := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
 	count, tags, err := srv.TagsIndex(pager.PageSize, offset)
 	if err != nil {

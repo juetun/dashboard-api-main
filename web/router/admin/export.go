@@ -11,13 +11,13 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	"github.com/juetun/dashboard-api-main/web/cons_admin/con_impl"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admin/impl"
 )
 
 func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
 		rou := r.Group(urlPrefix + "/export")
-		impl := con_impl.NewControllerExportData()
+		impl := con_impl2.NewControllerExportData()
 
 		rou.GET("/list", impl.List)
 		rou.POST("/init", impl.Init)

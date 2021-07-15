@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -14,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -22,6 +22,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type PermitServiceImpl struct {
@@ -159,7 +160,7 @@ func (r *PermitServiceImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wra
 				ID:        0,
 				CreatedAt: time.Time{},
 				UpdatedAt: time.Time{},
-				DeletedAt: nil,
+				DeletedAt: gorm.DeletedAt{},
 			},
 		}); err != nil {
 		return
@@ -356,7 +357,7 @@ func (r *PermitServiceImpl) ImportList(arg *wrappers.ArgImportList) (res *wrappe
 	if arg.Order == "" {
 		arg.Order = "id desc"
 	}
-	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.BaseQuery),}
+	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.PageQuery)}
 	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 获取分页数据
@@ -543,7 +544,7 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 	if dt[0].AppName != arg.AppName {
 		if err = dao_impl.NewPermitImportImpl(r.Context).
 			UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
-				map[string]interface{}{"import_app_name": arg.AppName,}, ); err != nil {
+				map[string]interface{}{"import_app_name": arg.AppName}); err != nil {
 			return
 		}
 
@@ -557,7 +558,7 @@ func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappe
 
 func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
 	res = &wrappers.ResultMenuImport{
-		Pager: response.NewPager(response.PagerBaseQuery(arg.BaseQuery)),
+		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB
@@ -574,7 +575,7 @@ func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappe
 }
 func (r *PermitServiceImpl) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
 	res = &wrappers.ResultGetImport{
-		Pager: response.NewPager(response.PagerBaseQuery(arg.BaseQuery)),
+		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB
@@ -673,7 +674,7 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		}
 
 		if arg.PermitKey != menu.PermitKey {
-			if err = dao.UpdateMenuByCondition(map[string]interface{}{"module": menu.PermitKey,}, map[string]interface{}{"module": arg.PermitKey,}); err != nil {
+			if err = dao.UpdateMenuByCondition(map[string]interface{}{"module": menu.PermitKey}, map[string]interface{}{"module": arg.PermitKey}); err != nil {
 				return
 			}
 		} else if arg.Module != menu.Module {
@@ -733,7 +734,7 @@ func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermit, parentId int, 
 	}
 	if err = dao.UpdateMenuByCondition(
 		fmt.Sprintf("id IN(%s)", strings.Join(ids, ",")),
-		map[string]interface{}{"module": module,},
+		map[string]interface{}{"module": module},
 	); err != nil {
 		return
 	}
@@ -742,7 +743,7 @@ func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermit, parentId int, 
 	// 更新菜单接口关系表的menu_module
 	if err = dao_impl.NewPermitImportImpl(r.Context).
 		UpdateMenuImport(fmt.Sprintf("menu_id IN('%s')", strings.Join(ids, "','")),
-			map[string]interface{}{"module": module,}, ); err != nil {
+			map[string]interface{}{"module": module}); err != nil {
 		return
 	}
 
@@ -870,7 +871,7 @@ func (r *PermitServiceImpl) orgTree(list []models.AdminMenu, parentId int, res *
 }
 
 func (r *PermitServiceImpl) orgAdminMenuObject(value *models.AdminMenu, mapPermitMenu map[int]int) (res wrappers.AdminMenuObject) {
-	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20),}
+	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20)}
 	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
 		Id:                 value.Id,
 		ParentId:           value.ParentId,
@@ -888,7 +889,7 @@ func (r *PermitServiceImpl) orgAdminMenuObject(value *models.AdminMenu, mapPermi
 	if value.OtherValue != "" {
 		_ = json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
 	} else {
-		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true,}
+		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true}
 	}
 	if mapPermitMenu != nil {
 		if _, ok := mapPermitMenu[value.Id]; ok {
@@ -1206,7 +1207,7 @@ func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int,
 
 func (r *PermitServiceImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
 
-	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
+	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
 
 	var db *gorm.DB
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -1256,7 +1257,7 @@ func (r *PermitServiceImpl) orgGroupList(dao daos.DaoPermit, list []models.Admin
 }
 func (r *PermitServiceImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers.ResultAdminUser, err1 error) {
 
-	res = &wrappers.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.BaseQuery),}
+	res = &wrappers.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
 
 	dao := dao_impl.NewDaoPermit(r.Context)
 

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 

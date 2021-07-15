@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type DaoPermitImpl struct {
@@ -45,13 +45,15 @@ func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrappers.ArgMenuI
 }
 func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int) (db *gorm.DB, err error) {
 	db = r.getMenuImportCountDb(db, arg)
-	if err = db.Count(count).Error; err != nil {
+	var c int64
+	if err = db.Count(&c).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitImplMenuImportCount")
 		return
 	}
+	*count = int(c)
 	return
 }
 
@@ -124,7 +126,7 @@ func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (
 func NewDaoPermit(context ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})
@@ -158,20 +160,22 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 }
 func (r *DaoPermitImpl) GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error) {
 	dba = r.fetchDb(db, arg)
-	if err = dba.Count(&totalCount).Error; err != nil {
+	var c int64
+	if err = dba.Count(&c).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitImplGetImportListCount")
 		return
 	}
+	totalCount = int(c)
 	return
 }
 func (r *DaoPermitImpl) GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error) {
 
 	res = []models.AdminImport{}
 	if err = r.fetchDb(db, arg).
-		Offset(pager.GetOffset()).
+		Offset(arg.PageQuery.GetOffset()).
 		Order(arg.Order).
 		Limit(pager.PageSize).
 		Find(&res).
@@ -290,7 +294,7 @@ func (r *DaoPermitImpl) UpdateAdminImport(condition, data map[string]interface{}
 	}
 	if err = r.Context.Db.Table(m.TableName()).
 		Where(condition).
-		Update(data).Error; err != nil {
+		Updates(data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"data":      data,
@@ -440,23 +444,6 @@ func (r *DaoPermitImpl) DeleteGroupPermit(groupId int, pathType string, menuId .
 	return
 }
 
-// func (r *DaoPermitImpl) DeleteByMenuIds(pageMenuIds ...string) (err error) {
-// 	if len(pageMenuIds) == 0 {
-// 		return
-// 	}
-// 	var m models.AdminUserGroupPermit
-// 	if err = r.Context.Db.Table(m.TableName()).
-// 		Where("path_type =? AND menu_id IN(?)", models.PathTypePage, pageMenuIds).
-// 		Delete(&models.AdminUserGroupPermit{}).
-// 		Error; err != nil {
-// 		r.Context.Error(map[string]interface{}{
-// 			"pageMenuIds": pageMenuIds,
-// 			"err":         err,
-// 		}, "daoPermitDeleteByMenuIds")
-// 		return
-// 	}
-// 	return
-// }
 func (r *DaoPermitImpl) DeleteGroupPermitByGroupId(groupId int) (err error) {
 	if groupId == 0 {
 		return
@@ -567,7 +554,7 @@ func (r *DaoPermitImpl) GetDefaultImportByMenuIds(pageType, module string, menuI
 func (r *DaoPermitImpl) GetImportId(id int) (res models.AdminImport, err error) {
 	var m models.AdminImport
 	err1 := r.Context.Db.Table(m.TableName()).Where("id=?", id).Find(&res).Error
-	if err1 != nil && gorm.IsRecordNotFoundError(err1) {
+	if err1 != nil && err1 != gorm.ErrRecordNotFound {
 		err = err1
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
@@ -581,15 +568,16 @@ func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int) (
 	if arg.MenuId == 0 {
 		return
 	}
-
+	var c int64
 	db = r.getImportListDb(nil, arg)
-	err = db.Count(count).Error
+	err = db.Count(&c).Error
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetImportCount error")
 	}
+	*count = int(c)
 	return
 }
 func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport) (res *gorm.DB) {
@@ -632,7 +620,7 @@ func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport)
 }
 func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error) {
 	db = r.getImportListDb(db, arg)
-	err = db.Select("b.*").Offset(arg.BaseQuery.GetOffset()).
+	err = db.Select("b.*").Offset(arg.PageQuery.GetOffset()).
 		Limit(arg.PageSize).
 		Find(&res).Error
 	if err != nil {
@@ -725,7 +713,7 @@ func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 }
 func (r *DaoPermitImpl) AdminUserAdd(arg *models.AdminUser) (err error) {
 
-	fields := []string{"user_hid", "real_name", "updated_at", "deleted_at",}
+	fields := []string{"user_hid", "real_name", "updated_at", "deleted_at"}
 	var bt bytes.Buffer
 	bt.WriteString("ON DUPLICATE KEY UPDATE ")
 	for k, value := range fields {
@@ -752,7 +740,7 @@ func (r *DaoPermitImpl) DeleteAdminUser(ids []string) (err error) {
 	var m models.AdminUser
 	err = r.Context.Db.Table(m.TableName()).
 		Where("user_hid IN (?) ", ids).
-		Update(map[string]interface{}{
+		Updates(map[string]interface{}{
 			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
 		}).
 		Error
@@ -772,7 +760,7 @@ func (r *DaoPermitImpl) DeleteUserGroupByUserId(userId ...string) (err error) {
 
 	if err = r.Context.Db.Table(m.TableName()).
 		Where("user_hid IN (?) ", userId).
-		Update(map[string]interface{}{
+		Updates(map[string]interface{}{
 			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
 		}).
 		Error; err != nil {
@@ -838,19 +826,19 @@ func (r *DaoPermitImpl) DeleteUserGroupPermit(pathType string, menu_id ...int) (
 }
 func (r *DaoPermitImpl) FetchByName(name string) (res models.AdminGroup, err error) {
 	var m models.AdminGroup
+	res = models.AdminGroup{}
 	err1 := r.Context.Db.Table(m.TableName()).
 		Where("name = ?", name).
 		Find(&res).
 		Error
-	if gorm.IsRecordNotFoundError(err1) {
-		res = models.AdminGroup{}
-	} else {
-		err = err1
-		r.Context.Error(map[string]interface{}{
-			"name": name,
-			"err":  err,
-		}, "daoPermitFetchByName")
+	if err1 == gorm.ErrRecordNotFound {
+		return
 	}
+	err = err1
+	r.Context.Error(map[string]interface{}{
+		"name": name,
+		"err":  err,
+	}, "daoPermitFetchByName")
 	return
 }
 func (r *DaoPermitImpl) InsertAdminGroup(group *models.AdminGroup) (err error) {
@@ -868,7 +856,7 @@ func (r *DaoPermitImpl) InsertAdminGroup(group *models.AdminGroup) (err error) {
 }
 func (r *DaoPermitImpl) UpdateAdminGroup(group *models.AdminGroup) (err error) {
 	if err = r.Context.Db.Model(group).Where("id=?", group.Id).
-		Update(group).
+		Updates(group).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"group": group,
@@ -916,7 +904,7 @@ func (r *DaoPermitImpl) UpdateMenuByCondition(condition interface{}, data map[st
 	if err = r.Context.Db.
 		Table(m.TableName()).
 		Where(condition).
-		Update(data).
+		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
@@ -934,7 +922,7 @@ func (r *DaoPermitImpl) Save(id int, data map[string]interface{}) (err error) {
 	if err = r.Context.Db.
 		Model(&models.AdminMenu{}).
 		Where("id=?", id).
-		Update(data).
+		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"id":   id,
@@ -1011,13 +999,14 @@ func (r *DaoPermitImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUse
 	if arg.UserHId != "" {
 		dba = dba.Where("user_hid=?", arg.UserHId)
 	}
-	if err = dba.Count(&total).Error; err != nil {
+	var c int64
+	if err = dba.Count(&c).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetAdminUserCount")
 	}
-
+	total = int(c)
 	return
 }
 func (r *DaoPermitImpl) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error) {
@@ -1093,7 +1082,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 
 	if arg.SystemId > 0 {
 		if err = dba.Where("id=?", arg.SystemId).First(&m).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
+			if err == gorm.ErrRecordNotFound {
 				return
 			}
 			err = fmt.Errorf("你查看权限系统不存在或已删除")
@@ -1157,13 +1146,15 @@ func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGr
 			dba = dba.Where("id = ?", groupId)
 		}
 	}
-	if err = dba.Count(&total).Error; err != nil {
+	var c int64
+	if err = dba.Count(&c).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetAdminGroupCount")
 		return
 	}
+	total = int(c)
 	return
 }
 func (r *DaoPermitImpl) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, pagerObject *response.Pager) (res []models.AdminGroup, err error) {
@@ -1192,7 +1183,7 @@ func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGro
 	if err = r.Context.Db.Select("a.*,b.*").Unscoped().
 		Table(m.TableName()).
 		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
-		Where(fmt.Sprintf("a.user_hid=? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"), userId, ).
+		Where(fmt.Sprintf("a.user_hid=? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"), userId).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{

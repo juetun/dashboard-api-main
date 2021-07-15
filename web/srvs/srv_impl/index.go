@@ -1,3 +1,4 @@
+// Package srv_impl
 /**
  * Created by GoLand.
  * User: zhu
@@ -12,12 +13,12 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type IndexType string
@@ -53,7 +54,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 	}
 
 	field := ":name:" + name + ":page:" + page + ":limit:" + limit
-	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),postKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), postKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -62,7 +63,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 			r.Context.Error(map[string]interface{}{
 				"message": "service.index.IndexPost",
 				"err":     err,
-			}, )
+			})
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
@@ -71,7 +72,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 		r.Context.Error(map[string]interface{}{
 			"message": "service.index.IndexPost1",
 			"err":     err,
-		}, )
+		})
 		return indexPostIndex, err
 	}
 
@@ -83,7 +84,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 			r.Context.Error(map[string]interface{}{
 				"message": "service.index.IndexPost2",
 				"err":     err,
-			}, )
+			})
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
@@ -94,13 +95,13 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 		r.Context.Error(map[string]interface{}{
 			"message": "service.index.IndexPost3",
 			"err":     err,
-		}, )
+		})
 		indexPostIndex, err := r.doCacheIndexPostList(postKey, field, indexType, name, page, limit)
 		if err != nil {
 			r.Context.Error(map[string]interface{}{
 				"message": "service.index.IndexPost4",
 				"err":     err,
-			}, )
+			})
 			return indexPostIndex, err
 		}
 		return indexPostIndex, nil
@@ -121,7 +122,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 			"queryPage":  queryPage,
 			"queryLimit": queryLimit,
 			"err":        err,
-		}, )
+		})
 		return
 	}
 	var postList *[]wrappers.ConsolePostList
@@ -144,7 +145,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"queryPage":  queryPage,
 				"queryLimit": queryLimit,
 				"err":        err,
-			}, )
+			})
 			return
 		}
 		postList, err = postSrv.PostTagList(tag.Id, limit, offset)
@@ -158,7 +159,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"queryPage":  queryPage,
 				"queryLimit": queryLimit,
 				"err":        err,
-			}, )
+			})
 			return
 		}
 		postCount, err = postSrv.PostTagListCount(tag.Id, limit, offset)
@@ -169,7 +170,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"limit":   limit,
 				"offset":  offset,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 	case IndexTypeTwo:
@@ -182,7 +183,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"message": "service.index.doCacheIndexPostList4",
 				"name":    name,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 		postList, err = postSrv.PostCateList(cate.Id, limit, offset)
@@ -193,7 +194,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"cateId":  cate.Id,
 				"offset":  offset,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 		postCount, err = postSrv.PostCateListCount(cate.Id, limit, offset)
@@ -204,7 +205,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"cateId":  cate.Id,
 				"offset":  offset,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 	case IndexTypeThree:
@@ -216,7 +217,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"limit":   limit,
 				"offset":  offset,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 		if postCount > 0 {
@@ -227,7 +228,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 					"limit":   limit,
 					"offset":  offset,
 					"err":     err,
-				}, )
+				})
 				return
 			}
 		}
@@ -239,7 +240,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 				"limit":   limit,
 				"offset":  offset,
 				"err":     err,
-			}, )
+			})
 			return
 		}
 		if postCount > 0 {
@@ -250,7 +251,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 					"limit":   limit,
 					"offset":  offset,
 					"err":     err,
-				}, )
+				})
 				return
 			}
 		}
@@ -268,10 +269,10 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		r.Context.Error(map[string]interface{}{
 			"message": "service.index.doCacheIndexPostList11",
 			"err":     err,
-		}, )
+		})
 		return
 	}
-	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(), cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message":  "service.index.doCacheIndexPostList12",
@@ -279,7 +280,7 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 			"field":    field,
 			"jsonRes":  jsonRes,
 			"err":      err,
-		}, )
+		})
 		return
 	}
 	return
@@ -299,7 +300,7 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail wrappers.In
 		)
 		return
 	}
-	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -397,7 +398,7 @@ func (r *IndexService) doCacheIndexPostDetail(postSrv *ConsolePostService, cache
 		)
 		return
 	}
-	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(), cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{
@@ -443,7 +444,7 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 	cacheKey := common.Conf.ArchivesKey
 	field := ":all:"
 
-	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(),cacheKey, field).Result()
+	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), cacheKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist
 		// set data to the cache what use the cache key
@@ -553,7 +554,7 @@ func (r *ConsolePostService) doCacheArchives(cacheKey string, field string) (arc
 		)
 		return
 	}
-	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(),cacheKey, field, jsonRes).Err()
+	err = r.Context.CacheClient.HSet(r.Context.GinContext.Request.Context(), cacheKey, field, jsonRes).Err()
 	if err != nil {
 		r.Context.Error(
 			map[string]interface{}{

@@ -1,11 +1,11 @@
-package con_impl
+package impl
 
 import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons_admin"
+	"github.com/juetun/dashboard-api-main/web/cons/admin"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -14,7 +14,7 @@ type ControllerHome struct {
 	base.ControllerBase
 }
 
-func NewControllerHome() cons_admin.System {
+func NewControllerHome() admin.System {
 	controller := &ControllerHome{}
 	controller.ControllerBase.Init()
 	return controller

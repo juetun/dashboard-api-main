@@ -1,10 +1,11 @@
+// Package impl
 /**
  * Created by GoLand.
  * User: xzghua@gmail.com
  * Date: 2019-05-09
  * Time: 21:34
  */
-package con_impl
+package impl
 
 // import (
 // 	"github.com/gin-gonic/gin"

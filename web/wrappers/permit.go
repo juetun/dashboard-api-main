@@ -1,3 +1,4 @@
+// Package wrappers
 /**
 * @Author:changjiang
 * @Description:
@@ -50,7 +51,7 @@ type ArgAdminMenuWithCheck struct {
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
-	r.BaseQuery.DefaultPage()
+	r.PageQuery.DefaultPage()
 	return
 }
 
@@ -125,7 +126,7 @@ type ResultDeleteImport struct {
 }
 type ArgImportList struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	PermitKey   string `json:"permit_key" form:"permit_key"`
 	AppName     string `json:"app_name" form:"app_name"`
 	DefaultOpen uint8  `json:"default_open" form:"default_open"`
@@ -182,7 +183,7 @@ type AdminImportListMenu struct {
 
 func (r *ArgImportList) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
-	r.BaseQuery.DefaultPage()
+	r.PageQuery.DefaultPage()
 	return
 }
 
@@ -241,7 +242,7 @@ type ResultMenuImportItem struct {
 }
 type ArgMenuImport struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	MenuId  int    `json:"menu_id" form:"menu_id"`
 	AppName string `json:"app_name" form:"app_name"`
 	UrlPath string `json:"url_path" form:"url_path"`
@@ -283,7 +284,7 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 
 type ArgGetImport struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	Select  string `form:"select" json:"select,omitempty"`
 	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
 	Checked bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
@@ -303,7 +304,7 @@ type AdminImport struct {
 
 func (r *ArgGetImport) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
-	r.BaseQuery.DefaultPage()
+	r.PageQuery.DefaultPage()
 	return
 }
 
@@ -507,7 +508,7 @@ type ResultMenuDelete struct {
 
 type ArgAdminGroup struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	Name    string `json:"name" form:"name"`
 	GroupId string `json:"group_id" form:"group_id"`
 }
@@ -522,7 +523,7 @@ type ResultAdminGroup struct {
 
 type ArgAdminMenu struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	Id         int    `json:"id" form:"id"`
 	Label      string `json:"label" form:"label"`
 	AppName    string `json:"app_name" form:"app_name"`
@@ -586,7 +587,7 @@ type ResultSystemAdminMenu struct {
 }
 type ArgAdminUser struct {
 	app_obj.JwtUserMessage
-	response.BaseQuery
+	response.PageQuery
 	Name    string `json:"name" form:"name"`
 	UserHId string `json:"user_hid" form:"user_hid"`
 }

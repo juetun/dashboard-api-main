@@ -1,3 +1,4 @@
+// Package dao_impl
 /**
 * @Author:changjiang
 * @Description:
@@ -160,7 +161,9 @@ func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[str
 		}, "permitImportImplUpdateByCondition0")
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).Where(condition).Update(data).Error; err != nil {
+	if err = r.Context.Db.Table(m.TableName()).
+		Where(condition).
+		Updates(data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"data":      data,
@@ -195,7 +198,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 	var m models.AdminMenuImport
 	if err = r.Context.Db.Table(m.TableName()).
 		Where(condition).
-		Update(data).
+		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
@@ -209,7 +212,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 func NewPermitImportImpl(context ...*base.Context) daos.PermitImport {
 	p := &PermitImportImpl{}
 	p.SetContext(context...)
-	p.Context.Db = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db,p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})
