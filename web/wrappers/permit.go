@@ -624,7 +624,7 @@ type ArgPermitMenu struct {
 func (r *ArgPermitMenu) Default() {
 	r.PathTypes = []string{}
 	if r.PathType == "" {
-		r.PathTypes = []string{"page", "system"}
+		r.PathTypes = []string{"pages", "system"}
 	}
 }
 

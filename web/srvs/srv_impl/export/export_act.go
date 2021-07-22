@@ -270,7 +270,7 @@ func (r *AsyncExport) doOnePage(excel *ExcelOperate, artSheet *wrappers.Argument
 		r.Context.Error(map[string]interface{}{"message": "数据获取异常", "content:": err.Error()})
 		return
 	}
-	r.Context.Info(map[string]interface{}{"desc": fmt.Sprintf("first page return:%v", pageData)})
+	r.Context.Info(map[string]interface{}{"desc": fmt.Sprintf("first pages return:%v", pageData)})
 	r.WritePageData(&pageData, excel)
 	return
 

@@ -26,7 +26,7 @@ func (r *ControllerTag) Index(c *gin.Context) {
 	var arg response.PageQuery
 
 	var err error
-	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("pages", strconv.Itoa(response.DefaultPageNo)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
@@ -49,7 +49,7 @@ func (r *ControllerTag) Index(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = tags
-	data["page"] = utils.MyPaginate(count, pager.PageSize, pager.PageNo)
+	data["pages"] = utils.MyPaginate(count, pager.PageSize, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return

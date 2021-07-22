@@ -27,7 +27,7 @@ func NewControllerTrash() cons_admin2.Trash {
 func (r *ControllerTrash) Index(c *gin.Context) {
 	var arg response.PageQuery
 	var err error
-	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("pages", strconv.Itoa(response.DefaultPageNo)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
@@ -56,7 +56,7 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
+	data["pages"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
 
 	r.Response(c, 0, data)
 	return
@@ -212,7 +212,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	var arg response.PageQuery
 
 	var err error
-	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo)))
+	arg.PageNo, err = strconv.Atoi(c.DefaultQuery("pages", strconv.Itoa(response.DefaultPageNo)))
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
@@ -244,7 +244,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["list"] = postList
-	data["page"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
+	data["pages"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }

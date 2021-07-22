@@ -126,7 +126,7 @@ func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (
 func NewDaoPermit(context ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}
 	p.SetContext(context...)
-	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})

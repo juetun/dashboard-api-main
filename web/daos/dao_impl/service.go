@@ -159,7 +159,7 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 func NewDaoServiceImpl(context ...*base.Context) daos.DaoService {
 	p := &DaoServiceImpl{}
 	p.SetContext(context...)
-	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})

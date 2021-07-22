@@ -22,7 +22,7 @@ type DaoTag struct {
 func NewDaoTag(context ...*base.Context) (p *DaoTag) {
 	p = &DaoTag{}
 	p.SetContext(context...)
-	p.Context.Db,p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})

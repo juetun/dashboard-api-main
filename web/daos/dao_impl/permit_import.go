@@ -212,7 +212,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 func NewPermitImportImpl(context ...*base.Context) daos.PermitImport {
 	p := &PermitImportImpl{}
 	p.SetContext(context...)
-	p.Context.Db,p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
 	})

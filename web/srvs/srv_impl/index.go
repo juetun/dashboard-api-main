@@ -53,7 +53,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 		postKey = common.Conf.PostIndexKey
 	}
 
-	field := ":name:" + name + ":page:" + page + ":limit:" + limit
+	field := ":name:" + name + ":pages:" + page + ":limit:" + limit
 	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), postKey, field).Result()
 	if err == redis.Nil {
 		// cache key does not exist

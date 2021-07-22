@@ -21,7 +21,7 @@ type DaoAppPath struct {
 func NewDaoAppPath(context ...*base.Context) (p *DaoAppPath) {
 	p = &DaoAppPath{}
 	p.SetContext(context...)
-	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})

@@ -23,7 +23,8 @@ type DaoExportImpl struct {
 func NewDaoExportImpl(context ...*base.Context) (res daos.DaoExport) {
 	p := &DaoExportImpl{}
 	p.SetContext(context...)
-	p.Context.Db, p.Context.DbName = base.GetDbClient(&base.GetDbClientData{
+
+	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseDefault,
 	})

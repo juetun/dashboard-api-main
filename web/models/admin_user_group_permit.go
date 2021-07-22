@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	PathTypePage    = "page"
+	PathTypePage    = "pages"
 	PathTypeApi     = "api"
 	SetPermitAdd    = "add"
 	SetPermitCancel = "cancel"

@@ -1,4 +1,4 @@
-// Package impl
+// Package admin_impl
 /**
  * Created by GoLand.
  * Date: 2019-05-06
@@ -33,7 +33,7 @@ func (r *ControllerLink) Index(c *gin.Context) {
 
 	var err error
 
-	if arg.PageNo, err = strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(response.DefaultPageNo))); err != nil {
+	if arg.PageNo, err = strconv.Atoi(c.DefaultQuery("pages", strconv.Itoa(response.DefaultPageNo))); err != nil {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
@@ -53,7 +53,7 @@ func (r *ControllerLink) Index(c *gin.Context) {
 	}
 	data := make(map[string]interface{})
 	data["list"] = links
-	data["page"] = utils.MyPaginate(cnt, pager.PageSize, pager.PageNo)
+	data["pages"] = utils.MyPaginate(cnt, pager.PageSize, pager.PageNo)
 	r.Response(c, 0, data)
 	return
 }
