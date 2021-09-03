@@ -1,3 +1,4 @@
+// Package models
 /**
 * @Author:changjiang
 * @Description:
@@ -24,7 +25,7 @@ type ZAppPath struct {
 	Domains string `json:"domains"`
 }
 
-// 随机获取一个域名
+// GetRandomDomain 随机获取一个域名
 func (r *ZAppPath) GetRandomDomain() (res string, err error) {
 	if r.Domains == "" {
 		err = fmt.Errorf("您没有在数据库中配置%s(%s)的domain信息", r.Name, r.Key)
