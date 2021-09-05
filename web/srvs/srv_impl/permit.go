@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -818,8 +819,17 @@ func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
 	}
-	var list []models.AdminMenu
-	list, err = dao.GetAdminMenuList(arg)
+	var list, dt2 []models.AdminMenu
+	if list, err = dao.GetAdminMenuList(arg); err != nil {
+		return
+	}
+
+	if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
+		return
+	} else {
+		r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
+	}
+
 	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	r.orgTree(list, arg.SystemId, &res.List, nil)
 	return
@@ -1362,41 +1372,48 @@ func (r *PermitServiceImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 		NotReadMsgCount: 0,
 	}
 
-	dao := dao_impl.NewDaoPermit(r.Context)
-	if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserId}); err != nil {
-		return
-	}
+	var syncG sync.WaitGroup
+	syncG.Add(2)
+	go func() { // 获取用户未读消息数
+		defer syncG.Done()
+		res.NotReadMsgCount, _ = r.getMessageCount(arg.UserId)
+	}()
+	go func() {
+		defer syncG.Done()
+		dao := dao_impl.NewDaoPermit(r.Context)
+		if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserId}); err != nil {
+			return
+		}
 
-	if arg.Module != "" {
-		var dt []models.AdminMenu
-		if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+		if arg.Module != "" {
+			var dt []models.AdminMenu
+			if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+				return
+			}
+			if len(dt) == 0 {
+				err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
+				return
+			}
+			arg.ParentId = dt[0].Id
+		}
+		// 获取接口权限列表
+		if res.OpList, err = r.getOpList(dao, arg); err != nil {
 			return
 		}
-		if len(dt) == 0 {
-			err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
+		if arg.IsSuperAdmin { // 如果是超级管理员
+			err = r.getGroupMenu(dao, arg, res)
 			return
 		}
-		arg.ParentId = dt[0].Id
-	}
-	// 获取接口权限列表
-	if res.OpList, err = r.getOpList(dao, arg); err != nil {
-		return
-	}
-	if arg.IsSuperAdmin { // 如果是超级管理员
-		err = r.getGroupMenu(dao, arg, res)
-		return
-	}
-	var menuIds []int
-	if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, arg.GroupId...); err != nil { // 普通管理员
-		return
-	}
-	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
-		return
-	}
-	// 获取用户未读消息数
-	if res.NotReadMsgCount, err = r.getMessageCount(arg.UserId); err != nil {
-		return
-	}
+		var menuIds []int
+		if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, arg.GroupId...); err != nil { // 普通管理员
+			return
+		}
+		if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
+			return
+		}
+	}()
+
+	syncG.Wait()
 	return
 }
 func (r *PermitServiceImpl) getMessageCount(userHid string) (count int, err error) {

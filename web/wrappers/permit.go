@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -426,7 +427,12 @@ type ArgAdminGroupEdit struct {
 	Id   int    `json:"id" form:"id"`
 }
 
-func (r *ArgAdminGroupEdit) Default() (err error) {
+func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
+
+	if utf8.RuneCountInString(r.Name) > models.MAXGroupNameLength {
+		err = fmt.Errorf("组名长度不能超过%d个字符", models.MAXGroupNameLength)
+		return
+	}
 	return
 }
 

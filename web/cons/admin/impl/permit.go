@@ -221,7 +221,7 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
-	if err = arg.Default(); err != nil {
+	if err = arg.Default(c); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}

@@ -1119,7 +1119,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 		dba = dba.Where("app_name = ?", arg.AppName)
 	}
 	if arg.IsMenuShow != -1 {
-		dba = dba.Where("is_menu_show = ?", arg.IsMenuShow)
+		dba = dba.Where("hide_in_menu = ?", arg.IsMenuShow)
 	}
 	if arg.IsDel == -1 || arg.IsDel == 0 {
 		dba = dba.Where("deleted_at IS NULL")
