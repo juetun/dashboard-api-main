@@ -638,7 +638,8 @@ type ResultPermitMenuReturn struct {
 	ResultPermitMenu                     // 当前选中的权限
 	RoutParentMap    map[string][]string `json:"routParentMap"`
 	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
-	OpList           map[string][]OpOne
+	OpList           map[string][]OpOne  `json:"op_list"`
+	NotReadMsgCount  int                 `json:"not_read_msg_count"` // 纬度消息数量
 }
 type OpOne string
 type Op struct {

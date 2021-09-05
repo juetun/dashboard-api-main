@@ -556,9 +556,11 @@ func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 
 // 获取权限菜单
 func (r *ControllerPermit) Menu(c *gin.Context) {
-	var arg wrappers.ArgPermitMenu
-	err := c.Bind(&arg)
-	if err != nil {
+	var (
+		err error
+		arg wrappers.ArgPermitMenu
+	)
+	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
@@ -593,7 +595,7 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	ctx:=base.CreateContext(&r.ControllerBase, c)
+	ctx := base.CreateContext(&r.ControllerBase, c)
 	res, err = srv_impl.NewPermitServiceImpl(ctx).
 		GetAppConfig(&arg)
 	if err != nil {

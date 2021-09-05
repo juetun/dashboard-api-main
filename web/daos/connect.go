@@ -9,6 +9,6 @@
 package daos
 
 const (
-	DatabaseAdmin = "admins"
+	DatabaseAdmin = "admin"
 	DatabaseDefault = "default"
 )
