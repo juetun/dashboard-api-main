@@ -593,7 +593,8 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	ctx:=base.CreateContext(&r.ControllerBase, c)
+	res, err = srv_impl.NewPermitServiceImpl(ctx).
 		GetAppConfig(&arg)
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())

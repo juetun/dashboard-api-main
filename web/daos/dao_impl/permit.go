@@ -10,12 +10,14 @@ package dao_impl
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -123,12 +125,20 @@ func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (
 	return
 }
 
-func NewDaoPermit(context ...*base.Context) daos.DaoPermit {
+func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}
-	p.SetContext(context...)
+	p.SetContext(c...)
+	s, ctx := p.Context.GetTraceId()
 	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
+		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, base.DbContextValue{
+				TraceId: s,
+				DbName:  dbName,
+			}))
+			return
+		},
 	})
 	return p
 }

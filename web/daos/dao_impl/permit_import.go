@@ -9,15 +9,18 @@
 package dao_impl
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"gorm.io/gorm"
 )
 
 type PermitImportImpl struct {
@@ -209,12 +212,20 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 	return
 }
 
-func NewPermitImportImpl(context ...*base.Context) daos.PermitImport {
+func NewPermitImportImpl(c ...*base.Context) daos.PermitImport {
 	p := &PermitImportImpl{}
-	p.SetContext(context...)
+	p.SetContext(c...)
+	s, ctx := p.Context.GetTraceId()
 	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
+		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, base.DbContextValue{
+				TraceId: s,
+				DbName:  dbName,
+			}))
+			return
+		},
 	})
 	return p
 }

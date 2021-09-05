@@ -1691,13 +1691,17 @@ func (r *PermitServiceImpl) getAppConfigListByModule(dao daos.DaoService, arg *w
 		list       []models.AdminApp
 		uniqueKeys []string
 	)
-	uniqueKeys, err = r.getImportMenu(dao, arg)
+	if uniqueKeys, err = r.getImportMenu(dao, arg); err != nil {
+		return
+	}
 
 	if list, err = dao.GetList(nil, &wrappers.ArgServiceList{
 		UniqueKeys: uniqueKeys,
 	}, nil); err != nil {
 		return
 	}
-	err = r.orgResAppConfig(list, res, arg)
+	if err = r.orgResAppConfig(list, res, arg); err != nil {
+		return
+	}
 	return
 }

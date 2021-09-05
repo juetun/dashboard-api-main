@@ -9,8 +9,10 @@
 package dao_impl
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -156,12 +158,20 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 	return
 }
 
-func NewDaoServiceImpl(context ...*base.Context) daos.DaoService {
+func NewDaoServiceImpl(ctxs ...*base.Context) daos.DaoService {
 	p := &DaoServiceImpl{}
-	p.SetContext(context...)
+	p.SetContext(ctxs...)
+	s, ctx := p.Context.GetTraceId()
 	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
 		DbNameSpace: daos.DatabaseAdmin,
+		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
+			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, base.DbContextValue{
+				TraceId: s,
+				DbName:  dbName,
+			}))
+			return
+		},
 	})
 	return p
 }
