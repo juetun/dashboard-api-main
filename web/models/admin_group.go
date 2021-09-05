@@ -19,8 +19,7 @@ const (
 	GroupCodePrefix     = "A2" // 权限用户组统一前缀
 	GroupCodeStepLength = 3    // 权限用户组统一长度
 
-
-	MAXGroupNameLength  = 20   // 组名长度不能超过20个汉字
+	MAXGroupNameLength = 20 // 组名长度不能超过20个汉字
 )
 
 type AdminGroup struct {

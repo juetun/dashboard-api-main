@@ -1090,10 +1090,11 @@ func (r *DaoPermitImpl) GetMenuByPermitKey(permitKey ...string) (res []models.Ad
 func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
-	dba := r.Context.Db.Table(m.TableName()).Unscoped()
-
+	dba := r.Context.Db.Table(m.TableName())
 	if arg.SystemId > 0 {
-		if err = dba.Where("id=?", arg.SystemId).First(&m).Error; err != nil {
+		if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
+			Where("id=?", arg.SystemId).
+			First(&m).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return
 			}

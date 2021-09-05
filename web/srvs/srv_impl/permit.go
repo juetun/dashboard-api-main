@@ -819,15 +819,18 @@ func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
 	}
+
 	var list, dt2 []models.AdminMenu
 	if list, err = dao.GetAdminMenuList(arg); err != nil {
 		return
 	}
 
-	if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
-		return
-	} else {
-		r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
+	if arg.Module != "" {
+		if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
+			return
+		} else {
+			r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
+		}
 	}
 
 	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
