@@ -1,6 +1,6 @@
 // Package admin_impl
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:permit
 * @Version: 1.0.0
@@ -403,16 +403,16 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
-	if err = arg.Default(); err != nil {
+	if err = arg.Default(c); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
 		return
 	}
 	arg.JwtUserMessage = r.GetUser(c)
-	// 记录日志
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
-		MenuSave(&arg)
 
-	if err != nil {
+	var res *wrappers.ResultMenuSave
+	// 记录日志
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+		MenuSave(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
 	}

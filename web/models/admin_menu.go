@@ -12,8 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/utils/hashid"
+	"gorm.io/gorm"
+)
+
+const (
+	// 菜单名称最大长度
+	AdminMenuNameMaxLength = 6
 )
 
 type AdminMenu struct {

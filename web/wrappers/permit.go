@@ -458,7 +458,7 @@ type ArgMenuSave struct {
 	models.AdminMenu
 }
 
-func (r *ArgMenuSave) Default() (err error) {
+func (r *ArgMenuSave) Default(c *gin.Context) (err error) {
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
@@ -474,6 +474,10 @@ func (r *ArgMenuSave) Default() (err error) {
 			return
 		}
 		err = fmt.Errorf("domain格式不正确")
+	}
+	if utf8.RuneCountInString(r.Name) > models.AdminMenuNameMaxLength {
+		err = fmt.Errorf("菜单名长度不能超过%d个字符", models.AdminMenuNameMaxLength)
+		return
 	}
 	return
 }
