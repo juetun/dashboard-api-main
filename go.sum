@@ -383,6 +383,8 @@ github.com/juetun/base-wrapper v0.0.107 h1:MlDSu5+WiIAErt9HFCJgKnGPnj9wEv+6ejrRV
 github.com/juetun/base-wrapper v0.0.107/go.mod h1:qRFoRpnPh0h/9bU63OyW4bey25HJ+1xrUR4kuIfgTfI=
 github.com/juetun/base-wrapper v0.0.108 h1:ECBnVvGtlUo6PV6SZiPEbi9EPyWqEJZNqFh4jft7LD0=
 github.com/juetun/base-wrapper v0.0.108/go.mod h1:qRFoRpnPh0h/9bU63OyW4bey25HJ+1xrUR4kuIfgTfI=
+github.com/juetun/base-wrapper v0.0.110 h1:tAUj6gXHymFcBdtq8BhD7v/loXGqQ4KwrRIaFQx/p94=
+github.com/juetun/base-wrapper v0.0.110/go.mod h1:U17MnUgtFpnIhmJSLl/oW1c6sqOLRcJiqcjiqNawN7s=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
@@ -651,6 +653,8 @@ github.com/viant/assertly v0.4.8/go.mod h1:aGifi++jvCrUaklKEKT0BU95igDNaqkvz+49u
 github.com/viant/toolbox v0.24.0/go.mod h1:OxMCG57V0PXuIP2HNQrtJf2CjqdmbrOx5EkMILuUhzM=
 github.com/vultr/govultr v0.1.4/go.mod h1:9H008Uxr/C4vFNGLqKx232C206GL0PBHzOP0809bGNA=
 github.com/wendal/errors v0.0.0-20130201093226-f66c77a7882b/go.mod h1:Q12BUT7DqIlHRmgv3RskH+UCM/4eqVMgI0EMmlSpAXc=
+github.com/wumansgy/goEncrypt v0.0.0-20210730092718-e359121aa81e h1:W01vYoGpMHQplbaoahP0XVJdw/2KpJBh6jLWaWo8+Yw=
+github.com/wumansgy/goEncrypt v0.0.0-20210730092718-e359121aa81e/go.mod h1:d0Tq90dl4xqZEiphQ7dAVEPxcefmY2hSiATq3BfgsVY=
 github.com/xanzy/ssh-agent v0.2.1 h1:TCbipTQL2JiiCprBWx9frJ2eJlCYT00NmctrHxVAr70=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
