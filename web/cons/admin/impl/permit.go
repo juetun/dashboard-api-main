@@ -347,6 +347,35 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 		r.Response(c, 0, res)
 	}
 }
+
+// GetImportByMenuId 根据菜单号 获取页面的接口ID
+//
+func (r *ControllerPermit) GetImportByMenuId(c *gin.Context) {
+	var (
+		arg wrappers.ArgGetImportByMenuId
+		res = wrappers.ResultGetImportByMenuId{}
+		err error
+	)
+
+	if err = c.ShouldBind(&arg); err != nil {
+		r.Response(c, 500000001, res, err.Error())
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		r.Response(c, 500000001, res, err.Error())
+		return
+	}
+
+	// 记录日志
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+		GetImportByMenuId(&arg); err != nil {
+		r.Response(c, 500000002, res, err.Error())
+		return
+	}
+	r.Response(c, 0, res)
+
+}
+
 func (r *ControllerPermit) MenuImport(c *gin.Context) {
 	var arg wrappers.ArgMenuImport
 	var err error

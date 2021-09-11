@@ -36,7 +36,7 @@ func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrappers.ArgMenuI
 		return
 	}
 	var m models.AdminImport
-	dba = r.Context.Db.Table(m.TableName()).Unscoped().Where("deleted_at IS NULL")
+	dba = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
 	if arg.AppName != "" {
 		dba = dba.Where("app_name = ?", arg.AppName)
 	}
@@ -150,6 +150,7 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 	if db == nil {
 		dba = r.Context.Db.Table(m.TableName())
 	}
+	dba = dba.Scopes(base.ScopesDeletedAt())
 	if arg.AppName != "" {
 		dba = dba.Where("app_name = ?", arg.AppName)
 	}

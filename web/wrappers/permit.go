@@ -28,6 +28,31 @@ const (
 	DefaultPermitModule   = "platform"
 )
 
+type (
+	ArgGetImportByMenuIdSingle struct {
+		NowMenuId       int    `json:"now_menu_id" form:"now_menu_id"`
+		NowRoutePath    string `json:"now_route_path" form:"now_route_path"`
+		NowRouterOrigin string `json:"now_router_origin" form:"now_router_origin"`
+		SuperAdminFlag  bool   `json:"super_admin_flag" form:"super_admin_flag"` // 是否为超级管理员
+	}
+	ArgGetImportByMenuId struct {
+		app_obj.JwtUserMessage
+		ArgGetImportByMenuIdSingle
+	}
+	ResultGetImportByMenuId struct {
+		ImportIds []int `json:"import_ids"`
+		MenuIds   []int `json:"menu_ids"`
+	}
+)
+
+func (r *ArgGetImportByMenuId) Default(context *gin.Context) (err error) {
+	if r.NowMenuId == 0 && r.NowRoutePath == "" {
+		err = fmt.Errorf("请选择菜单界面")
+		return
+	}
+	return
+}
+
 type ArgGetAppConfig struct {
 	app_obj.JwtUserMessage
 	Module string `json:"module" form:"module"`
@@ -622,19 +647,30 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage
-	ParentId     int      `json:"parent_id"`
-	PathType     string   `json:"path_type" form:"path_type"`
-	PathTypes    []string `json:"path_type" form:"path_type"`
-	Module       string   `json:"module" form:"module"`
-	IsSuperAdmin bool     `json:"-" form:"-"` // 是否为超级管理员
-	GroupId      []int    `json:"-" form:"-"`
+	ArgGetImportByMenuIdSingle // 通用参数逻辑处理 用于获取当前菜单下的接口列表
+
+	ParentId  int      `json:"parent_id"` // 上级菜单ID
+	PathType  string   `json:"path_type" form:"path_type"`
+	PathTypes []string `json:"path_type" form:"path_type"`
+	Module    string   `json:"module" form:"module"` // 系统ID
+
+	IsSuperAdmin bool  `json:"-" form:"-"` // 是否为超级管理员
+	GroupId      []int `json:"-" form:"-"`
 }
 
 // 初始化默认值
 func (r *ArgPermitMenu) Default() {
 	r.PathTypes = []string{}
-	if r.PathType == "" {
-		r.PathTypes = []string{"pages", "system"}
+
+	if r.PathType != "" {
+		pType := strings.Split(r.PathType, ",")
+		for _, value := range pType {
+			if value == "" {
+				continue
+			}
+			r.PathTypes = append(r.PathTypes, value)
+		}
+		// r.PathTypes = []string{"pages", "system"}
 	}
 }
 
@@ -650,7 +686,27 @@ type ResultPermitMenuReturn struct {
 	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
 	OpList           map[string][]OpOne  `json:"op_list"`
 	NotReadMsgCount  int                 `json:"not_read_msg_count"` // 纬度消息数量
+
+	NowMenuId ResultGetImportByMenuId `json:"import_ids"` // 当前菜单下有的接口列表
 }
+
+func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
+	res = &ResultPermitMenuReturn{
+		ResultPermitMenu: ResultPermitMenu{
+			Children: []ResultPermitMenu{},
+		},
+		RoutParentMap:   map[string][]string{},
+		Menu:            []ResultSystemMenu{},
+		OpList:          map[string][]OpOne{},
+		NotReadMsgCount: 0,
+		NowMenuId: ResultGetImportByMenuId{
+			ImportIds: []int{},
+			MenuIds:   []int{},
+		},
+	}
+	return
+}
+
 type OpOne string
 type Op struct {
 	PermitKey     string `json:"pk"  gorm:"column:permit_key"`

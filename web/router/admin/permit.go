@@ -46,6 +46,10 @@ func init() {
 		h.DELETE("/delete_import/:id", controller.DeleteImport)
 		// 权限菜单列表
 		h.GET("/menu", controller.Menu)
+
+		// 根据菜单号 获取页面的接口ID
+		h.GET("/get_import_by_menu_id", controller.GetImportByMenuId)
+
 		h.POST("/flag", controller.Flag) // 指定链接是否有权限
 
 		// 获取服务列表

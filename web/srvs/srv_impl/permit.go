@@ -35,6 +35,50 @@ type PermitServiceImpl struct {
 	base.ServiceBase
 }
 
+func (r *PermitServiceImpl) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error) {
+	res = wrappers.ResultGetImportByMenuId{
+		ImportIds: []int{},
+		MenuIds:   []int{},
+	}
+
+	if arg.NowMenuId == 0 {
+		return
+	}
+	if res.MenuIds, err = r.getChildMenu(arg.NowMenuId); err != nil {
+		return
+	}
+	if res.ImportIds, err = r.getChildImport(arg.NowMenuId); err != nil {
+		return
+	}
+	return
+}
+func (r *PermitServiceImpl) getChildMenu(nowMenuId int) (menuIds []int, err error) {
+	menuIds = []int{}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var res []models.AdminMenu
+	if res, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{
+		ParentId: nowMenuId,
+	}); err != nil {
+		return
+	}
+	for _, item := range res {
+		menuIds = append(menuIds, item.Id)
+	}
+	return
+}
+func (r *PermitServiceImpl) getChildImport(nowMenuId int) (importIds []int, err error) {
+	importIds = []int{}
+	dao := dao_impl.NewPermitImportImpl(r.Context)
+	var importList []models.AdminMenuImport
+	if importList, err = dao.GetImportMenuByImportIds(nowMenuId); err != nil {
+		return
+	}
+	importIds = make([]int, 0, len(importList))
+	for _, value := range importList {
+		importIds = append(importIds, value.ImportId)
+	}
+	return
+}
 func NewPermitServiceImpl(context ...*base.Context) srvs.PermitService {
 	p := &PermitServiceImpl{}
 	p.SetContext(context...)
@@ -1364,61 +1408,106 @@ func (r *PermitServiceImpl) leftAdminUser(list []models.AdminUser, dao daos.DaoP
 	return
 
 }
-func (r *PermitServiceImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
-	res = &wrappers.ResultPermitMenuReturn{
-		ResultPermitMenu: wrappers.ResultPermitMenu{
-			Children: []wrappers.ResultPermitMenu{},
-		},
-		RoutParentMap:   map[string][]string{},
-		Menu:            []wrappers.ResultSystemMenu{},
-		OpList:          map[string][]wrappers.OpOne{},
-		NotReadMsgCount: 0,
+func (r *PermitServiceImpl) initParentId(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (err error) {
+
+	if arg.Module != "" {
+		var dt []models.AdminMenu
+		if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+			return
+		}
+		if len(dt) == 0 {
+			err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
+			return
+		}
+		arg.ParentId = dt[0].Id
 	}
-
-	var syncG sync.WaitGroup
-	syncG.Add(2)
-	go func() { // 获取用户未读消息数
-		defer syncG.Done()
-		res.NotReadMsgCount, _ = r.getMessageCount(arg.UserId)
-	}()
-	go func() {
-		defer syncG.Done()
-		dao := dao_impl.NewDaoPermit(r.Context)
-		if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserId}); err != nil {
-			return
-		}
-
-		if arg.Module != "" {
-			var dt []models.AdminMenu
-			if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
-				return
-			}
-			if len(dt) == 0 {
-				err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
-				return
-			}
-			arg.ParentId = dt[0].Id
-		}
-		// 获取接口权限列表
-		if res.OpList, err = r.getOpList(dao, arg); err != nil {
-			return
-		}
-		if arg.IsSuperAdmin { // 如果是超级管理员
-			err = r.getGroupMenu(dao, arg, res)
-			return
-		}
-		var menuIds []int
-		if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, arg.GroupId...); err != nil { // 普通管理员
-			return
-		}
-		if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
-			return
-		}
-	}()
-
-	syncG.Wait()
 	return
 }
+
+// initGroupAndIsSuperAdmin 判断当前用户是否是超级管理员
+func (r *PermitServiceImpl) initGroupAndIsSuperAdmin(arg *wrappers.ArgPermitMenu, dao daos.DaoPermit) (err error) {
+	if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserId}); err != nil {
+		return
+	}
+	return
+}
+
+func (r *PermitServiceImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
+
+	res = wrappers.NewResultPermitMenuReturn()
+	dao := dao_impl.NewDaoPermit(r.Context)
+
+	if err = r.initParentId(dao, arg); err != nil {
+		return
+	}
+
+	if err = r.initGroupAndIsSuperAdmin(arg, dao); err != nil {
+		return
+	}
+
+	handlers := []menuHandler{
+		r.getNotReadMessage, // 获取用户未读消息数)
+		r.getPermitMenuList, // 获取当前菜单的树形结构
+	}
+	if arg.NowMenuId != 0 {
+		handlers = append(handlers, r.getNowMenuImports) // 获取指定菜单下的接口ID列表
+	}
+
+	// 并行执行逻辑
+	r.syncOperate(handlers, arg, res)
+	return
+
+}
+
+type menuHandler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn)
+
+func (r *PermitServiceImpl) syncOperate(handlers []menuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
+	var syncG sync.WaitGroup
+	syncG.Add(len(handlers))
+	for _, handler := range handlers {
+		go func() {
+			defer syncG.Done()
+			handler(arg, res)
+		}()
+	}
+	syncG.Wait()
+}
+func (r *PermitServiceImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
+	var err error
+	dao := dao_impl.NewDaoPermit(r.Context)
+
+	// 获取接口权限列表
+	if res.OpList, err = r.getOpList(dao, arg); err != nil {
+		return
+	}
+	if arg.IsSuperAdmin { // 如果是超级管理员
+		err = r.getGroupMenu(dao, arg, res)
+		return
+	}
+	var menuIds []int
+	if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, arg.GroupId...); err != nil { // 普通管理员
+		return
+	}
+	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
+		return
+	}
+	return
+}
+
+func (r *PermitServiceImpl) getNowMenuImports(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
+	parameters := &wrappers.ArgGetImportByMenuId{}
+	parameters.NowMenuId = arg.NowMenuId
+	parameters.SuperAdminFlag = arg.IsSuperAdmin
+	res.NowMenuId, _ = r.GetImportByMenuId(parameters)
+	return
+}
+
+// 获取用户未读消息数
+func (r *PermitServiceImpl) getNotReadMessage(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
+	res.NotReadMsgCount, _ = r.getMessageCount(arg.UserId)
+	return
+}
+
 func (r *PermitServiceImpl) getMessageCount(userHid string) (count int, err error) {
 	var httpHeader = http.Header{}
 	logContent := map[string]interface{}{

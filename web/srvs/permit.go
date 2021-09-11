@@ -62,4 +62,6 @@ type PermitService interface {
 	GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error)
 
 	UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error)
+
+	GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error)
 }
