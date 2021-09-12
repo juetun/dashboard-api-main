@@ -9,6 +9,7 @@
 package srv_impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -193,6 +194,53 @@ func (r *SrvPermitGroupImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGro
 	res.Result = true
 	return
 }
+func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error) {
+	res = &wrappers.ResultAdminGroupEdit{}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var g models.AdminGroup
+	var dta models.AdminGroup
+	if g, err = dao.FetchByName(arg.Name); err != nil {
+		return
+	}
+
+	if arg.Id == 0 {
+		if g.Name != "" {
+			err = fmt.Errorf("您输入的组名已存在")
+			return
+		}
+		dta = models.AdminGroup{
+			Name: arg.Name,
+		}
+		if err = dao.InsertAdminGroup(&dta); err != nil {
+			return
+		}
+		res.Result = true
+		return
+	}
+
+	if g.Name != "" && g.Id != arg.Id {
+		err = fmt.Errorf("您输入的组名已存在")
+		return
+	}
+	var dt []models.AdminGroup
+	if dt, err = dao.GetAdminGroupByIds([]int{arg.Id}...); err != nil {
+		return
+	}
+	if len(dt) == 0 {
+		err = fmt.Errorf("您要编辑的组不存在或已删除")
+		return
+	}
+	dta = dt[0]
+	dta.Name = arg.Name
+	dta.Id = arg.Id
+	dta.UpdatedAt = base.TimeNormal{Time: time.Now()}
+	if err = dao.UpdateAdminGroup(&dta); err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+
 func NewSrvPermitGroupImpl(context ...*base.Context) srvs.SrvPermitGroup {
 	p := &SrvPermitGroupImpl{}
 	p.SetContext(context...)

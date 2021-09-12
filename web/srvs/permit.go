@@ -13,11 +13,7 @@ import (
 )
 
 type PermitService interface {
-	AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error)
-
 	Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error)
-
-	GetAppConfig(arg *wrappers.ArgGetAppConfig) (res *wrappers.ResultGetAppConfig, err error)
 
 	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
 

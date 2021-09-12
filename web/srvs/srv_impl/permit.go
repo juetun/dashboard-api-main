@@ -110,52 +110,6 @@ func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wra
 	return
 }
 
-func (r *PermitServiceImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error) {
-	res = &wrappers.ResultAdminGroupEdit{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	var g models.AdminGroup
-	var dta models.AdminGroup
-	if g, err = dao.FetchByName(arg.Name); err != nil {
-		return
-	}
-
-	if arg.Id == 0 {
-		if g.Name != "" {
-			err = fmt.Errorf("您输入的组名已存在")
-			return
-		}
-		dta = models.AdminGroup{
-			Name: arg.Name,
-		}
-		if err = dao.InsertAdminGroup(&dta); err != nil {
-			return
-		}
-		res.Result = true
-		return
-	}
-
-	if g.Name != "" && g.Id != arg.Id {
-		err = fmt.Errorf("您输入的组名已存在")
-		return
-	}
-	var dt []models.AdminGroup
-	if dt, err = dao.GetAdminGroupByIds([]int{arg.Id}...); err != nil {
-		return
-	}
-	if len(dt) == 0 {
-		err = fmt.Errorf("您要编辑的组不存在或已删除")
-		return
-	}
-	dta = dt[0]
-	dta.Name = arg.Name
-	dta.Id = arg.Id
-	dta.UpdatedAt = base.TimeNormal{Time: time.Now()}
-	if err = dao.UpdateAdminGroup(&dta); err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
 func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultMenuAdd, err error) {
 	res = &wrappers.ResultMenuAdd{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -1261,67 +1215,6 @@ func (r *PermitServiceImpl) Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFla
 	res = &wrappers.ResultFlag{}
 	return
 }
-func (r *PermitServiceImpl) getAppConfigList(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
-	var list []models.AdminApp
-	if list, err = dao.GetList(nil, nil, nil); err != nil {
-		return
-	}
-	err = r.orgResAppConfig(list, res, arg)
-	return
-}
-func (r *PermitServiceImpl) orgResAppConfig(list []models.AdminApp, res *wrappers.ResultGetAppConfig, arg *wrappers.ArgGetAppConfig) (err error) {
-	*res = make(map[string]string, len(list))
-	for _, it := range list {
-		if err = it.UnmarshalHosts(); err != nil {
-			r.Context.Error(map[string]interface{}{
-				"err": err.Error(),
-				"it":  it,
-				"arg": arg,
-			}, "permitServiceGetAppConfigList")
-			return
-		}
-		(*res)[it.UniqueKey] = fmt.Sprintf("http://%s:%d", it.HostConfig[arg.Env], it.Port)
-	}
-	return
-}
-func (r *PermitServiceImpl) GetAppConfig(arg *wrappers.ArgGetAppConfig) (res *wrappers.ResultGetAppConfig, err error) {
-	res = &wrappers.ResultGetAppConfig{}
-	dao := dao_impl.NewDaoServiceImpl(r.Context)
-	if arg.Module == "" {
-		err = r.getAppConfigList(dao, arg, res)
-		return
-	}
-	err = r.getAppConfigListByModule(dao, arg, res)
-	return
-}
-func (r *PermitServiceImpl) getImportMenu(dao daos.DaoService, arg *wrappers.ArgGetAppConfig) (uniqueKeys []string, err error) {
-	var importMenus []wrappers.ImportMenu
-	if importMenus, err = dao.GetImportMenuByModule(arg.Module); err != nil {
-		return
-	}
-	uniqueKeys = make([]string, 0, len(importMenus))
-	for _, it := range importMenus {
-		uniqueKeys = append(uniqueKeys, it.AppName)
-	}
-	return
-}
 
-func (r *PermitServiceImpl) getAppConfigListByModule(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
-	var (
-		list       []models.AdminApp
-		uniqueKeys []string
-	)
-	if uniqueKeys, err = r.getImportMenu(dao, arg); err != nil {
-		return
-	}
 
-	if list, err = dao.GetList(nil, &wrappers.ArgServiceList{
-		UniqueKeys: uniqueKeys,
-	}, nil); err != nil {
-		return
-	}
-	if err = r.orgResAppConfig(list, res, arg); err != nil {
-		return
-	}
-	return
-}
+

@@ -225,7 +225,7 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
 
-	srv := srv_impl.NewPermitServiceImpl(context)
+	srv := srv_impl.NewSrvPermitGroupImpl(context)
 	res, err := srv.AdminGroupEdit(&arg)
 
 	if err != nil {
@@ -622,7 +622,7 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		return
 	}
 	ctx := base.CreateContext(&r.ControllerBase, c)
-	res, err = srv_impl.NewPermitServiceImpl(ctx).
+	res, err = srv_impl.NewSrvPermitAppImpl(ctx).
 		GetAppConfig(&arg)
 	if err != nil {
 		r.Response(c, 500000000, nil, err.Error())
