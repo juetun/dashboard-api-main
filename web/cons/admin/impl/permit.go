@@ -320,8 +320,11 @@ func (r *ControllerPermit) EditImport(c *gin.Context) {
 	return
 }
 func (r *ControllerPermit) GetImport(c *gin.Context) {
-	var arg wrappers.ArgGetImport
-	var err error
+	var (
+		res *wrappers.ResultGetImport
+		arg wrappers.ArgGetImport
+		err error
+	)
 
 	if err = c.ShouldBind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
@@ -333,13 +336,13 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err := srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		GetImport(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
-	} else {
-		r.Response(c, 0, res)
 	}
+	r.Response(c, 0, res)
+
 }
 
 // GetImportByMenuId 根据菜单号 获取页面的接口ID
