@@ -13,8 +13,6 @@ import (
 )
 
 type PermitService interface {
-	AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error)
-
 	AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error)
 
 	Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error)
@@ -22,8 +20,6 @@ type PermitService interface {
 	GetAppConfig(arg *wrappers.ArgGetAppConfig) (res *wrappers.ResultGetAppConfig, err error)
 
 	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
-
-	AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error)
 
 	AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error)
 
@@ -38,9 +34,6 @@ type PermitService interface {
 	MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error)
 
 	MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error)
-
-
-	AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error)
 
 	AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wrappers.ResAdminMenuSearch, err error)
 

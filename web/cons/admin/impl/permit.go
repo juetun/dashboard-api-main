@@ -148,7 +148,7 @@ func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
 	arg.Default()
 
 	// 记录日志
-	srv := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c))
 	res, err := srv.AdminUserGroupRelease(&arg)
 
 	if err != nil {
@@ -173,7 +173,7 @@ func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
 
-	srv := srv_impl.NewPermitServiceImpl(context)
+	srv := srv_impl.NewSrvPermitGroupImpl(context)
 	res, err := srv.AdminUserGroupAdd(&arg)
 
 	if err != nil {
@@ -571,7 +571,7 @@ func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
 		AdminGroup(&arg)
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())

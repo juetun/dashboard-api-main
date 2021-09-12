@@ -52,6 +52,7 @@ func (r *PermitServiceImpl) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId
 	}
 	return
 }
+
 func (r *PermitServiceImpl) getChildMenu(nowMenuId int) (menuIds []int, err error) {
 	menuIds = []int{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -106,38 +107,6 @@ func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wra
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	res.List, err = dao.GetAdminMenuList(arg)
-	return
-}
-func (r *PermitServiceImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error) {
-	res = wrappers.ResultAdminUserGroupAdd{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-
-	var args = make([]map[string]interface{}, 0)
-	for _, userHId := range arg.UserHIds {
-		for _, groupId := range arg.GroupIds {
-			args = append(args, map[string]interface{}{
-				"group_id":   groupId,
-				"user_hid":   userHId,
-				"updated_at": time.Now().Format("2006-01-02 15:04:05"),
-				"deleted_at": nil,
-			})
-		}
-	}
-	err = dao.AdminUserGroupAdd(args)
-	if err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
-func (r *PermitServiceImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error) {
-	res = wrappers.ResultAdminUserGroupRelease{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	err = dao.AdminUserGroupRelease(arg.IdString...)
-	if err != nil {
-		return
-	}
-	res.Result = true
 	return
 }
 
@@ -262,10 +231,6 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermit, data *model
 	}
 	return
 }
-
-
-
-
 
 func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
 	res = &wrappers.ResultMenuImport{
@@ -805,6 +770,7 @@ func (r *PermitServiceImpl) deleteNotApiPermitId(dao daos.DaoPermit, notPermitId
 	}
 	return
 }
+
 func (r *PermitServiceImpl) addNewMenuPermit(dao daos.DaoPermit, newPermit []int, arg *wrappers.ArgAdminSetPermit) (err error) {
 	l := len(newPermit)
 	if l == 0 {
@@ -852,6 +818,7 @@ func (r *PermitServiceImpl) addNewMenuPermit(dao daos.DaoPermit, newPermit []int
 	}
 	return
 }
+
 func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int, groupId int) (err error) {
 	if len(newPermit) == 0 {
 		return
@@ -875,57 +842,6 @@ func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int,
 		err = fmt.Errorf("操作异常")
 		return
 	}
-	return
-}
-
-func (r *PermitServiceImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
-
-	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
-
-	var db *gorm.DB
-	dao := dao_impl.NewDaoPermit(r.Context)
-	// 获取分页数据
-	if err = res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
-		pagerObject.TotalCount, db, err = dao.GetAdminGroupCount(db, arg)
-		return
-	}, func(pagerObject *response.Pager) (err error) {
-		var list []models.AdminGroup
-		list, err = dao.GetAdminGroupList(db, arg, pagerObject)
-		pagerObject.List, err = r.orgGroupList(dao, list)
-		return
-	}); err != nil {
-		return
-	}
-	return
-}
-
-func (r *PermitServiceImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
-	l := len(list)
-	res = make([]wrappers.AdminGroup, 0, l)
-	ids := make([]int, 0, l)
-	for _, value := range list {
-		ids = append(ids, value.ParentId)
-	}
-	var listG []models.AdminGroup
-	if listG, err = dao.GetAdminGroupByIds(ids...); err != nil {
-		return
-	}
-	var m = make(map[int]models.AdminGroup, l)
-	for _, value := range listG {
-		m[value.Id] = value
-	}
-
-	var dt wrappers.AdminGroup
-	for _, it := range list {
-		dt = wrappers.AdminGroup{
-			AdminGroup: it,
-		}
-		if dta, ok := m[it.ParentId]; ok {
-			dt.ParentName = dta.Name
-		}
-		res = append(res, dt)
-	}
-
 	return
 }
 
@@ -1389,6 +1305,7 @@ func (r *PermitServiceImpl) getImportMenu(dao daos.DaoService, arg *wrappers.Arg
 	}
 	return
 }
+
 func (r *PermitServiceImpl) getAppConfigListByModule(dao daos.DaoService, arg *wrappers.ArgGetAppConfig, res *wrappers.ResultGetAppConfig) (err error) {
 	var (
 		list       []models.AdminApp

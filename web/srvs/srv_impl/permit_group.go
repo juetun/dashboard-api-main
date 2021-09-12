@@ -12,15 +12,19 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"gorm.io/gorm"
 )
 
 type SrvPermitGroupImpl struct {
 	base.ServiceBase
 }
+
 func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error) {
 	res = wrappers.ResultAdminGroupDelete{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -35,6 +39,57 @@ func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete)
 	}
 
 	res.Result = true
+	return
+}
+
+func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
+
+	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
+
+	var db *gorm.DB
+	dao := dao_impl.NewDaoPermit(r.Context)
+	// 获取分页数据
+	if err = res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
+		pagerObject.TotalCount, db, err = dao.GetAdminGroupCount(db, arg)
+		return
+	}, func(pagerObject *response.Pager) (err error) {
+		var list []models.AdminGroup
+		list, err = dao.GetAdminGroupList(db, arg, pagerObject)
+		pagerObject.List, err = r.orgGroupList(dao, list)
+		return
+	}); err != nil {
+		return
+	}
+	return
+}
+
+func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
+	l := len(list)
+	res = make([]wrappers.AdminGroup, 0, l)
+	ids := make([]int, 0, l)
+	for _, value := range list {
+		ids = append(ids, value.ParentId)
+	}
+	var listG []models.AdminGroup
+	if listG, err = dao.GetAdminGroupByIds(ids...); err != nil {
+		return
+	}
+	var m = make(map[int]models.AdminGroup, l)
+	for _, value := range listG {
+		m[value.Id] = value
+	}
+
+	var dt wrappers.AdminGroup
+	for _, it := range list {
+		dt = wrappers.AdminGroup{
+			AdminGroup: it,
+		}
+		if dta, ok := m[it.ParentId]; ok {
+			dt.ParentName = dta.Name
+		}
+		res = append(res, dt)
+	}
+
 	return
 }
 
@@ -106,7 +161,38 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	res.Result = true
 	return
 }
+func (r *SrvPermitGroupImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error) {
+	res = wrappers.ResultAdminUserGroupAdd{}
+	dao := dao_impl.NewDaoPermit(r.Context)
 
+	var args = make([]map[string]interface{}, 0)
+	for _, userHId := range arg.UserHIds {
+		for _, groupId := range arg.GroupIds {
+			args = append(args, map[string]interface{}{
+				"group_id":   groupId,
+				"user_hid":   userHId,
+				"updated_at": time.Now().Format("2006-01-02 15:04:05"),
+				"deleted_at": nil,
+			})
+		}
+	}
+	err = dao.AdminUserGroupAdd(args)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+func (r *SrvPermitGroupImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error) {
+	res = wrappers.ResultAdminUserGroupRelease{}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	err = dao.AdminUserGroupRelease(arg.IdString...)
+	if err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
 func NewSrvPermitGroupImpl(context ...*base.Context) srvs.SrvPermitGroup {
 	p := &SrvPermitGroupImpl{}
 	p.SetContext(context...)
