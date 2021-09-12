@@ -178,6 +178,26 @@ func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[str
 	return
 }
 
+func (r *PermitImportImpl) GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error) {
+
+	list = []models.AdminMenuImport{}
+	if len(menuIds) == 0 {
+		return
+	}
+	var m models.AdminMenuImport
+	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
+		Where("menu_id IN (?)", menuIds).
+		Find(&list).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"iIds": menuIds,
+			"err":  err.Error(),
+		}, "permitImportImplGetChildImportByMenuId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+	return
+}
 func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error) {
 	list = []models.AdminMenuImport{}
 	if len(iIds) == 0 {
@@ -192,6 +212,7 @@ func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.
 			"iIds": iIds,
 			"err":  err.Error(),
 		}, "permitImportImplGetImportMenuByImportIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
@@ -207,6 +228,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 			"condition": condition,
 			"err":       err.Error(),
 		}, "permitImportImplUpdateMenuImport")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return

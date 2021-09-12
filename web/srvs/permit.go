@@ -15,7 +15,6 @@ import (
 type PermitService interface {
 	Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error)
 
-	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
 
 	AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error)
 
@@ -35,5 +34,5 @@ type PermitService interface {
 
 	GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error)
 
-	GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error)
+	// GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error)
 }

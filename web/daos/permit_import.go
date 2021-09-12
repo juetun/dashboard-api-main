@@ -21,6 +21,8 @@ type PermitImport interface {
 
 	GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error)
 
+	GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error)
+
 	UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error)
 
 	DeleteByCondition(condition interface{}) (res bool, err error)

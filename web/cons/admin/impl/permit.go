@@ -364,7 +364,7 @@ func (r *ControllerPermit) GetImportByMenuId(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		GetImportByMenuId(&arg); err != nil {
 		r.Response(c, 500000002, res, err.Error())
 		return
@@ -594,9 +594,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-	res, err := srv_impl.NewPermitServiceImpl(context).
+	res, err := srv_impl.NewSrvPermitMenuImpl(base.CreateContext(&r.ControllerBase, c)).
 		Menu(&arg)
 
 	if err != nil {

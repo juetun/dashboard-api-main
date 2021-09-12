@@ -60,6 +60,80 @@ func (r *SrvPermitImport) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) 
 	return
 }
 
+func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error) {
+	res = wrappers.ResultGetImportByMenuId{
+		ImportIds: []int{},
+		MenuIds:   []int{},
+	}
+
+	permitMenu := NewSrvPermitMenuImpl(r.Context)
+
+	if err = permitMenu.GetMenuPermitKeyByPath(
+		&arg.ArgGetImportByMenuIdSingle,
+		dao_impl.NewDaoPermit(r.Context),
+	); err != nil {
+		return
+	}
+
+	if arg.NowMenuId == 0 {
+		return
+	}
+
+	if res.MenuIds, err = r.GetChildMenu(arg.NowMenuId); err != nil {
+		return
+	}
+
+	if res.ImportIds, err = r.GetChildImport(arg.NowMenuId); err != nil {
+		return
+	}
+	return
+}
+
+func (r *SrvPermitImport) GetChildImport(nowMenuId int) (importIds []int, err error) {
+	importIds = []int{}
+	dao := dao_impl.NewPermitImportImpl(r.Context)
+	var importList []models.AdminMenuImport
+	if importList, err = dao.GetChildImportByMenuId(nowMenuId); err != nil {
+		return
+	}
+	importIds = make([]int, 0, len(importList))
+	for _, value := range importList {
+		importIds = append(importIds, value.ImportId)
+	}
+	return
+}
+
+func (r *SrvPermitImport) GetOpList(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (opList map[string][]wrappers.OpOne, err error) {
+	var list []wrappers.Op
+	if list, err = dao.GetPermitImportByModule(arg); err != nil {
+		return
+	}
+	l := len(list)
+	opList = make(map[string][]wrappers.OpOne, l)
+	var t wrappers.OpOne
+	for _, value := range list {
+		if _, ok := opList[value.MenuPermitKey]; !ok {
+			opList[value.MenuPermitKey] = make([]wrappers.OpOne, 0, l)
+		}
+		t = wrappers.OpOne(value.PermitKey)
+		opList[value.MenuPermitKey] = append(opList[value.MenuPermitKey], t)
+	}
+	return
+}
+func (r *SrvPermitImport) GetChildMenu(nowMenuId int) (menuIds []int, err error) {
+	menuIds = []int{}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var res []models.AdminMenu
+	if res, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{
+		ParentId: nowMenuId,
+	}); err != nil {
+		return
+	}
+	for _, item := range res {
+		menuIds = append(menuIds, item.Id)
+	}
+	return
+}
 func (r *SrvPermitImport) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
 	res = &wrappers.ResultGetImport{
 		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
@@ -86,6 +160,39 @@ func (r *SrvPermitImport) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.R
 	return
 }
 
+func (r *SrvPermitImport) SetApiPermit(dao daos.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
+	switch arg.Act {
+	case models.SetPermitAdd:
+		var dt models.AdminUserGroupPermit
+		var list []models.AdminUserGroupPermit
+		var t = time.Now()
+		for _, pid := range arg.PermitIds {
+			dt = models.AdminUserGroupPermit{
+				GroupId:   arg.GroupId,
+				MenuId:    pid,
+				PathType:  models.PathTypeApi,
+				CreatedAt: t,
+				UpdatedAt: t,
+				DeletedAt: nil,
+			}
+			list = append(list, dt)
+		}
+		var m models.AdminUserGroupPermit
+		if err = dao.BatchGroupPermit(m.TableName(), list); err != nil {
+			err = fmt.Errorf("操作异常")
+			return
+		}
+
+	case models.SetPermitCancel:
+		if err = dao.DeleteGroupPermit(arg.GroupId, models.PathTypeApi, arg.PermitIds...); err != nil {
+			return
+		}
+	default:
+		err = fmt.Errorf("act格式错误")
+		return
+	}
+	return
+}
 func (r *SrvPermitImport) getImportId(l int, list []models.AdminImport) (importId []int) {
 	importId = make([]int, 0, l)
 	for _, value := range list {
@@ -351,7 +458,7 @@ func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []model
 	}
 
 	var dta []models.AdminMenu
-	if dta, err = dao.GetMenuByPermitKey(modules...); err != nil {
+	if dta, err = dao.GetMenuByPermitKey("", modules...); err != nil {
 		return
 	}
 

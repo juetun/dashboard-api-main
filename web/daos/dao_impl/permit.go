@@ -990,18 +990,30 @@ func (r *DaoPermitImpl) GetMenu(menuId ...int) (res []models.AdminMenu, err erro
 	}
 	return
 }
-func (r *DaoPermitImpl) GetMenuByPermitKey(permitKey ...string) (res []models.AdminMenu, err error) {
-	if len(permitKey) == 0 {
+func (r *DaoPermitImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
+
+	var m models.AdminMenu
+
+	db := r.Context.Db.Table(m.TableName())
+	var f bool
+	if len(permitKey) != 0 {
+		f = true
+		db = db.Where("permit_key IN(?)", permitKey)
+	}
+	if module != "" {
+		f = true
+		db = db.Where("module = ?", module)
+	}
+	if !f {
 		return
 	}
-	var m models.AdminMenu
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("permit_key IN(?)", permitKey).
-		Find(&res).Error; err != nil {
+
+	if err = db.Limit(len(permitKey)).Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"permitKey": permitKey,
 			"err":       err.Error(),
 		}, "daoPermitGetMenuByPermitKey")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
