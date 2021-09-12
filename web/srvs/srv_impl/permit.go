@@ -85,39 +85,6 @@ func NewPermitServiceImpl(context ...*base.Context) srvs.PermitService {
 	return p
 }
 
-func (r *PermitServiceImpl) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error) {
-	res = &wrappers.ResultUpdateImportValue{}
-	var condition = fmt.Sprintf("id IN (%s)", strings.Join(arg.Ids, ","))
-	dao := dao_impl.NewPermitImportImpl(r.Context)
-	var data = make(map[string]interface{}, 1)
-	t := time.Now().Format("2006-01-02 15:04:05")
-	data["updated_at"] = t
-	switch arg.Column {
-	case "is_del":
-		data[arg.Column] = t
-		if arg.Val == "1" {
-			res.Result, err = dao.DeleteByCondition(condition)
-		} else {
-			res.Result, err = dao.UpdateByCondition(condition, data)
-		}
-
-	case "need_login", "default_open", "need_sign":
-		if arg.Val != "1" && arg.Val != "2" {
-			err = fmt.Errorf("您设置的值不正确")
-			return
-		}
-		data[arg.Column] = arg.Val
-		res.Result, err = dao.UpdateByCondition(condition, data)
-	case "":
-	default:
-		err = fmt.Errorf("您选择的数据值(column:%s)不正确", arg.Column)
-		return
-	}
-	if err != nil {
-		return
-	}
-	return
-}
 func (r *PermitServiceImpl) GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error) {
 	res = wrappers.ResultGetMenu{}
 	if arg.MenuId == 0 {
@@ -170,66 +137,6 @@ func (r *PermitServiceImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGrou
 	if err != nil {
 		return
 	}
-	res.Result = true
-	return
-}
-func (r *PermitServiceImpl) AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (res wrappers.ResultAdminUserDelete, err error) {
-	res = wrappers.ResultAdminUserDelete{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	if err = dao.DeleteAdminUser(arg.IdString); err != nil {
-		return
-	}
-	if err = dao.DeleteUserGroupByUserId(arg.IdString...); err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
-
-func (r *PermitServiceImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error) {
-	res = wrappers.ResultAdminUserAdd{}
-	if arg.UserHid == "" {
-		err = fmt.Errorf("您没有选择要添加的用户")
-		return
-	}
-	var user *models.UserMain
-	if user, err = NewUserService(r.Context).
-		GetUserById(strings.TrimSpace(arg.UserHid)); err != nil {
-		return
-	} else if user.UserHid == "" {
-		err = fmt.Errorf("您要添加的用户信息不存在")
-		return
-	}
-
-	if err = dao_impl.NewDaoPermit(r.Context).
-		AdminUserAdd(&models.AdminUser{
-			UserHid:  arg.UserHid,
-			RealName: user.Name,
-			Mobile:   user.Mobile,
-			Model: gorm.Model{
-				ID:        0,
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-				DeletedAt: gorm.DeletedAt{},
-			},
-		}); err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
-func (r *PermitServiceImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error) {
-	res = wrappers.ResultAdminGroupDelete{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-
-	if err = dao.DeleteAdminGroupByIds(arg.IdString...); err != nil {
-		return
-	}
-	// 删除用户组权限
-	if err = dao.DeleteUserGroupPermitByGroupId(arg.IdString...); err != nil {
-		return
-	}
-
 	res.Result = true
 	return
 }
@@ -355,256 +262,10 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermit, data *model
 	}
 	return
 }
-func (r *PermitServiceImpl) createImport(dao daos.DaoPermit, arg *wrappers.ArgEditImport) (res bool, err error) {
-	t := time.Now()
-	data := models.AdminImport{
-		AppName:       arg.AppName,
-		AppVersion:    arg.AppVersion,
-		UrlPath:       arg.UrlPath,
-		RequestMethod: arg.RequestMethod,
-		SortValue:     arg.SortValue,
-		UpdatedAt:     t,
-		CreatedAt:     t,
-	}
-	if _, err = dao.CreateImport(&data); err != nil {
-		return
-	}
-	res = true
-	return
-}
-func (r *PermitServiceImpl) DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappers.ResultDeleteImport, err error) {
-	res = &wrappers.ResultDeleteImport{}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	if err = dao.DeleteImportByIds([]int{arg.ID}...); err != nil {
-		return
-	}
-	if err = dao.DeleteUserGroupPermit(models.PathTypeApi, []int{arg.ID}...); err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
-func (r *PermitServiceImpl) editImportParam(arg *wrappers.ArgEditImport, value *models.AdminImport) (err error) {
-	if arg.Id == 0 {
-		if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
-			err = fmt.Errorf("您输入的接口信息已存在")
-			return
-		}
-		return
-	}
-	if value.AppName == arg.AppName && value.UrlPath == arg.UrlPath {
-		if arg.Id != value.Id {
-			err = fmt.Errorf("您输入的接口信息已存在")
-			return
-		}
-	}
 
-	return
-}
 
-func (r *PermitServiceImpl) ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error) {
-	var db *gorm.DB
-	if arg.Order == "" {
-		arg.Order = "id desc"
-	}
-	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.PageQuery)}
-	dao := dao_impl.NewDaoPermit(r.Context)
 
-	// 获取分页数据
-	if err = res.Pager.CallGetPagerData(func(pager *response.Pager) (err error) {
-		pager.TotalCount, db, err = dao.GetImportListCount(db, arg)
-		return
-	}, func(pager *response.Pager) (err error) {
-		var list []models.AdminImport
-		list, err = dao.GetImportListData(db, arg, pager)
-		pager.List, err = r.orgImportList(dao, list)
-		return
-	}); err != nil {
-		return
-	}
-	return
-}
-func (r *PermitServiceImpl) getImportId(l int, list []models.AdminImport) (importId []int) {
-	importId = make([]int, 0, l)
-	for _, value := range list {
-		importId = append(importId, value.Id)
-	}
-	return
-}
-func (r *PermitServiceImpl) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int]models.AdminMenu, err error) {
-	ll := len(list)
-	menuIds := make([]int, 0, ll)
-	for _, value := range list {
-		menuIds = append(menuIds, value.MenuId)
-	}
-	var adminMenu []models.AdminMenu
-	if adminMenu, err = dao.GetMenu(menuIds...); err != nil {
-		return
-	}
-	mapAdminMenu = make(map[int]models.AdminMenu, len(adminMenu))
-	var (
-		m          = make(map[int]int, len(adminMenu))
-		modules    = make([]string, 0, len(adminMenu))
-		modulesMap = make(map[string]string, len(adminMenu))
-	)
-	for _, value := range adminMenu {
-		if _, ok := modulesMap[value.Module]; !ok {
-			modules = append(modules, value.Module)
-		}
-	}
 
-	var dta []models.AdminMenu
-	if dta, err = dao.GetMenuByPermitKey(modules...); err != nil {
-		return
-	}
-
-	mapAdminMenuModule = make(map[string]models.AdminMenu, len(dta))
-	for _, value := range dta {
-		mapAdminMenuModule[value.PermitKey] = value
-	}
-
-	for _, value := range adminMenu {
-		if _, ok := m[value.Id]; !ok {
-			mapAdminMenu[value.Id] = value
-			m[value.Id] = value.Id
-		}
-	}
-
-	return
-}
-func (r *PermitServiceImpl) getImportMenuGroup(dao daos.DaoPermit, l int, data []models.AdminImport) (res map[int][]wrappers.AdminImportListMenu, err error) {
-	importId := r.getImportId(l, data)
-	daoImportMenu := dao_impl.NewPermitImportImpl(r.Context)
-
-	var list []models.AdminMenuImport
-	var mapAdminMenu map[int]models.AdminMenu
-	var mapAdminMenuGroup map[string]models.AdminMenu
-
-	if list, err = daoImportMenu.GetImportMenuByImportIds(importId...); err != nil {
-		return
-	} else if mapAdminMenuGroup, mapAdminMenu, err = r.getImportMenuGroupMap(dao, list); err != nil {
-		return
-	}
-	res = make(map[int][]wrappers.AdminImportListMenu, l)
-
-	var (
-		dt  wrappers.AdminImportListMenu
-		dtm models.AdminMenu
-		ok  bool
-		ll  = len(list)
-	)
-	var dtt models.AdminMenu
-	for _, value := range list {
-		if _, ok := res[value.ImportId]; !ok {
-			res[value.ImportId] = make([]wrappers.AdminImportListMenu, 0, ll)
-		}
-		dt = wrappers.AdminImportListMenu{
-			ImportId: value.Id,
-			MenuId:   value.MenuId,
-		}
-
-		if dtm, ok = mapAdminMenu[value.MenuId]; ok {
-			dt.MenuName = dtm.Label
-			dt.Id = dtm.Id
-			if dtt, ok = mapAdminMenuGroup[dtm.Module]; ok {
-				dt.SystemName = dtt.Label
-				dt.SystemModuleId = dtt.Id
-				dt.SystemMenuKey = dtt.PermitKey
-				dt.SystemIcon = dtt.Icon
-			}
-		}
-		res[value.ImportId] = append(res[value.ImportId], dt)
-	}
-	return
-}
-func (r *PermitServiceImpl) orgImportList(dao daos.DaoPermit, list []models.AdminImport) (res []wrappers.AdminImportList, err error) {
-	l := len(list)
-	res = make([]wrappers.AdminImportList, 0, l)
-	var dt wrappers.AdminImportList
-	var dta map[int][]wrappers.AdminImportListMenu
-	if dta, err = r.getImportMenuGroup(dao, l, list); err != nil {
-		return
-	}
-	for _, value := range list {
-		dt = wrappers.AdminImportList{AdminImport: value, Menu: []wrappers.AdminImportListMenu{}}
-		if _, ok := dta[value.Id]; ok {
-			dt.Menu = dta[value.Id]
-		}
-		res = append(res, dt)
-	}
-	return
-}
-
-func (r *PermitServiceImpl) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
-	res = &wrappers.ResultEditImport{Result: false}
-	var (
-		dao        = dao_impl.NewDaoPermit(r.Context)
-		daoService = dao_impl.NewDaoServiceImpl(r.Context)
-		listImport []models.AdminImport
-		apps       []models.AdminApp
-	)
-
-	if apps, err = daoService.GetByKeys(strings.TrimSpace(arg.AppName)); err != nil {
-		return
-	}
-	if len(apps) == 0 {
-		err = fmt.Errorf("您输入的应用(%s)不存在或已删除", arg.AppName)
-		return
-	}
-	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath, "request_method": arg.RequestMethod}); err != nil {
-		return
-	} else {
-		// 验证数据是否重复
-		for _, value := range listImport {
-			if err = r.editImportParam(arg, &value); err != nil {
-				return
-			}
-		}
-	}
-	data := map[string]interface{}{
-		`app_name`:       arg.AppName,
-		`app_version`:    arg.AppVersion,
-		`url_path`:       arg.UrlPath,
-		`request_method`: arg.RequestMethod,
-		`sort_value`:     arg.SortValue,
-		`updated_at`:     arg.RequestTime,
-		"need_login":     arg.NeedLogin,
-		"need_sign":      arg.NeedSign,
-	}
-	if arg.Id == 0 { // 如果是添加接口
-		res.Result, err = r.createImport(dao, arg)
-		return
-	}
-
-	var m = models.AdminImport{Id: arg.Id}
-	var dt []models.AdminImport
-	if dt, err = dao.GetAdminImportById(arg.Id); err != nil {
-		return
-	}
-
-	if len(dt) == 0 {
-		err = fmt.Errorf("您编辑的接口信息不存在或已删除")
-		return
-	}
-
-	if dt[0].PermitKey == "" {
-		data["permit_key"] = m.GetPathName()
-	}
-	// 如果更新了app_name
-	if dt[0].AppName != arg.AppName {
-		if err = dao_impl.NewPermitImportImpl(r.Context).
-			UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
-				map[string]interface{}{"import_app_name": arg.AppName}); err != nil {
-			return
-		}
-
-	}
-	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, data); err != nil {
-		return
-	}
-	res.Result = true
-	return
-}
 
 func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
 	res = &wrappers.ResultMenuImport{
@@ -623,57 +284,6 @@ func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappe
 	}
 	return
 }
-func (r *PermitServiceImpl) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
-	res = &wrappers.ResultGetImport{
-		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
-	}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	var db *gorm.DB
-	if db, err = dao.GetImportCount(arg, &res.TotalCount); err != nil {
-		return
-	}
-	if res.TotalCount == 0 {
-		return
-	}
-	var list []models.AdminImport
-	if list, err = dao.GetImportList(db, arg); err != nil {
-		return
-	}
-	if !arg.Checked {
-		res.List = list
-		return
-	}
-	res.List, err = r.joinChecked(dao, arg, list)
-
-	// []models.AdminImport{}
-	return
-}
-func (r *PermitServiceImpl) joinChecked(dao daos.DaoPermit, arg *wrappers.ArgGetImport, data []models.AdminImport) (res []wrappers.AdminImport, err error) {
-	res = make([]wrappers.AdminImport, 0, len(data))
-	var dt wrappers.AdminImport
-	var importId = make([]int, 0, len(data))
-	for _, value := range data {
-		importId = append(importId, value.Id)
-	}
-	var li []models.AdminUserGroupPermit
-	if li, err = dao.GetSelectImportByImportId(arg.GroupId, importId...); err != nil {
-		return
-	}
-	var m = make(map[int]int, len(li))
-	for _, it := range li {
-		m[it.MenuId] = it.MenuId
-	}
-	for _, value := range data {
-		dt = wrappers.AdminImport{
-			AdminImport: value,
-		}
-		if _, ok := m[value.Id]; ok {
-			dt.Checked = true
-		}
-		res = append(res, dt)
-	}
-	return
-}
 func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
 	res = &wrappers.ResultMenuDelete{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -681,7 +291,8 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	if err = dao.DeleteMenuByIds(arg.IdValue...); err != nil {
 		return
 	}
-	if err = dao.DeleteUserGroupPermit(models.PathTypePage, arg.IdValueNumber...); err != nil {
+	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	if err = daoGroup.DeleteUserGroupPermit(models.PathTypePage, arg.IdValueNumber...); err != nil {
 		return
 	}
 
@@ -692,7 +303,7 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	for _, value := range importList {
 		iIds = append(iIds, value.Id)
 	}
-	if err = dao.DeleteUserGroupPermit(models.PathTypeApi, iIds...); err != nil {
+	if err = daoGroup.DeleteUserGroupPermit(models.PathTypeApi, iIds...); err != nil {
 		return
 	}
 	res.Result = true
@@ -1317,97 +928,7 @@ func (r *PermitServiceImpl) orgGroupList(dao daos.DaoPermit, list []models.Admin
 
 	return
 }
-func (r *PermitServiceImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers.ResultAdminUser, err1 error) {
 
-	res = &wrappers.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
-
-	dao := dao_impl.NewDaoPermit(r.Context)
-
-	var db *gorm.DB
-
-	// 分页获取数据
-	err1 = res.Pager.CallGetPagerData(func(pagerObject *response.Pager) (err error) {
-		pagerObject.TotalCount, db, err = dao.GetAdminUserCount(db, arg)
-		return
-	}, func(pagerObject *response.Pager) (err error) {
-		var list []models.AdminUser
-		if list, err = dao.GetAdminUserList(db, arg, pagerObject); err != nil {
-			return
-		}
-		pagerObject.List, err = r.leftAdminUser(list, dao)
-		return
-	})
-	return
-}
-
-func (r *PermitServiceImpl) getUserGroup(list []models.AdminUser, dao daos.DaoPermit) (res map[string][]wrappers.AdminUserGroupName, err error) {
-	res = map[string][]wrappers.AdminUserGroupName{}
-	uIds := make([]string, 0, len(list))
-	for _, value := range list {
-		uIds = append(uIds, value.UserHid)
-	}
-	listResult, err := dao.GetUserGroupByUIds(uIds...)
-	if err != nil {
-		return
-	}
-	var tmp wrappers.AdminUserGroupName
-	gIds := make([]int, 0, len(listResult))
-	gIdsMap := make(map[int]int, len(listResult))
-	for _, item := range listResult {
-		if _, ok := gIdsMap[item.GroupId]; !ok {
-			gIdsMap[item.GroupId] = item.GroupId
-			gIds = append(gIds, item.GroupId)
-		}
-		if _, ok := res[item.UserHid]; !ok {
-			res[item.UserHid] = []wrappers.AdminUserGroupName{}
-		}
-	}
-
-	var groupList []models.AdminGroup
-	if groupList, err = dao.GetAdminGroupByIds(gIds...); err != nil {
-		return
-	}
-
-	groupMap := make(map[int]models.AdminGroup, len(groupList))
-	for _, value := range groupList {
-		groupMap[value.Id] = value
-	}
-
-	for _, item := range listResult {
-		tmp = wrappers.AdminUserGroupName{
-			AdminUserGroup: item,
-		}
-		if _, ok := groupMap[item.GroupId]; ok {
-			tmp.GroupName = groupMap[item.GroupId].Name
-			tmp.IsSuperAdmin = groupMap[item.GroupId].IsSuperAdmin
-			tmp.IsAdminGroup = groupMap[item.GroupId].IsAdminGroup
-		}
-		res[item.UserHid] = append(res[item.UserHid], tmp)
-	}
-	return
-}
-
-func (r *PermitServiceImpl) leftAdminUser(list []models.AdminUser, dao daos.DaoPermit) (res []wrappers.ResultAdminUserList, err error) {
-	res = []wrappers.ResultAdminUserList{}
-	mapGroupPermit, err := r.getUserGroup(list, dao)
-	if err != nil {
-		return
-	}
-	var tmp wrappers.ResultAdminUserList
-	for _, item := range list {
-		tmp = wrappers.ResultAdminUserList{
-			AdminUser: item,
-		}
-		if _, ok := mapGroupPermit[item.UserHid]; ok {
-			tmp.Group = mapGroupPermit[item.UserHid]
-
-		}
-		res = append(res, tmp)
-	}
-
-	return
-
-}
 func (r *PermitServiceImpl) initParentId(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (err error) {
 
 	if arg.Module != "" {
@@ -1431,6 +952,19 @@ func (r *PermitServiceImpl) initGroupAndIsSuperAdmin(arg *wrappers.ArgPermitMenu
 	}
 	return
 }
+func (r *PermitServiceImpl) getMenuPermitKeyByPath(arg *wrappers.ArgPermitMenu, dao daos.DaoPermit) (err error) {
+	divString := "/"
+	pathSlice := strings.Split(strings.TrimLeft(arg.NowRoutePath, "/"), divString)
+	switch len(pathSlice) {
+	case 0:
+		pathSlice = append(pathSlice, []string{"", ""}...)
+	case 1:
+		pathSlice = append(pathSlice, "")
+	}
+	arg.NowModule = pathSlice[0]
+	arg.NowPermitKey = strings.Join(pathSlice[1:], divString)
+	return
+}
 
 func (r *PermitServiceImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
 
@@ -1442,6 +976,9 @@ func (r *PermitServiceImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	}
 
 	if err = r.initGroupAndIsSuperAdmin(arg, dao); err != nil {
+		return
+	}
+	if err = r.getMenuPermitKeyByPath(arg, dao); err != nil {
 		return
 	}
 

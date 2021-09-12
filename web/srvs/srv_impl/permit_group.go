@@ -21,6 +21,22 @@ import (
 type SrvPermitGroupImpl struct {
 	base.ServiceBase
 }
+func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error) {
+	res = wrappers.ResultAdminGroupDelete{}
+	dao := dao_impl.NewDaoPermit(r.Context)
+
+	if err = dao.DeleteAdminGroupByIds(arg.IdString...); err != nil {
+		return
+	}
+	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	// 删除用户组权限
+	if err = daoGroup.DeleteUserGroupPermitByGroupId(arg.IdString...); err != nil {
+		return
+	}
+
+	res.Result = true
+	return
+}
 
 func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res *wrappers.ResultMenuImportSet, err error) {
 	res = &wrappers.ResultMenuImportSet{

@@ -13,19 +13,9 @@ import (
 )
 
 type PermitService interface {
-	DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappers.ResultDeleteImport, err error)
-
-	AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error)
-
 	AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error)
 
-	AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (res wrappers.ResultAdminUserDelete, err error)
-
-	AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error)
-
 	AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error)
-
-	AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers.ResultAdminUser, err1 error)
 
 	Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error)
 
@@ -47,21 +37,14 @@ type PermitService interface {
 
 	MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error)
 
-	GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error)
-
 	MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error)
 
-	EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error)
-
-	ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error)
 
 	AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error)
 
 	AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wrappers.ResAdminMenuSearch, err error)
 
 	GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error)
-
-	UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error)
 
 	GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error)
 }

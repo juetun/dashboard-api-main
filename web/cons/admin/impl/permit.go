@@ -1,11 +1,4 @@
 // Package admin_impl
-/**
-* @Author:ChangJiang
-* @Description:
-* @File:permit
-* @Version: 1.0.0
-* @Date 2020/9/16 12:06 上午
- */
 package impl
 
 import (
@@ -108,7 +101,7 @@ func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
 	arg.Default()
 
 	// 记录日志
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
 		AdminUserAdd(&arg)
 
 	if err != nil {
@@ -134,7 +127,7 @@ func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
 		return
 	}
 	// 记录日志
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
 		AdminUserDelete(&arg)
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())
@@ -205,7 +198,8 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
 
-	res, err := srv_impl.NewPermitServiceImpl(context).AdminGroupDelete(&arg)
+	res, err := srv_impl.NewSrvPermitGroupImpl(context).
+		AdminGroupDelete(&arg)
 
 	if err != nil {
 		r.Response(c, 500000002, nil, err.Error())
@@ -250,7 +244,7 @@ func (r *ControllerPermit) DeleteImport(c *gin.Context) {
 	}
 	var res *wrappers.ResultDeleteImport
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		DeleteImport(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -273,7 +267,7 @@ func (r *ControllerPermit) UpdateImportValue(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		UpdateImportValue(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -295,7 +289,7 @@ func (r *ControllerPermit) ImportList(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		ImportList(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -317,7 +311,7 @@ func (r *ControllerPermit) EditImport(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		EditImport(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -339,7 +333,7 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err := srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
 		GetImport(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
@@ -530,7 +524,7 @@ func (r *ControllerPermit) AdminUser(c *gin.Context) {
 	context := base.CreateContext(&r.ControllerBase, c)
 	context.Info(map[string]interface{}{"arg": arg})
 
-	srv := srv_impl.NewPermitServiceImpl(context)
+	srv := srv_impl.NewSrvPermitUserImpl(context)
 	res, err := srv.AdminUser(&arg)
 
 	if err != nil {

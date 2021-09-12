@@ -21,7 +21,6 @@ type DaoPermit interface {
 	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error)
 
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
-	DeleteImportByIds(id ...int) (err error)
 	GetImportMenuId(menuId ...int) (list []models.AdminImport, err error)
 	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
 	CreateImport(data *models.AdminImport) (res bool, err error)
@@ -44,9 +43,6 @@ type DaoPermit interface {
 	AdminUserGroupRelease(ids ...string) (err error)
 	AdminUserAdd(arg *models.AdminUser) (err error)
 	DeleteAdminUser(ids []string) (err error)
-	DeleteUserGroupByUserId(userId ...string) (err error)
-	DeleteUserGroupPermitByGroupId(ids ...string) (err error)
-	DeleteUserGroupPermit(pathType string, menuId ...int) (err error)
 	DeleteAdminGroupByIds(ids ...string) (err error)
 	FetchByName(name string) (res models.AdminGroup, err error)
 	InsertAdminGroup(group *models.AdminGroup) (err error)

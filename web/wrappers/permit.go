@@ -31,6 +31,8 @@ const (
 type (
 	ArgGetImportByMenuIdSingle struct {
 		NowMenuId       int    `json:"now_menu_id" form:"now_menu_id"`
+		NowModule       string `json:"now_module" form:"now_module"`
+		NowPermitKey    string `json:"now_permit_key" form:"now_permit_key"`
 		NowRoutePath    string `json:"now_route_path" form:"now_route_path"`
 		NowRouterOrigin string `json:"now_router_origin" form:"now_router_origin"`
 		SuperAdminFlag  bool   `json:"super_admin_flag" form:"super_admin_flag"` // 是否为超级管理员

@@ -212,6 +212,34 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 	return
 }
 
+func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
+	if len(id) == 0 {
+		return
+	}
+	var m models.AdminImport
+	if err = r.Context.Db.Table(m.TableName()).Unscoped().
+		Where("id IN(?)", id).
+		Delete(&models.AdminImport{}).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"id":  id,
+			"err": err,
+		}, "daoPermitDeleteImportByIds0")
+		return
+	}
+
+	var m1 models.AdminUserGroupPermit
+	if err = r.Context.Db.Table(m1.TableName()).
+		Where("menu_id IN(?) AND path_type=?", id, "api").
+		Delete(&models.AdminImport{}).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"id":  id,
+			"err": err,
+		}, "daoPermitDeleteImportByIds1")
+		return
+	}
+	return
+}
+
 func NewPermitImportImpl(c ...*base.Context) daos.PermitImport {
 	p := &PermitImportImpl{}
 	p.SetContext(c...)

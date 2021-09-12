@@ -243,33 +243,6 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 
 	return
 }
-func (r *DaoPermitImpl) DeleteImportByIds(id ...int) (err error) {
-	if len(id) == 0 {
-		return
-	}
-	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).Unscoped().
-		Where("id IN(?)", id).
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"id":  id,
-			"err": err,
-		}, "daoPermitDeleteImportByIds0")
-		return
-	}
-
-	var m1 models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m1.TableName()).
-		Where("menu_id IN(?) AND path_type=?", id, "api").
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"id":  id,
-			"err": err,
-		}, "daoPermitDeleteImportByIds1")
-		return
-	}
-	return
-}
 func (r *DaoPermitImpl) GetImportMenuId(menuId ...int) (list []models.AdminImport, err error) {
 	list = []models.AdminImport{}
 	var m models.AdminImport
@@ -765,26 +738,6 @@ func (r *DaoPermitImpl) DeleteAdminUser(ids []string) (err error) {
 	}
 	return
 }
-func (r *DaoPermitImpl) DeleteUserGroupByUserId(userId ...string) (err error) {
-	if len(userId) == 0 {
-		return
-	}
-	var m models.AdminUserGroup
-
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("user_hid IN (?) ", userId).
-		Updates(map[string]interface{}{
-			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
-		}).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"userId": userId,
-			"err":    err,
-		}, "daoPermitDeleteUserGroupByUserId")
-		return
-	}
-	return
-}
 func (r *DaoPermitImpl) DeleteAdminGroupByIds(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
@@ -799,41 +752,6 @@ func (r *DaoPermitImpl) DeleteAdminGroupByIds(ids ...string) (err error) {
 			"ids": ids,
 			"err": err,
 		}, "daoPermitDeleteAdminGroupByIds")
-	}
-	return
-}
-func (r *DaoPermitImpl) DeleteUserGroupPermitByGroupId(ids ...string) (err error) {
-	if len(ids) == 0 {
-		return
-	}
-	var m models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("group_id IN (?) ", ids).
-		Delete(&models.AdminGroup{}).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"ids": ids,
-			"err": err,
-		}, "daoPermitDeleteUserGroupPermitByGroupId")
-		return
-	}
-	return
-}
-func (r *DaoPermitImpl) DeleteUserGroupPermit(pathType string, menu_id ...int) (err error) {
-	if len(menu_id) == 0 || pathType == "" {
-		return
-	}
-	var m models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m.TableName()).Unscoped().
-		Where("menu_id IN (?) AND path_type= ?", menu_id, pathType).
-		Delete(&models.AdminGroup{}).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"menu_id":  menu_id,
-			"pathType": pathType,
-			"err":      err,
-		}, "daoPermitDeleteUserGroupPermit")
-		return
 	}
 	return
 }

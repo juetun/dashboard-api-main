@@ -12,6 +12,9 @@ import (
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
-type SrvPermitGroup interface{
-	MenuImportSet(arg * wrappers.ArgMenuImportSet)(res *wrappers.ResultMenuImportSet,err error)
+type SrvPermitGroup interface {
+
+	AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error)
+
+	MenuImportSet(arg *wrappers.ArgMenuImportSet) (res *wrappers.ResultMenuImportSet, err error)
 }
