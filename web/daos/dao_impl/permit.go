@@ -994,9 +994,10 @@ func (r *DaoPermitImpl) GetMenuByPermitKey(module string, permitKey ...string) (
 
 	var m models.AdminMenu
 
-	db := r.Context.Db.Table(m.TableName())
+	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
+	lPk := len(permitKey)
 	var f bool
-	if len(permitKey) != 0 {
+	if lPk != 0 {
 		f = true
 		db = db.Where("permit_key IN(?)", permitKey)
 	}

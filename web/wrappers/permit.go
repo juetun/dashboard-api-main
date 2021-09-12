@@ -18,6 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/pkg/utils"
 
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -574,6 +575,9 @@ type ArgAdminMenu struct {
 
 func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
 	r.JwtUserMessage = GetUser(c)
+	if r.Module == "" {
+		r.Module = parameters.DefaultSystem
+	}
 	return
 }
 

@@ -13,7 +13,7 @@ const (
 	SystemSystem   = "system"
 	SystemUser     = "user"
 
-	DefaultSystem = SystemUser // 默认系统
+	DefaultSystem = SystemBackend // 默认系统
 )
 
 // 当前支持的系统列表

@@ -17,7 +17,6 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -341,9 +340,7 @@ func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 		List: make([]wrappers.AdminMenuObject, 0, 20),
 		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
 	}
-	if arg.Module == "" {
-		arg.Module = parameters.DefaultSystem
-	}
+
 	dao := dao_impl.NewDaoPermit(r.Context)
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
@@ -354,13 +351,11 @@ func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 		return
 	}
 
-	if arg.Module != "" {
-		if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
-			return
-		} else {
-			r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
-		}
+	if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
+		return
 	}
+
+	r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
 
 	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	r.orgTree(list, arg.SystemId, &res.List, nil)
