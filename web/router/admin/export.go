@@ -1,6 +1,6 @@
-// Package outernets
+// Package admin
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:export
 * @Version: 1.0.0
@@ -11,7 +11,7 @@ package admin
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_start"
-	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admin/impl"
+	con_impl2 "github.com/juetun/dashboard-api-main/web/cons/admins/admin_impl"
 )
 
 func init() {

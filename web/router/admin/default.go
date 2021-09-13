@@ -26,7 +26,7 @@ func init() {
 		// h.GET("/archives", web.Archives)
 		// h.GET("/404", web.NoFound)
 
-	}, )
+	})
 }
 
 func rem(divisor int) bool {

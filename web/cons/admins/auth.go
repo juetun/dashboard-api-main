@@ -1,4 +1,4 @@
-package admin
+package admins
 
 import "github.com/gin-gonic/gin"
 

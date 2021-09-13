@@ -5,7 +5,7 @@
  * Date: 2019-05-09
  * Time: 21:34
  */
-package impl
+package admin_impl
 
 // import (
 // 	"github.com/gin-gonic/gin"

@@ -5,7 +5,7 @@
 * @Version: 1.0.0
 * @Date 2020/9/16 12:05 上午
  */
-package admin
+package admins
 
 import (
 	"github.com/gin-gonic/gin"

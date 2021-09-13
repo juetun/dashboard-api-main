@@ -6,7 +6,7 @@
  * Date: 2019-05-17
  * Time: 11:18
  */
-package impl
+package admin_impl
 
 import "C"
 import (

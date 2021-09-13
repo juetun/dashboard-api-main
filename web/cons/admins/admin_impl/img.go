@@ -1,4 +1,4 @@
-package impl
+package admin_impl
 
 import (
 	"path/filepath"

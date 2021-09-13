@@ -1,10 +1,10 @@
 // Package admin_impl
-package impl
+package admin_impl
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )

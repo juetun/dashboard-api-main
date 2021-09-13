@@ -4,7 +4,7 @@
  * Date: 2019-05-06
  * Time: 23:33
  */
-package impl
+package admin_impl
 
 import (
 	"strconv"
@@ -13,7 +13,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	"github.com/juetun/dashboard-api-main/web/cons/admin"
+	"github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -22,7 +22,7 @@ type ControllerLink struct {
 	base.ControllerBase
 }
 
-func NewControllerLink() admin.Console {
+func NewControllerLink() admins.Console {
 	controller := &ControllerLink{}
 	controller.ControllerBase.Init()
 	return controller

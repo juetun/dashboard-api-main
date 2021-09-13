@@ -6,12 +6,12 @@
 * @Version: 1.0.0
 * @Date 2020/6/10 10:09 上午
  */
-package impl
+package admin_impl
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/web/cons/admin"
+	"github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
@@ -111,7 +111,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 
-func NewControllerExportData() admin.Export {
+func NewControllerExportData() admins.Export {
 	controller := &ControllerExportData{}
 	controller.ControllerBase.Init()
 	return controller

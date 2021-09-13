@@ -1,4 +1,4 @@
-package impl
+package admin_impl
 
 import (
 	"strconv"
@@ -7,7 +7,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
-	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admin"
+	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
