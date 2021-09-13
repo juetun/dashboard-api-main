@@ -18,13 +18,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/dashboard-api-main/web"
+	"github.com/juetun/dashboard-api-main/web/cons/admins"
 )
 
-type ApiController struct {
+type ConApiImpl struct {
 	C *gin.Context
 }
 
-func (r *ApiController) Response(httpCode, errCode int, data gin.H) {
+func NewConApi() admins.ConApi {
+
+	p := &ConApiImpl{}
+	return p
+}
+func (r *ConApiImpl) Response(httpCode, errCode int, data gin.H) {
 	if data == nil {
 		panic("常规信息应该设置")
 	}
