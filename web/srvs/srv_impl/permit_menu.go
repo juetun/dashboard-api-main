@@ -60,7 +60,7 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 		handlers = append(handlers, MenuHandler{
 			Name:    "getNowMenuImports",
 			handler: r.getNowMenuImports, // 获取指定菜单下的接口ID列表
-		}, )
+		})
 	}
 
 	// 并行执行逻辑

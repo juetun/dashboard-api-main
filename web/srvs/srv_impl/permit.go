@@ -323,7 +323,7 @@ func (r *PermitServiceImpl) getSystemIdByModule(dao daos.DaoPermit, module strin
 		return
 	}
 	var dt []models.AdminMenu
-	if dt, err = dao.GetMenuByPermitKey(module); err != nil {
+	if dt, err = dao.GetMenuByPermitKey("", module); err != nil {
 		return
 	}
 	if len(dt) == 0 {
@@ -336,17 +336,18 @@ func (r *PermitServiceImpl) getSystemIdByModule(dao daos.DaoPermit, module strin
 }
 func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error) {
 
-	res = &wrappers.ResultAdminMenu{
-		List: make([]wrappers.AdminMenuObject, 0, 20),
-		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
-	}
+	res = wrappers.NewResultAdminMenu()
 
 	dao := dao_impl.NewDaoPermit(r.Context)
+
+	// 根据module获取当前操作的是哪个系统
 	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
 		return
 	}
 
+
 	var list, dt2 []models.AdminMenu
+
 	if list, err = dao.GetAdminMenuList(arg); err != nil {
 		return
 	}

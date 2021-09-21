@@ -490,6 +490,7 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 	}
 	r.Response(c, 0, res)
 }
+
 func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 	var arg wrappers.ArgAdminMenu
 	err := c.Bind(&arg)
@@ -580,7 +581,7 @@ func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 	r.Response(c, 0, res)
 }
 
-// 获取权限菜单
+// Menu 获取权限菜单
 func (r *ControllerPermit) Menu(c *gin.Context) {
 	var (
 		err error

@@ -1,3 +1,4 @@
+// Package admins
 /**
 * @Author:changjiang
 * @Description:
@@ -12,39 +13,40 @@ import (
 )
 
 type Permit interface {
-	// 用户
+	// AdminUser 用户
 	AdminUser(c *gin.Context)
-	// 用户添加
+	// AdminUserAdd 用户添加
 	AdminUserAdd(c *gin.Context)
-	// 用户删除
+	// AdminUserDelete 用户删除
 	AdminUserDelete(c *gin.Context)
-	// 用户所属用户权限组解除
+
+	// AdminUserGroupRelease 用户所属用户权限组解除
 	AdminUserGroupRelease(c *gin.Context)
 
-	// 用户所属权限组添加
+	// AdminUserGroupAdd 用户所属权限组添加
 	AdminUserGroupAdd(c *gin.Context)
 
-	// 用户组
+	// AdminGroup 用户组
 	AdminGroup(c *gin.Context)
 
-	// 用户组设置权限
+	// AdminSetPermit 用户组设置权限
 	AdminSetPermit(c *gin.Context)
 
-	// 用户组编辑
+	// AdminGroupEdit 用户组编辑
 	AdminGroupEdit(c *gin.Context)
 
-	// 删除用户组
+	// AdminGroupDelete 删除用户组
 	AdminGroupDelete(c *gin.Context)
 
-	// 菜单
+	// AdminMenu 菜单
 	AdminMenu(c *gin.Context)
 
 	AdminMenuWithCheck(c *gin.Context)
 
-	// 获取菜单信息
+	// GetMenu 获取菜单信息
 	GetMenu(c *gin.Context)
 
-	// 菜单搜索
+	// AdminMenuSearch 菜单搜索
 	AdminMenuSearch(c *gin.Context)
 
 	MenuAdd(c *gin.Context)
@@ -69,12 +71,12 @@ type Permit interface {
 
 	GetImportByMenuId(c *gin.Context)
 
-	// 权限菜单
+	// Menu 权限菜单
 	Menu(c *gin.Context)
 
-	// 请求是否有权限
+	// Flag 请求是否有权限
 	Flag(c *gin.Context)
 
-	// 获取应用配置
+	// GetAppConfig 获取应用配置
 	GetAppConfig(c *gin.Context)
 }

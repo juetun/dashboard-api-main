@@ -197,7 +197,8 @@ type ResultUpdateImportValue struct {
 }
 type AdminImportList struct {
 	models.AdminImport
-	Menu []AdminImportListMenu `json:"menu"`
+	RequestMethods []string              `json:"request_methods"`
+	Menu           []AdminImportListMenu `json:"menu"`
 }
 type AdminImportListMenu struct {
 	SystemModuleId int    `json:"system_module_id"`
@@ -220,16 +221,16 @@ type ResultImportList struct {
 	*response.Pager
 }
 type ArgEditImport struct {
-	Id            int    `json:"id" form:"id"`
-	AppName       string `json:"app_name" form:"app_name"`
-	AppVersion    string `json:"app_version" form:"app_version"`
-	SortValue     int    `json:"sort_value" form:"sort_value"`
-	NeedLogin     uint8  `json:"need_login" form:"need_login"`
-	NeedSign      uint8  `json:"need_sign" form:"need_sign"`
-	UrlPath       string `json:"url_path" form:"url_path"`
-	RequestMethod string `json:"request_method" form:"request_method"`
-	DefaultOpen   uint8  `json:"default_open" gorm:"column:default_open" form:"default_open"`
-	RequestTime   string `json:"request_time" form:"-"`
+	Id            int      `json:"id" form:"id"`
+	AppName       string   `json:"app_name" form:"app_name"`
+	AppVersion    string   `json:"app_version" form:"app_version"`
+	SortValue     int      `json:"sort_value" form:"sort_value"`
+	NeedLogin     uint8    `json:"need_login" form:"need_login"`
+	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
+	UrlPath       string   `json:"url_path" form:"url_path"`
+	RequestMethod []string `json:"request_method" form:"request_method"`
+	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
+	RequestTime   string   `json:"request_time" form:"-"`
 }
 
 type ResultEditImport struct {
@@ -250,7 +251,7 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 		r.AppVersion = "1.0"
 	}
 	r.RequestTime = utils.DateTime(time.Now())
-	if r.RequestMethod == "" {
+	if len(r.RequestMethod) == 0 {
 		err = fmt.Errorf("请选择请求方法")
 		return
 	}
@@ -615,6 +616,14 @@ type ResultAdminMenu struct {
 	List []AdminMenuObject       `json:"list"`
 	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
 }
+
+func NewResultAdminMenu() *ResultAdminMenu {
+	return &ResultAdminMenu{
+		List: make([]AdminMenuObject, 0, 20),
+		Menu: make([]ResultSystemAdminMenu, 0, 30),
+	}
+}
+
 type ResultSystemAdminMenu struct {
 	Id                 int    `gorm:"primary_key" json:"id" form:"id"`
 	PermitKey          string `json:"permit_key" gorm:"column:permit_key"`

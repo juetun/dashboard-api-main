@@ -233,6 +233,7 @@ func (r *SrvPermitImport) orgImportList(dao daos.DaoPermit, list []models.AdminI
 	}
 	for _, value := range list {
 		dt = wrappers.AdminImportList{AdminImport: value, Menu: []wrappers.AdminImportListMenu{}}
+		dt.RequestMethods = value.GetRequestMethods()
 		if _, ok := dta[value.Id]; ok {
 			dt.Menu = dta[value.Id]
 		}
@@ -257,21 +258,24 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 		err = fmt.Errorf("您输入的应用(%s)不存在或已删除", arg.AppName)
 		return
 	}
-	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath, "request_method": arg.RequestMethod}); err != nil {
+
+	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath}); err != nil {
 		return
-	} else {
-		// 验证数据是否重复
-		for _, value := range listImport {
-			if err = r.editImportParam(arg, &value); err != nil {
-				return
-			}
+	}
+
+	// 验证数据是否重复
+	for _, value := range listImport {
+		if err = r.editImportParam(arg, &value); err != nil {
+			return
 		}
 	}
+	var mAi models.AdminImport
+	mAi.SetRequestMethods(arg.RequestMethod)
 	data := map[string]interface{}{
 		`app_name`:       arg.AppName,
 		`app_version`:    arg.AppVersion,
 		`url_path`:       arg.UrlPath,
-		`request_method`: arg.RequestMethod,
+		`request_method`: mAi.RequestMethod,
 		`sort_value`:     arg.SortValue,
 		`updated_at`:     arg.RequestTime,
 		"need_login":     arg.NeedLogin,
@@ -315,14 +319,14 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 func (r *SrvPermitImport) createImport(dao daos.DaoPermit, arg *wrappers.ArgEditImport) (res bool, err error) {
 	t := time.Now()
 	data := models.AdminImport{
-		AppName:       arg.AppName,
-		AppVersion:    arg.AppVersion,
-		UrlPath:       arg.UrlPath,
-		RequestMethod: arg.RequestMethod,
-		SortValue:     arg.SortValue,
-		UpdatedAt:     t,
-		CreatedAt:     t,
+		AppName:    arg.AppName,
+		AppVersion: arg.AppVersion,
+		UrlPath:    arg.UrlPath,
+		SortValue:  arg.SortValue,
+		UpdatedAt:  t,
+		CreatedAt:  t,
 	}
+	data.SetRequestMethods(arg.RequestMethod)
 	if _, err = dao.CreateImport(&data); err != nil {
 		return
 	}

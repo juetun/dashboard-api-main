@@ -1,5 +1,6 @@
+// Package srvs
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:permit_menu
 * @Version: 1.0.0
@@ -13,7 +14,6 @@ import (
 )
 
 type SrvPermitMenu interface {
-
 	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
 
 	GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error)
