@@ -23,11 +23,40 @@ import (
 	"gorm.io/gorm"
 )
 
-type PermitImportImpl struct {
+type DaoPermitImport struct {
 	base.ServiceDao
 }
 
-func (r *PermitImportImpl) BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error) {
+func (r *DaoPermitImport) AddData(adminImport *models.AdminImport) (err error) {
+	if err = r.Context.Db.Create(adminImport).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"adminImport": adminImport,
+			"err":         err.Error(),
+		}, "DaoPermitImportAddData")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+	return
+}
+
+func (r *DaoPermitImport) getColumnName(s string) (res string) {
+	li := strings.Split(s, ";")
+	res = s
+	for _, s2 := range li {
+		if s2 == "" {
+			return
+		}
+		li1 := strings.Split(s2, ":")
+		if len(li1) > 1 && li1[0] == "column" {
+			res = li1[1]
+		}
+	}
+	if res == "primary_key" {
+		res = "id"
+	}
+	return
+}
+func (r *DaoPermitImport) BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error) {
 	if len(list) == 0 {
 		return
 	}
@@ -110,36 +139,20 @@ func (r *PermitImportImpl) BatchMenuImport(tableName string, list []models.Admin
 			"data": list,
 			"vals": vals,
 			"err":  err,
-		}, "PermitImportImplBatchMenuImport error")
-	}
-	return
-}
-func (r *PermitImportImpl) getColumnName(s string) (res string) {
-	li := strings.Split(s, ";")
-	res = s
-	for _, s2 := range li {
-		if s2 == "" {
-			return
-		}
-		li1 := strings.Split(s2, ":")
-		if len(li1) > 1 && li1[0] == "column" {
-			res = li1[1]
-		}
-	}
-	if res == "primary_key" {
-		res = "id"
+		}, "DaoPermitImportBatchMenuImport error")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}
 	return
 }
 
-func (r *PermitImportImpl) DeleteByCondition(condition interface{}) (res bool, err error) {
+func (r *DaoPermitImport) DeleteByCondition(condition interface{}) (res bool, err error) {
 	var m models.AdminImport
 	if condition == nil {
 		err = fmt.Errorf("您没有选择要删除的数据")
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err.Error(),
-		}, "permitImportImplDeleteByCondition0")
+		}, "DaoPermitImportDeleteByCondition0")
 		return
 	}
 	if err = r.Context.Db.Table(m.TableName()).Where(condition).
@@ -147,13 +160,14 @@ func (r *PermitImportImpl) DeleteByCondition(condition interface{}) (res bool, e
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err.Error(),
-		}, "permitImportImplDeleteByCondition1")
+		}, "DaoPermitImportDeleteByCondition1")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
 }
 
-func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
+func (r *DaoPermitImport) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
 	var m models.AdminImport
 	if condition == nil || len(data) == 0 {
 		err = fmt.Errorf("您没有选择要更新的数据")
@@ -161,7 +175,7 @@ func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[str
 			"condition": condition,
 			"data":      data,
 			"err":       err.Error(),
-		}, "permitImportImplUpdateByCondition0")
+		}, "DaoPermitImportUpdateByCondition0")
 		return
 	}
 	if err = r.Context.Db.Table(m.TableName()).
@@ -171,14 +185,15 @@ func (r *PermitImportImpl) UpdateByCondition(condition interface{}, data map[str
 			"condition": condition,
 			"data":      data,
 			"err":       err.Error(),
-		}, "permitImportImplUpdateByCondition1")
+		}, "DaoPermitImportUpdateByCondition1")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	res = true
 	return
 }
 
-func (r *PermitImportImpl) GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error) {
+func (r *DaoPermitImport) GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error) {
 
 	list = []models.AdminMenuImport{}
 	if len(menuIds) == 0 {
@@ -192,13 +207,13 @@ func (r *PermitImportImpl) GetChildImportByMenuId(menuIds ...int) (list []models
 		r.Context.Error(map[string]interface{}{
 			"iIds": menuIds,
 			"err":  err.Error(),
-		}, "permitImportImplGetChildImportByMenuId")
+		}, "DaoPermitImportGetChildImportByMenuId")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
 }
-func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error) {
+func (r *DaoPermitImport) GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error) {
 	list = []models.AdminMenuImport{}
 	if len(iIds) == 0 {
 		return
@@ -211,13 +226,13 @@ func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.
 		r.Context.Error(map[string]interface{}{
 			"iIds": iIds,
 			"err":  err.Error(),
-		}, "permitImportImplGetImportMenuByImportIds")
+		}, "DaoPermitImportGetImportMenuByImportIds")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
 }
-func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
+func (r *DaoPermitImport) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
 
 	var m models.AdminMenuImport
 	var e error
@@ -238,7 +253,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 		"e":         e.Error(),
 	}
 	defer func() {
-		r.Context.Error(logContent, "permitImportImplUpdateMenuImport")
+		r.Context.Error(logContent, "DaoPermitImportUpdateMenuImport")
 	}()
 	if err = r.CreateTableWithError(fetchData.SourceDb, fetchData.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
 		return
@@ -251,7 +266,7 @@ func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]in
 	return
 }
 
-func (r *PermitImportImpl) BatchAddData(list []models.AdminImport, ) (err error) {
+func (r *DaoPermitImport) BatchAddData(list []models.AdminImport, ) (err error) {
 	var m models.AdminImport
 	data := &base.BatchAddDataParameter{
 		DbName:    r.Context.DbName,
@@ -270,7 +285,7 @@ func (r *PermitImportImpl) BatchAddData(list []models.AdminImport, ) (err error)
 		"e":    e.Error(),
 	}
 	defer func() {
-		r.Context.Error(logContent, "PermitImportImplBatchAddData")
+		r.Context.Error(logContent, "DaoPermitImportBatchAddData")
 	}()
 	if err = r.CreateTableWithError(data.Db, data.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
 		logContent["err1"] = err.Error()
@@ -284,7 +299,7 @@ func (r *PermitImportImpl) BatchAddData(list []models.AdminImport, ) (err error)
 	}
 	return
 }
-func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
+func (r *DaoPermitImport) DeleteImportByIds(id ...int) (err error) {
 	if len(id) == 0 {
 		return
 	}
@@ -314,8 +329,24 @@ func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
 	return
 }
 
+func (r *DaoPermitImport) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
+	list = []models.AdminImport{}
+	if len(condition) == 0 {
+		return
+	}
+	var m models.AdminImport
+
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).Find(&list).Limit(1000).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "DaoPermitImportGetImportByCondition")
+		return
+	}
+	return
+}
 func NewDaoPermitImport(c ...*base.Context) daos.DaoPermitImport {
-	p := &PermitImportImpl{}
+	p := &DaoPermitImport{}
 	p.SetContext(c...)
 	s, ctx := p.Context.GetTraceId()
 	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{

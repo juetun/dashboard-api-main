@@ -243,23 +243,35 @@ func (r *SrvPermitImport) orgImportList(dao daos.DaoPermit, list []models.AdminI
 }
 
 // 批量添加接口
-func (r *SrvPermitImport) batchAddImport(  arg *wrappers.ArgEditImport) (err error) {
-	dao:=dao_impl.NewDaoPermitImport(r.Context)
-	var datList []models.AdminImport
+func (r *SrvPermitImport) batchAddImport(arg *wrappers.ArgEditImport) (err error) {
+	dao := dao_impl.NewDaoPermitImport(r.Context)
 	var dt models.AdminImport
 	dt.SetRequestMethods(arg.RequestMethod)
+	var dataList []models.AdminImport
 	var t = base.TimeNormal{Time: time.Now()}
+	var listImport []models.AdminImport
 	for _, item := range arg.UrlPaths {
-		r.orgImportData(item, arg, &t)
-		datList = append(datList, dt)
+		dt = r.orgImportData(item, arg, &t)
+		dataList = append(dataList, dt)
+		if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": item}); err != nil {
+			return
+		}
+		// 验证数据是否重复
+		for _, value := range listImport {
+			if err = r.editImportParam(arg, &value); err != nil {
+				return
+			}
+		}
 	}
-
-	if err = dao.BatchAddData(datList); err != nil {
-		return
+	for _, item := range dataList {
+		if err = dao.AddData(&item); err != nil {
+			return
+		}
 	}
 	return
 }
 func (r *SrvPermitImport) orgImportData(item string, arg *wrappers.ArgEditImport, t *base.TimeNormal) (dt models.AdminImport) {
+
 	dt = models.AdminImport{
 		AppName:       arg.AppName,
 		AppVersion:    arg.AppVersion,
@@ -278,6 +290,7 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 	res = &wrappers.ResultEditImport{Result: false}
 	var (
 		dao        = dao_impl.NewDaoPermit(r.Context)
+		daoImport  = dao_impl.NewDaoPermitImport(r.Context)
 		daoService = dao_impl.NewDaoServiceImpl(r.Context)
 		listImport []models.AdminImport
 		apps       []models.AdminApp
@@ -293,13 +306,13 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 
 	// 如果是添加接口，支持批量添加
 	if arg.Id == 0 {
-		if err = r.batchAddImport( arg); err != nil {
+		if err = r.batchAddImport(arg); err != nil {
 			return
 		}
 		return
 	}
 
-	if listImport, err = dao.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath}); err != nil {
+	if listImport, err = daoImport.GetImportByCondition(map[string]interface{}{"app_name": arg.AppName, "url_path": arg.UrlPath}); err != nil {
 		return
 	}
 

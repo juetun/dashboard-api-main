@@ -110,22 +110,6 @@ func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport)
 	return
 }
 
-func (r *DaoPermitImpl) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
-	list = []models.AdminImport{}
-	if len(condition) == 0 {
-		return
-	}
-	var m models.AdminImport
-
-	if err = r.Context.Db.Table(m.TableName()).Where(condition).Find(&list).Limit(1000).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err.Error(),
-		}, "daoPermitImplGetImportByCondition")
-		return
-	}
-	return
-}
 
 func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}

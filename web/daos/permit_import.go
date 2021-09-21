@@ -12,8 +12,11 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
-
 type DaoPermitImport interface {
+
+	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
+
+	AddData(adminImport *models.AdminImport) (err error)
 
 	BatchAddData([]models.AdminImport) (err error)
 
