@@ -270,7 +270,7 @@ func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermit, parentId int, 
 
 	ids = append(ids, strconv.Itoa(parentId))
 	// 更新菜单接口关系表的menu_module
-	if err = dao_impl.NewPermitImportImpl(r.Context).
+	if err = dao_impl.NewDaoPermitImport(r.Context).
 		UpdateMenuImport(fmt.Sprintf("menu_id IN('%s')", strings.Join(ids, "','")),
 			map[string]interface{}{"module": module}); err != nil {
 		return

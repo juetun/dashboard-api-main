@@ -22,6 +22,10 @@ type AdminMenuImport struct {
 	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
 }
 
+func (r *AdminMenuImport) GetTableComment() (res string) {
+	return "菜单所有的接口"
+}
+
 func (r *AdminMenuImport) TableName() string {
 	return "admin_menu_import"
 }

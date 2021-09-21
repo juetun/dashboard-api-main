@@ -35,6 +35,10 @@ type AdminImport struct {
 	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
 }
 
+func (r *AdminImport) GetTableComment() (res string) {
+	return "接口管理表"
+}
+
 func (r *AdminImport) TableName() string {
 	return "admin_import"
 }
@@ -56,7 +60,6 @@ func (r *AdminImport) AfterCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
-
 
 func (r *AdminImport) SetRequestMethods(methods []string) {
 	if len(methods) > 0 {

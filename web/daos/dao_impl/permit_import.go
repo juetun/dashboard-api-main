@@ -220,20 +220,70 @@ func (r *PermitImportImpl) GetImportMenuByImportIds(iIds ...int) (list []models.
 func (r *PermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
 
 	var m models.AdminMenuImport
-	if err = r.Context.Db.Table(m.TableName()).
+	var e error
+	var fetchData = base.FetchDataParameter{
+		SourceDb:  r.Context.Db,
+		DbName:    r.Context.DbName,
+		TableName: m.TableName(),
+	}
+	if e = fetchData.SourceDb.Table(fetchData.TableName).
 		Where(condition).
 		Updates(data).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err.Error(),
-		}, "permitImportImplUpdateMenuImport")
+		Error; e == nil {
+		return
+	}
+
+	logContent := map[string]interface{}{
+		"condition": condition,
+		"e":         e.Error(),
+	}
+	defer func() {
+		r.Context.Error(logContent, "permitImportImplUpdateMenuImport")
+	}()
+	if err = r.CreateTableWithError(fetchData.SourceDb, fetchData.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
+		return
+	}
+	if err = r.UpdateMenuImport(condition, data); err != nil {
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+
+	return
+}
+
+func (r *PermitImportImpl) BatchAddData(list []models.AdminImport, ) (err error) {
+	var m models.AdminImport
+	data := &base.BatchAddDataParameter{
+		DbName:    r.Context.DbName,
+		Db:        r.Context.Db,
+		TableName: m.TableName(),
+	}
+	for _, adminImport := range list {
+		data.Data = append(data.Data, &adminImport)
+	}
+	var e error
+	if e = r.BatchAdd(data); e == nil {
+		return
+	}
+	logContent := map[string]interface{}{
+		"list": list,
+		"e":    e.Error(),
+	}
+	defer func() {
+		r.Context.Error(logContent, "PermitImportImplBatchAddData")
+	}()
+	if err = r.CreateTableWithError(data.Db, data.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
+		logContent["err1"] = err.Error()
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+	if err = r.BatchAddData(list); err != nil {
+		logContent["err2"] = err.Error()
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
 }
-
 func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
 	if len(id) == 0 {
 		return
@@ -241,11 +291,12 @@ func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
 	var m models.AdminImport
 	if err = r.Context.Db.Table(m.TableName()).Unscoped().
 		Where("id IN(?)", id).
-		Delete(&models.AdminImport{}).Error; err != nil {
+		Delete(&models.AdminImport{}).Error; err == nil {
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
 			"err": err,
 		}, "daoPermitDeleteImportByIds0")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 
@@ -257,12 +308,13 @@ func (r *PermitImportImpl) DeleteImportByIds(id ...int) (err error) {
 			"id":  id,
 			"err": err,
 		}, "daoPermitDeleteImportByIds1")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
 }
 
-func NewPermitImportImpl(c ...*base.Context) daos.PermitImport {
+func NewDaoPermitImport(c ...*base.Context) daos.DaoPermitImport {
 	p := &PermitImportImpl{}
 	p.SetContext(c...)
 	s, ctx := p.Context.GetTraceId()

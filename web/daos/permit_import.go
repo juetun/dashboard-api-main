@@ -12,7 +12,11 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
-type PermitImport interface {
+
+type DaoPermitImport interface {
+
+	BatchAddData([]models.AdminImport) (err error)
+
 	DeleteImportByIds(id ...int) (err error)
 
 	UpdateMenuImport(condition string, data map[string]interface{}) (err error)

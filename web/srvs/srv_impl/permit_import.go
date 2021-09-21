@@ -29,7 +29,7 @@ type SrvPermitImport struct {
 func (r *SrvPermitImport) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error) {
 	res = &wrappers.ResultUpdateImportValue{}
 	var condition = fmt.Sprintf("id IN (%s)", strings.Join(arg.Ids, ","))
-	dao := dao_impl.NewPermitImportImpl(r.Context)
+	dao := dao_impl.NewDaoPermitImport(r.Context)
 	var data = make(map[string]interface{}, 1)
 	t := time.Now().Format("2006-01-02 15:04:05")
 	data["updated_at"] = t
@@ -91,7 +91,7 @@ func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) 
 
 func (r *SrvPermitImport) GetChildImport(nowMenuId int) (importIds []int, err error) {
 	importIds = []int{}
-	dao := dao_impl.NewPermitImportImpl(r.Context)
+	dao := dao_impl.NewDaoPermitImport(r.Context)
 	var importList []models.AdminMenuImport
 	if importList, err = dao.GetChildImportByMenuId(nowMenuId); err != nil {
 		return
@@ -242,6 +242,38 @@ func (r *SrvPermitImport) orgImportList(dao daos.DaoPermit, list []models.AdminI
 	return
 }
 
+// 批量添加接口
+func (r *SrvPermitImport) batchAddImport(  arg *wrappers.ArgEditImport) (err error) {
+	dao:=dao_impl.NewDaoPermitImport(r.Context)
+	var datList []models.AdminImport
+	var dt models.AdminImport
+	dt.SetRequestMethods(arg.RequestMethod)
+	var t = base.TimeNormal{Time: time.Now()}
+	for _, item := range arg.UrlPaths {
+		r.orgImportData(item, arg, &t)
+		datList = append(datList, dt)
+	}
+
+	if err = dao.BatchAddData(datList); err != nil {
+		return
+	}
+	return
+}
+func (r *SrvPermitImport) orgImportData(item string, arg *wrappers.ArgEditImport, t *base.TimeNormal) (dt models.AdminImport) {
+	dt = models.AdminImport{
+		AppName:       arg.AppName,
+		AppVersion:    arg.AppVersion,
+		UrlPath:       item,
+		SortValue:     arg.SortValue,
+		RequestMethod: dt.RequestMethod,
+		DefaultOpen:   arg.DefaultOpen,
+		NeedLogin:     arg.NeedLogin,
+		NeedSign:      arg.NeedSign,
+		CreatedAt:     t.Time,
+		UpdatedAt:     t.Time,
+	}
+	return
+}
 func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
 	res = &wrappers.ResultEditImport{Result: false}
 	var (
@@ -256,6 +288,14 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 	}
 	if len(apps) == 0 {
 		err = fmt.Errorf("您输入的应用(%s)不存在或已删除", arg.AppName)
+		return
+	}
+
+	// 如果是添加接口，支持批量添加
+	if arg.Id == 0 {
+		if err = r.batchAddImport( arg); err != nil {
+			return
+		}
 		return
 	}
 
@@ -302,7 +342,7 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 	}
 	// 如果更新了app_name
 	if dt[0].AppName != arg.AppName {
-		if err = dao_impl.NewPermitImportImpl(r.Context).
+		if err = dao_impl.NewDaoPermitImport(r.Context).
 			UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
 				map[string]interface{}{"import_app_name": arg.AppName}); err != nil {
 			return
@@ -354,7 +394,7 @@ func (r *SrvPermitImport) editImportParam(arg *wrappers.ArgEditImport, value *mo
 
 func (r *SrvPermitImport) DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappers.ResultDeleteImport, err error) {
 	res = &wrappers.ResultDeleteImport{}
-	dao := dao_impl.NewPermitImportImpl(r.Context)
+	dao := dao_impl.NewDaoPermitImport(r.Context)
 	if err = dao.DeleteImportByIds([]int{arg.ID}...); err != nil {
 		return
 	}
@@ -395,7 +435,7 @@ func (r *SrvPermitImport) joinChecked(dao daos.DaoPermit, arg *wrappers.ArgGetIm
 
 func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []models.AdminImport) (res map[int][]wrappers.AdminImportListMenu, err error) {
 	importId := r.getImportId(l, data)
-	daoImportMenu := dao_impl.NewPermitImportImpl(r.Context)
+	daoImportMenu := dao_impl.NewDaoPermitImport(r.Context)
 
 	var list []models.AdminMenuImport
 	var mapAdminMenu map[int]models.AdminMenu

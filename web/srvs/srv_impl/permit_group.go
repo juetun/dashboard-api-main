@@ -154,7 +154,7 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 			dts = append(dts, dt)
 		}
 	}
-	if err = dao_impl.NewPermitImportImpl(r.Context).
+	if err = dao_impl.NewDaoPermitImport(r.Context).
 		BatchMenuImport(m.TableName(), dts); err != nil {
 		return
 	}

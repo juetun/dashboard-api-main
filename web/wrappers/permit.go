@@ -1,6 +1,6 @@
 // Package wrappers
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:permit
 * @Version: 1.0.0
@@ -48,7 +48,8 @@ type (
 	}
 )
 
-func (r *ArgGetImportByMenuId) Default(context *gin.Context) (err error) {
+func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.NowMenuId == 0 && r.NowRoutePath == "" {
 		err = fmt.Errorf("请选择菜单界面")
 		return
@@ -103,6 +104,7 @@ type ArgAdminSetPermit struct {
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.GroupId == 0 {
 		err = fmt.Errorf("您没有选择要设置权限的管理组")
 		return
@@ -228,7 +230,8 @@ type ArgEditImport struct {
 	NeedLogin     uint8    `json:"need_login" form:"need_login"`
 	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
 	UrlPath       string   `json:"url_path" form:"url_path"`
-	RequestMethod []string `json:"request_method" form:"request_method"`
+	UrlPaths      []string `json:"-" form:"-"`
+	RequestMethod []string `json:"request_methods" form:"request_methods"`
 	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	RequestTime   string   `json:"request_time" form:"-"`
 }
@@ -238,7 +241,7 @@ type ResultEditImport struct {
 }
 
 func (r *ArgEditImport) Default(c *gin.Context) (err error) {
-
+	_ = c
 	if r.AppName == "" {
 		err = fmt.Errorf("请输入接口所属应用KEY")
 		return
@@ -254,6 +257,9 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 	if len(r.RequestMethod) == 0 {
 		err = fmt.Errorf("请选择请求方法")
 		return
+	}
+	if r.UrlPath != "" {
+		r.UrlPaths = strings.Split(r.UrlPath, ",")
 	}
 	return
 }
@@ -279,6 +285,7 @@ type ArgMenuImport struct {
 }
 
 func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
+	_ = c
 	return
 }
 
@@ -294,6 +301,7 @@ type ResultMenuImportSet struct {
 }
 
 func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.Type != "delete" && r.Type != "add" {
 		err = fmt.Errorf("type must be delete or add")
 		return
@@ -457,7 +465,7 @@ type ArgAdminGroupEdit struct {
 }
 
 func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
-
+	_ = c
 	if utf8.RuneCountInString(r.Name) > models.MAXGroupNameLength {
 		err = fmt.Errorf("组名长度不能超过%d个字符", models.MAXGroupNameLength)
 		return
@@ -488,6 +496,7 @@ type ArgMenuSave struct {
 }
 
 func (r *ArgMenuSave) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
@@ -662,18 +671,16 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_obj.JwtUserMessage
-	ArgGetImportByMenuIdSingle // 通用参数逻辑处理 用于获取当前菜单下的接口列表
-
-	ParentId  int      `json:"parent_id"` // 上级菜单ID
-	PathType  string   `json:"path_type" form:"path_type"`
-	PathTypes []string `json:"path_type" form:"path_type"`
-	Module    string   `json:"module" form:"module"` // 系统ID
-
-	IsSuperAdmin bool  `json:"-" form:"-"` // 是否为超级管理员
-	GroupId      []int `json:"-" form:"-"`
+	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
+	ParentId                   int      `json:"parent_id"` // 上级菜单ID
+	PathType                   string   `json:"path_type" form:"path_type"`
+	PathTypes                  []string `json:"-" form:"-"`
+	Module                     string   `json:"module" form:"module"` // 系统ID
+	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
+	GroupId                    []int    `json:"-" form:"-"`
 }
 
-// 初始化默认值
+// Default 初始化默认值
 func (r *ArgPermitMenu) Default() {
 	r.PathTypes = []string{}
 
@@ -757,7 +764,7 @@ type AdminMenu struct {
 	IsMenuShow int    `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
 	UrlPath    string `json:"url_path" gorm:"url_path" form:"url_path"`
 	SortValue  int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
-	OtherValue string `json:"other_value" gorm :"other_value" form:"other_value"`
+	OtherValue string `json:"other_value" gorm:"other_value" form:"other_value"`
 }
 type ArgFlag struct {
 	app_obj.JwtUserMessage
