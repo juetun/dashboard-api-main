@@ -1,3 +1,4 @@
+// Package models
 /**
 * @Author:changjiang
 * @Description:
@@ -9,8 +10,8 @@ package models
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
-	utils2 "github.com/juetun/dashboard-api-main/basic/utils"
-	"github.com/juetun/dashboard-api-main/basic/utils/hashid"
+	utils2 "github.com/juetun/base-wrapper/lib/utils"
+	"github.com/juetun/base-wrapper/lib/utils/hashid"
 	"github.com/juetun/dashboard-api-main/web"
 )
 

@@ -13,7 +13,7 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/basic/utils"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"

@@ -11,12 +11,12 @@ package srv_impl
 import (
 	"time"
 
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/dashboard-api-main/basic/utils"
-	"github.com/juetun/dashboard-api-main/web"
+ 	"github.com/juetun/dashboard-api-main/web"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl/export"
@@ -57,7 +57,7 @@ func (r *ServiceExport) List(args *wrappers.ArgumentsExportList) (res wrappers.R
 			Status:         value.Status,
 			Type:           value.Type,
 			DownloadLink:   value.DownloadLink,
-			CreateAtString: utils.ShowDateTime(value.CreatedAt.Time),
+			CreateAtString: utils.DateTime(value.CreatedAt.Time),
 		}
 		res.List = append(res.List, dt)
 	}
