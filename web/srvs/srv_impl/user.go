@@ -15,7 +15,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
-	"github.com/juetun/dashboard-api-main/basic/const_obj"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -70,7 +70,7 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 	request := &rpc.RequestOptions{
 		Context:     r.Context,
 		Method:      "POST",
-		AppName:     const_obj.MicroUser,
+		AppName:     parameters.MicroUser,
 		PathVersion: "v1",
 		Header:      httpHeader,
 		URI:         "/user/list",

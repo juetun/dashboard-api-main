@@ -1,11 +1,5 @@
 // Package admin_impl
-/**
- * Created by GoLand.
- * User: zhu
- * Email: ylsc633@gmail.com
- * Date: 2019-05-17
- * Time: 11:18
- */
+
 package admin_impl
 
 import "C"

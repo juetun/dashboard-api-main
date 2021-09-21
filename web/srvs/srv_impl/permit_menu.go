@@ -18,7 +18,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
-	"github.com/juetun/dashboard-api-main/basic/const_obj"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -333,7 +333,7 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid string) (count int, err erro
 	request := &rpc.RequestOptions{
 		Context: r.Context,
 		Method:  "GET",
-		AppName: const_obj.MicroUser,
+		AppName: parameters.MicroUser,
 		Header:  httpHeader,
 		URI:     "/in/user/has_not_msg",
 		Value:   url.Values{},
