@@ -589,16 +589,19 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 		res *wrappers.ResultPermitMenuReturn
 	)
 	if err = c.Bind(&arg); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	arg.Default()
+	if err = arg.Default(c); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
 	if res, err = srv_impl.NewSrvPermitMenuImpl(base.CreateContext(&r.ControllerBase, c)).
 		Menu(&arg); err != nil {
-		r.Response(c, 500000002, nil, err.Error())
+		r.ResponseError(c, err)
 		return
 	}
 	r.Response(c, 0, res)
@@ -612,36 +615,37 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 	)
 
 	if err = c.ShouldBind(&arg); err != nil {
-		r.Response(c, 500000000, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	if err = arg.Default(c); err != nil {
-		r.Response(c, 500000000, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	ctx := base.CreateContext(&r.ControllerBase, c)
-	res, err = srv_impl.NewSrvPermitAppImpl(ctx).
-		GetAppConfig(&arg)
-	if err != nil {
-		r.Response(c, 500000000, nil, err.Error())
+
+	if res, err = srv_impl.NewSrvPermitAppImpl(base.CreateContext(&r.ControllerBase, c)).
+		GetAppConfig(&arg); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	r.Response(c, 0, res)
 
 }
 func (r *ControllerPermit) Flag(c *gin.Context) {
-	var arg wrappers.ArgFlag
-	err := c.Bind(&arg)
-	if err != nil {
-		r.Response(c, 500000000, nil, err.Error())
+	var (
+		err error
+		arg wrappers.ArgFlag
+		res *wrappers.ResultFlag
+	)
+	if err := c.Bind(&arg); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	arg.JwtUserMessage = r.GetUser(c)
 
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
-		Flag(&arg)
-	if err != nil {
-		r.Response(c, 500000000, nil, err.Error())
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+		Flag(&arg); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	r.Response(c, 0, res)

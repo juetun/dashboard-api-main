@@ -110,7 +110,6 @@ func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport)
 	return
 }
 
-
 func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
 	p := &DaoPermitImpl{}
 	p.SetContext(c...)
@@ -186,29 +185,43 @@ func (r *DaoPermitImpl) GetImportListData(db *gorm.DB, arg *wrappers.ArgImportLi
 
 	return
 }
-func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error) {
-	var adminUserGroupPermit models.AdminUserGroupPermit
-	var adminImport models.AdminImport
-	var adminMenu models.AdminMenu
-	var adminMenuImport models.AdminMenuImport
-	if arg.IsSuperAdmin { // 如果是超级管理员
-		if err = r.Context.Db.Table(adminImport.TableName()).
-			Select("b.permit_key,a.permit_key AS menu_permit_key").
-			Joins(fmt.Sprintf("AS b LEFT JOIN  %s as c ON c.import_id=b.id LEFT JOIN %s AS a  ON a.id = c.menu_id",
-				adminMenuImport.TableName(),
-				adminMenu.TableName())).
-			Where("b.deleted_at IS NULL AND a.deleted_at IS NULL AND c.deleted_at IS NULL").Unscoped().
-			Find(&res).
-			Error; err != nil {
-			r.Context.Error(map[string]interface{}{
-				"arg": arg,
-				"err": err.Error(),
-			}, "daoPermitImplGetPermitImportByModule0")
-			return
-		}
+func (r *DaoPermitImpl) getPermitImportByModuleWithSuperAdmin(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error) {
+	var (
+		adminImport     models.AdminImport
+		adminMenu       models.AdminMenu
+		adminMenuImport models.AdminMenuImport
+	)
+	if err = r.Context.Db.Table(adminImport.TableName()).
+		Select("b.permit_key,a.permit_key AS menu_permit_key").
+		Joins(fmt.Sprintf("AS b LEFT JOIN  %s as c ON c.import_id=b.id LEFT JOIN %s AS a  ON a.id = c.menu_id",
+			adminMenuImport.TableName(),
+			adminMenu.TableName())).
+		Where("b.deleted_at IS NULL AND a.deleted_at IS NULL AND c.deleted_at IS NULL").Unscoped().
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"arg": arg,
+			"err": err.Error(),
+		}, "daoPermitImplGetPermitImportByModule0")
 		return
 	}
+	return
+}
+func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error) {
+	var (
+		adminUserGroupPermit models.AdminUserGroupPermit
+		adminImport          models.AdminImport
+		adminMenu            models.AdminMenu
+		adminMenuImport      models.AdminMenuImport
+	)
 
+	if arg.IsSuperAdmin { // 如果是超级管理员
+		res, err = r.getPermitImportByModuleWithSuperAdmin(arg)
+		return
+	}
+	if len(arg.GroupId) == 0 {
+		return
+	}
 	// 普通用户 先通过用户组权限查询权限 再关联 接口 和菜单界面
 	if err = r.Context.Db.Table(adminUserGroupPermit.TableName()).
 		Select("b.permit_key,d.permit_key AS menu_permit_key").
@@ -1107,20 +1120,24 @@ func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGro
 		res = []wrappers.AdminGroupUserStruct{}
 		return
 	}
-	var m models.AdminUserGroup
-	var m1 models.AdminGroup
-	if err = r.Context.Db.Select("a.*,b.*").Unscoped().
-		Table(m.TableName()).
-		Joins(fmt.Sprintf("as a left join %s as b  ON  a.group_id=b.id ", m1.TableName())).
-		Where(fmt.Sprintf("a.user_hid=? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"), userId).
+	var a models.AdminUserGroup
+	var b models.AdminGroup
+	if err = r.Context.Db.
+		Select("a.*,b.*").
+		Unscoped().
+		Table(a.TableName()).
+		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON  a.group_id=b.id ",
+			b.TableName())).
+		Where(fmt.Sprintf("a.user_hid = ? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"),
+			userId).
 		Find(&res).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"userId": userId,
-			"err":    err,
-		}, "daoPermitGetGroupByUserId")
+		Error; err == nil {
 		return
 	}
+	r.Context.Error(map[string]interface{}{
+		"userId": userId,
+		"err":    err,
+	}, "daoPermitGetGroupByUserId")
 	return
 }
 func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int) (res []models.AdminMenu, err error) {

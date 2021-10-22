@@ -345,7 +345,6 @@ func (r *PermitServiceImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 		return
 	}
 
-
 	var list, dt2 []models.AdminMenu
 
 	if list, err = dao.GetAdminMenuList(arg); err != nil {
@@ -721,7 +720,7 @@ func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int,
 
 type MenuHandler struct {
 	Name    string `json:"name"`
-	handler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn)
+	handler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error)
 }
 
 type ArgGetUserGroupIds struct {

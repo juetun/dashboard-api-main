@@ -681,7 +681,7 @@ type ArgPermitMenu struct {
 }
 
 // Default 初始化默认值
-func (r *ArgPermitMenu) Default() {
+func (r *ArgPermitMenu) Default(c *gin.Context)(err error) {
 	r.PathTypes = []string{}
 
 	if r.PathType != "" {
@@ -705,10 +705,10 @@ type PermitMeta struct {
 type ResultPermitMenuReturn struct {
 	ResultPermitMenu                         // 当前选中的权限
 	RoutParentMap    map[string][]string     `json:"routParentMap"`
-	Menu             []ResultSystemMenu      `json:"menu"`               // 一级系统权限列表
+	Menu             []ResultSystemMenu      `json:"menu"`               // 一级系统权限列表 用户从当前系统跳转到其他管理系统
 	OpList           map[string][]OpOne      `json:"op_list"`            // 获取接口权限列表
 	NotReadMsgCount  int                     `json:"not_read_msg_count"` // 未读消息数量
-	NowMenuId        ResultGetImportByMenuId `json:"import_ids"`         // 当前菜单下有的接口列表
+	NowImportAndMenu ResultGetImportByMenuId `json:"import_and_menu"`    // 当前菜单下有的菜单和接口列表
 }
 
 func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
@@ -720,7 +720,7 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 		Menu:            []ResultSystemMenu{},
 		OpList:          map[string][]OpOne{},
 		NotReadMsgCount: 0,
-		NowMenuId: ResultGetImportByMenuId{
+		NowImportAndMenu: ResultGetImportByMenuId{
 			ImportIds: []int{},
 			MenuIds:   []int{},
 		},

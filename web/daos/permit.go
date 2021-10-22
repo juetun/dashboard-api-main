@@ -63,7 +63,9 @@ type DaoPermit interface {
 	GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error)
 	GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int, dba *gorm.DB, err error)
 	GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, pagerObject *response.Pager) (res []models.AdminGroup, err error)
+
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
+
 	GetPermitMenuByIds(module []string, menuIds ...int) (res []models.AdminMenu, err error)
 	GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error)
 }

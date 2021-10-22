@@ -14,7 +14,7 @@ import (
 )
 
 type SrvPermitMenu interface {
+	//
 	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
-
 	GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error)
 }
