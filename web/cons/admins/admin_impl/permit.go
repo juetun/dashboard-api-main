@@ -586,6 +586,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	var (
 		err error
 		arg wrappers.ArgPermitMenu
+		res *wrappers.ResultPermitMenuReturn
 	)
 	if err = c.Bind(&arg); err != nil {
 		r.Response(c, 500000001, nil, err.Error())
@@ -595,10 +596,8 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	arg.JwtUserMessage = r.GetUser(c)
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitMenuImpl(base.CreateContext(&r.ControllerBase, c)).
-		Menu(&arg)
-
-	if err != nil {
+	if res, err = srv_impl.NewSrvPermitMenuImpl(base.CreateContext(&r.ControllerBase, c)).
+		Menu(&arg); err != nil {
 		r.Response(c, 500000002, nil, err.Error())
 		return
 	}

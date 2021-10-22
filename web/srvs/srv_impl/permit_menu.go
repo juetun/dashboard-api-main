@@ -35,13 +35,16 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	res = wrappers.NewResultPermitMenuReturn()
 	dao := dao_impl.NewDaoPermit(r.Context)
 
+	// 判断参数是否正常
 	if err = r.initParentId(dao, arg); err != nil {
 		return
 	}
 
+	// 判断当前用户是否是超级管理员
 	if err = r.initGroupAndIsSuperAdmin(arg, dao); err != nil {
 		return
 	}
+
 	if err = r.GetMenuPermitKeyByPath(&arg.ArgGetImportByMenuIdSingle, dao); err != nil {
 		return
 	}
@@ -448,17 +451,18 @@ func (r *SrvPermitMenuImpl) syncOperate(handlers []MenuHandler, arg *wrappers.Ar
 }
 func (r *SrvPermitMenuImpl) initParentId(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (err error) {
 
-	if arg.Module != "" {
-		var dt []models.AdminMenu
-		if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
-			return
-		}
-		if len(dt) == 0 {
-			err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
-			return
-		}
-		arg.ParentId = dt[0].Id
+	if arg.Module == "" {
+		return
 	}
+	var dt []models.AdminMenu
+	if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+		return
+	}
+	if len(dt) == 0 {
+		err = fmt.Errorf("您查看的系统(%s)不存在或已删除", arg.Module)
+		return
+	}
+	arg.ParentId = dt[0].Id
 	return
 }
 

@@ -703,13 +703,12 @@ type PermitMeta struct {
 	HideInMenu bool   `json:"hideInMenu"`
 }
 type ResultPermitMenuReturn struct {
-	ResultPermitMenu                     // 当前选中的权限
-	RoutParentMap    map[string][]string `json:"routParentMap"`
-	Menu             []ResultSystemMenu  `json:"menu"` // 一级系统权限列表
-	OpList           map[string][]OpOne  `json:"op_list"`
-	NotReadMsgCount  int                 `json:"not_read_msg_count"` // 纬度消息数量
-
-	NowMenuId ResultGetImportByMenuId `json:"import_ids"` // 当前菜单下有的接口列表
+	ResultPermitMenu                         // 当前选中的权限
+	RoutParentMap    map[string][]string     `json:"routParentMap"`
+	Menu             []ResultSystemMenu      `json:"menu"`               // 一级系统权限列表
+	OpList           map[string][]OpOne      `json:"op_list"`            // 获取接口权限列表
+	NotReadMsgCount  int                     `json:"not_read_msg_count"` // 未读消息数量
+	NowMenuId        ResultGetImportByMenuId `json:"import_ids"`         // 当前菜单下有的接口列表
 }
 
 func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
@@ -749,9 +748,9 @@ type ResultPermitMenu struct {
 	Id        int                `json:"-"`
 	Path      string             `json:"path,omitempty"`
 	Module    string             `json:"-"`
-	Name      string             `json:"name"`
-	Label     string             `json:"label"`
-	Meta      PermitMeta         `json:"meta"`
+	Name      string             `json:"name,omitempty"`
+	Label     string             `json:"label,omitempty"`
+	Meta      PermitMeta         `json:"meta,omitempty"`
 	Children  []ResultPermitMenu `json:"children"`
 	Component interface{}        `json:"component,omitempty"`
 }
