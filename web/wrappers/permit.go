@@ -694,6 +694,7 @@ func (r *ArgPermitMenu) Default(c *gin.Context)(err error) {
 		}
 		// r.PathTypes = []string{"pages", "system"}
 	}
+	return
 }
 
 type PermitMeta struct {
