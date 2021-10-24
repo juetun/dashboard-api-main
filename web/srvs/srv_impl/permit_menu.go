@@ -160,7 +160,7 @@ func (r *SrvPermitMenuImpl) getPermitByGroupIds(dao daos.DaoPermit, module strin
 
 // 获取用户未读消息数
 func (r *SrvPermitMenuImpl) getNotReadMessage(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-	res.NotReadMsgCount, _ = r.getMessageCount(arg.UserId)
+	res.NotReadMsgCount, _ = r.getMessageCount(arg.UserHid)
 	return
 }
 
@@ -370,7 +370,7 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid string) (count int, err erro
 
 // initGroupAndIsSuperAdmin 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
 func (r *SrvPermitMenuImpl) initGroupAndIsSuperAdmin(arg *wrappers.ArgPermitMenu, dao daos.DaoPermit) (err error) {
-	if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserId}); err != nil {
+	if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserHid}); err != nil {
 		return
 	}
 	return

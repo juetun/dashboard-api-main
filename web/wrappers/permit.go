@@ -16,7 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/pkg/utils"
@@ -39,7 +39,7 @@ type (
 		SuperAdminFlag  bool   `json:"super_admin_flag" form:"super_admin_flag"` // 是否为超级管理员
 	}
 	ArgGetImportByMenuId struct {
-		app_obj.JwtUserMessage
+		app_param.RequestUser
 		ArgGetImportByMenuIdSingle
 	}
 	ResultGetImportByMenuId struct {
@@ -58,13 +58,15 @@ func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
 }
 
 type ArgGetAppConfig struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Module string `json:"module" form:"module"`
 	Env    string `json:"env" form:"env"`
 }
 
 func (r *ArgGetAppConfig) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	return
 }
 
@@ -80,7 +82,9 @@ type ArgAdminMenuWithCheck struct {
 }
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	r.PageQuery.DefaultPage()
 	return
 }
@@ -94,7 +98,7 @@ type AdminMenuObjectCheck struct {
 	Children []AdminMenuObject `json:"children"`
 }
 type ArgAdminSetPermit struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	GroupId        int    `json:"group_id" form:"group_id"`
 	Type           string `json:"type" form:"type"`
 	PermitIdString string `json:"permit_ids" form:"permit_ids"`
@@ -104,7 +108,9 @@ type ArgAdminSetPermit struct {
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
-	_ = c
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.GroupId == 0 {
 		err = fmt.Errorf("您没有选择要设置权限的管理组")
 		return
@@ -156,7 +162,7 @@ type ResultDeleteImport struct {
 	Result bool `json:"result"`
 }
 type ArgImportList struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	PermitKey   string `json:"permit_key" form:"permit_key"`
 	AppName     string `json:"app_name" form:"app_name"`
@@ -166,7 +172,7 @@ type ArgImportList struct {
 	UrlPath     string `json:"url_path" form:"url_path"`
 }
 type ArgUpdateImportValue struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Id     string   `json:"id" form:"id"`
 	Ids    []string `json:"-" form:"-"`
 	Column string   `json:"column" form:"column"`
@@ -174,7 +180,9 @@ type ArgUpdateImportValue struct {
 }
 
 func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.Id == "" {
 		err = fmt.Errorf("请选择要修改的数据")
 		return
@@ -214,7 +222,9 @@ type AdminImportListMenu struct {
 }
 
 func (r *ArgImportList) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	r.PageQuery.DefaultPage()
 	return
 }
@@ -277,7 +287,7 @@ type ResultMenuImportItem struct {
 	Checked bool `json:"checked,omitempty"` // 是否要查看选中权限情况
 }
 type ArgMenuImport struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	MenuId  int    `json:"menu_id" form:"menu_id"`
 	AppName string `json:"app_name" form:"app_name"`
@@ -290,7 +300,7 @@ func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
 }
 
 type ArgMenuImportSet struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	MenuId    int    `json:"menu_id" form:"menu_id"`
 	ImportId  string `json:"import_id" form:"import_id"`
 	ImportIds []int  `json:"-" form:"-"`
@@ -301,7 +311,9 @@ type ResultMenuImportSet struct {
 }
 
 func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
-	_ = c
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.Type != "delete" && r.Type != "add" {
 		err = fmt.Errorf("type must be delete or add")
 		return
@@ -321,7 +333,7 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 }
 
 type ArgGetImport struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	Select  string `form:"select" json:"select,omitempty"`
 	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
@@ -341,7 +353,9 @@ type AdminImport struct {
 }
 
 func (r *ArgGetImport) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	r.PageQuery.DefaultPage()
 	return
 }
@@ -350,7 +364,7 @@ type ResultGetImport struct {
 	*response.Pager
 }
 type ArgAdminMenuSearch struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	UserHid string `json:"user_hid" form:"user_hid"`
 }
 
@@ -362,25 +376,38 @@ type ResAdminMenuSearch struct {
 	List []models.AdminMenu `json:"list"`
 }
 type ArgAdminUserAdd struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	UserHid string `json:"user_hid" form:"user_hid"`
 }
 
-func (r *ArgAdminUserAdd) Default() {}
+func (r *ArgAdminUserAdd) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
+}
 
 type ResultAdminUserAdd struct {
 	Result bool `json:"result"`
 }
 type ArgAdminUserDelete struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 
-func (r *ArgAdminUserDelete) Default() {
+func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.Ids != "" {
 		r.IdString = strings.Split(r.Ids, ",")
 	}
+	if len(r.IdString) == 0 {
+		err = fmt.Errorf("您没有选择要删除的用户")
+		return
+	}
+	return
 }
 
 type ResultAdminUserDelete struct {
@@ -388,15 +415,19 @@ type ResultAdminUserDelete struct {
 }
 
 type ArgAdminUserGroupRelease struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 
-func (r *ArgAdminUserGroupRelease) Default() {
+func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.Ids != "" {
 		r.IdString = strings.Split(r.Ids, ",")
 	}
+	return
 }
 
 type ResultAdminUserGroupRelease struct {
@@ -404,7 +435,7 @@ type ResultAdminUserGroupRelease struct {
 }
 
 type ArgAdminUserGroupAdd struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	GroupId      int    `json:"group_id" form:"group_id"`
 	UserHid      string `json:"user_hid" form:"user_hid"`
 	GroupIdBatch string `json:"group_id_batch" form:"group_id_batch"`
@@ -413,7 +444,11 @@ type ArgAdminUserGroupAdd struct {
 	UserHIds     []string
 }
 
-func (r *ArgAdminUserGroupAdd) Default() {
+func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+
 	r.GroupIds = []string{}
 	r.UserHIds = []string{}
 	if r.GroupIdBatch != "" {
@@ -428,6 +463,7 @@ func (r *ArgAdminUserGroupAdd) Default() {
 	if r.UserHid != "" {
 		r.UserHIds = append(r.UserHIds, r.UserHid)
 	}
+	return
 }
 
 type ResultAdminUserGroupAdd struct {
@@ -435,12 +471,15 @@ type ResultAdminUserGroupAdd struct {
 }
 
 type ArgAdminGroupDelete struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Ids      string   `json:"ids" form:"ids"`
 	IdString []string `json:"-" form:"-"`
 }
 
-func (r *ArgAdminGroupDelete) Default() {
+func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	idString := strings.Split(r.Ids, ",")
 	r.IdString = []string{}
 	for _, v := range idString {
@@ -449,6 +488,7 @@ func (r *ArgAdminGroupDelete) Default() {
 		}
 		r.IdString = append(r.IdString, v)
 	}
+	return
 }
 
 type ResultAdminGroupDelete struct {
@@ -459,13 +499,15 @@ type ResultAdminGroupEdit struct {
 	Result bool `json:"result"`
 }
 type ArgAdminGroupEdit struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Name string `json:"name" form:"name"`
 	Id   int    `json:"id" form:"id"`
 }
 
 func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
-	_ = c
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if utf8.RuneCountInString(r.Name) > models.MAXGroupNameLength {
 		err = fmt.Errorf("组名长度不能超过%d个字符", models.MAXGroupNameLength)
 		return
@@ -474,24 +516,30 @@ func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
 }
 
 type ArgMenuAdd struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	models.AdminMenu
 }
 
-func (r *ArgMenuAdd) Default() {
+func (r *ArgMenuAdd) Default(c *gin.Context) (err error) {
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
 	if r.Label != "" {
 		r.Label = strings.TrimSpace(r.Label)
 	}
+
+	if r.Label == "" {
+		err = fmt.Errorf("请输入菜单名")
+		return
+	}
+	return
 }
 
 type ResultMenuAdd struct {
 	Result bool `json:"result"`
 }
 type ArgMenuSave struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	models.AdminMenu
 }
 
@@ -513,7 +561,7 @@ func (r *ArgMenuSave) Default(c *gin.Context) (err error) {
 		}
 		err = fmt.Errorf("domain格式不正确")
 	}
-	if utf8.RuneCountInString(r.Name) > models.AdminMenuNameMaxLength {
+	if utf8.RuneCountInString(r.AdminMenu.Label) > models.AdminMenuNameMaxLength {
 		err = fmt.Errorf("菜单名长度不能超过%d个字符", models.AdminMenuNameMaxLength)
 		return
 	}
@@ -524,13 +572,16 @@ type ResultMenuSave struct {
 	Result bool `json:"result"`
 }
 type ArgMenuDelete struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	Ids           string   `json:"ids" form:"ids"`
 	IdValue       []string `json:"-"`
 	IdValueNumber []int    `json:"-"`
 }
 
 func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	r.IdValue = make([]string, 0, 5)
 	r.IdValueNumber = make([]int, 0, 5)
 	var v int
@@ -546,7 +597,6 @@ func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
 			}
 		}
 	}
-	r.JwtUserMessage = GetUser(c)
 	return
 }
 
@@ -555,14 +605,17 @@ type ResultMenuDelete struct {
 }
 
 type ArgAdminGroup struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	Name    string `json:"name" form:"name"`
 	GroupId string `json:"group_id" form:"group_id"`
 }
 
-func (r *ArgAdminGroup) Default() {
-
+func (r *ArgAdminGroup) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
 }
 
 type ResultAdminGroup struct {
@@ -570,7 +623,7 @@ type ResultAdminGroup struct {
 }
 
 type ArgAdminMenu struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	Id         int    `json:"id" form:"id"`
 	Label      string `json:"label" form:"label"`
@@ -584,7 +637,9 @@ type ArgAdminMenu struct {
 }
 
 func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
-	r.JwtUserMessage = GetUser(c)
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	if r.Module == "" {
 		r.Module = parameters.DefaultSystem
 	}
@@ -645,14 +700,17 @@ type ResultSystemAdminMenu struct {
 	Active             bool   `json:"active"`
 }
 type ArgAdminUser struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	response.PageQuery
 	Name    string `json:"name" form:"name"`
 	UserHId string `json:"user_hid" form:"user_hid"`
 }
 
-func (r *ArgAdminUser) Default() {
-
+func (r *ArgAdminUser) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
 }
 
 type ResultAdminUser struct {
@@ -670,7 +728,7 @@ type ResultAdminUserList struct {
 }
 
 type ArgPermitMenu struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
 	ParentId                   int      `json:"parent_id"` // 上级菜单ID
 	PathType                   string   `json:"path_type" form:"path_type"`
@@ -681,7 +739,10 @@ type ArgPermitMenu struct {
 }
 
 // Default 初始化默认值
-func (r *ArgPermitMenu) Default(c *gin.Context)(err error) {
+func (r *ArgPermitMenu) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
 	r.PathTypes = []string{}
 
 	if r.PathType != "" {
@@ -767,7 +828,14 @@ type AdminMenu struct {
 	OtherValue string `json:"other_value" gorm:"other_value" form:"other_value"`
 }
 type ArgFlag struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
+}
+
+func (r *ArgFlag) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
 }
 
 type ResultFlag struct {
@@ -778,7 +846,7 @@ type AdminGroupUserStruct struct {
 	models.AdminGroup
 }
 type ArgGetMenu struct {
-	app_obj.JwtUserMessage
+	app_param.RequestUser
 	MenuId int `json:"menu_id" form:"menu_id"`
 }
 
@@ -786,15 +854,9 @@ type ResultGetMenu struct {
 	models.AdminMenu
 }
 
-func (r *ArgGetMenu) Default() {
-
-}
-func GetUser(c *gin.Context) (jwtUser app_obj.JwtUserMessage) {
-	jwtUser = app_obj.JwtUserMessage{}
-	v, e := c.Get(app_obj.ContextUserObjectKey)
-	if e {
-		jwtUser = v.(app_obj.JwtUserMessage)
+func (r *ArgGetMenu) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
 	}
-
-	return jwtUser
+	return
 }

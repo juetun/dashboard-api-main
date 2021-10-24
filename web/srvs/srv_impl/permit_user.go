@@ -32,27 +32,34 @@ func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wra
 		err = fmt.Errorf("您没有选择要添加的用户")
 		return
 	}
+
+	userHid := strings.TrimSpace(arg.UserHid)
+
 	var user *models.UserMain
 	if user, err = NewUserService(r.Context).
-		GetUserById(strings.TrimSpace(arg.UserHid)); err != nil {
+		GetUserById(userHid); err != nil {
 		return
-	} else if user.UserHid == "" {
+	}
+	if user.UserHid == "" {
 		err = fmt.Errorf("您要添加的用户信息不存在")
 		return
 	}
 
-	if err = dao_impl.NewDaoPermit(r.Context).
-		AdminUserAdd(&models.AdminUser{
-			UserHid:  arg.UserHid,
-			RealName: user.Name,
-			Mobile:   user.Mobile,
-			Model: gorm.Model{
-				ID:        0,
-				CreatedAt: time.Time{},
-				UpdatedAt: time.Time{},
-				DeletedAt: gorm.DeletedAt{},
-			},
-		}); err != nil {
+	adminUser := &models.AdminUser{
+		UserHid:  arg.UserHid,
+		RealName: user.Name,
+		Mobile:   user.Mobile,
+		Model: gorm.Model{
+			ID:        0,
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+			DeletedAt: gorm.DeletedAt{},
+		},
+	}
+
+	err = dao_impl.NewDaoPermit(r.Context).
+		AdminUserAdd(adminUser)
+	if err != nil {
 		return
 	}
 	res.Result = true

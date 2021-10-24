@@ -9,8 +9,8 @@
 package wrappers
 
 import (
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
@@ -20,14 +20,14 @@ type (
 		AppName string `json:"app_name"`
 	}
 	ArgDetail struct {
-		app_obj.JwtUserMessage
+		app_param.RequestUser
 		Id int `json:"id"`
 	}
 	ResultDetail struct {
 		models.AdminApp
 	}
 	ArgServiceList struct {
-		app_obj.JwtUserMessage
+		app_param.RequestUser
 		response.PageQuery
 		Name       string   `json:"name" form:"name"`
 		Id         int      `json:"id" form:"id" `
@@ -50,7 +50,7 @@ type (
 		CreatedAt base.TimeNormal `json:"created_at" gorm:"column:created_at" `
 		UpdatedAt base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
 	}
-	// {"id":1,"unique_key":"app-user","port":80,"name":"用户","desc":"","is_stop":1}
+	// ArgServiceEdit {"id":1,"unique_key":"app-user","port":80,"name":"用户","desc":"","is_stop":1}
 	ArgServiceEdit struct {
 		Name       string            `json:"name" form:"name"`
 		UniqueKey  string            `json:"unique_key" form:"unique_key"`

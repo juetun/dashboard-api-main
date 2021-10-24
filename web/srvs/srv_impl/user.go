@@ -71,7 +71,6 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 		Context:     r.Context,
 		Method:      "POST",
 		AppName:     parameters.MicroUser,
-		PathVersion: "v1",
 		Header:      httpHeader,
 		URI:         "/user/list",
 		Value:       url.Values{},

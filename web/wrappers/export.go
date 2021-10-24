@@ -12,13 +12,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/juetun/base-wrapper/lib/app/app_obj"
+	"github.com/gin-gonic/gin"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 )
 
 type ArgumentsExportList struct {
-	User  app_obj.JwtUserMessage `form:"-" json:"user"`
-	Limit int                    `json:"limit"`
+	app_param.RequestUser
+	Limit int `json:"limit"`
 }
+
+func (r *ArgumentsExportList) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
+}
+
 type ResultExportList struct {
 	List []ExportShowObject `json:"list"`
 }
@@ -33,8 +42,16 @@ type ExportShowObject struct {
 }
 
 type ArgumentsExportCancel struct {
-	User app_obj.JwtUserMessage `form:"-" json:"user"`
+	app_param.RequestUser
 }
+
+func (r *ArgumentsExportCancel) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	return
+}
+
 type ResultExportCancel struct {
 }
 
@@ -55,10 +72,18 @@ type HttpRequestContent struct {
 	HttpHeader http.Header `json:"http_header"`
 }
 type ArgumentsExportInit struct {
-	User       app_obj.JwtUserMessage `form:"-" json:"user"`
-	FileName   string                 `json:"file_name"` // 生成文件的名称
-	Program    []ArgumentExportSheet  `json:"program"`
-	HttpHeader http.Header            `form:"-"  json:"http_header"`
+	app_param.RequestUser
+	FileName   string                `json:"file_name"` // 生成文件的名称
+	Program    []ArgumentExportSheet `json:"program"`
+	HttpHeader http.Header           `form:"-"  json:"http_header"`
+}
+
+func (r *ArgumentsExportInit) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	r.HttpHeader = c.Request.Header
+	return
 }
 
 type ResultExportInit struct {
@@ -66,10 +91,10 @@ type ResultExportInit struct {
 }
 
 type ArgumentsExportProgress struct {
-	IDS      string                 `form:"ids" json:"ids"`
-	UserId   string                 `form:"-" json:"user_id"`
-	User     app_obj.JwtUserMessage `form:"-" json:"user"`
-	IdString []string               `form:"-" json:"id_string"`
+	IDS    string `form:"ids" json:"ids"`
+	UserId string `form:"-" json:"user_id"`
+	app_param.RequestUser
+	IdString []string `form:"-" json:"id_string"`
 }
 
 func (r *ArgumentsExportProgress) InitIds() {
@@ -85,6 +110,14 @@ func (r *ArgumentsExportProgress) InitIds() {
 			r.IdString = append(r.IdString, value)
 		}
 	}
+}
+
+func (r *ArgumentsExportProgress) Default(c *gin.Context) (err error) {
+	if err = r.InitRequestUser(c); err != nil {
+		return
+	}
+	r.InitIds()
+	return
 }
 
 type ResultExportProgress struct {
