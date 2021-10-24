@@ -13,14 +13,15 @@ import (
 	"strconv"
 	"time"
 
-	"gorm.io/gorm"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
+	"gorm.io/gorm"
 )
 
 type ConsolePostService struct {
@@ -94,7 +95,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapUser *map[string]models.UserMain
+	var mapUser map[string]app_param.ResultUserItem
 	mapUser, err = srvUser.GetUserMapByIds(userId)
 	if err != nil {
 		return
@@ -124,20 +125,20 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 			Author:   wrappers.ConsoleUser{},
 		}
 		pid := strconv.Itoa(post.Id)
-		if _, ok := (*mapCates)[pid]; ok {
+		if dtm1, ok := (*mapCates)[pid]; ok {
 			postList.Category = wrappers.ConsoleCate{
-				Id:          (*mapCates)[pid].ZCategories.Id,
-				Name:        (*mapCates)[pid].ZCategories.Name,
-				DisplayName: (*mapCates)[pid].ZCategories.DisplayName,
-				SeoDesc:     (*mapCates)[pid].ZCategories.SeoDesc,
+				Id:          dtm1.ZCategories.Id,
+				Name:        dtm1.ZCategories.Name,
+				DisplayName: dtm1.ZCategories.DisplayName,
+				SeoDesc:    dtm1.ZCategories.SeoDesc,
 			}
 		}
-		if _, ok := (*mapUser)[post.UserHId]; ok {
+		if dtm, ok := mapUser[post.UserHId]; ok {
 			postList.Author = wrappers.ConsoleUser{
-				UserHid: (*mapUser)[post.UserHId].UserHid,
-				Name:    (*mapUser)[post.UserHId].Name,
-				Email:   (*mapUser)[post.UserHId].Email,
-				Status:  (*mapUser)[post.UserHId].Status,
+				UserHid: dtm.UserHid,
+				Name:    dtm.RealName,
+				Email:   dtm.Email,
+				Status:  dtm.Status,
 			}
 		}
 		if _, ok := (*mapView)[pid]; ok {
@@ -439,7 +440,7 @@ func (r *ConsolePostService) IndexPostDetailDao(postId int) (postDetail wrappers
 	}
 	Author := wrappers.ConsoleUser{
 		UserHid: user.UserHid,
-		Name:    user.Name,
+		Name:    user.RealName,
 		Email:   user.Email,
 		Status:  user.Status,
 	}

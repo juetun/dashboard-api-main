@@ -14,9 +14,9 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
-	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 type UserService struct {
@@ -30,8 +30,8 @@ func NewUserService(context ...*base.Context) (p *UserService) {
 }
 
 // GetUserById 根据用户HID获取用户信息
-func (r *UserService) GetUserById(userId string) (user *models.UserMain, err error) {
-	user = &models.UserMain{}
+func (r *UserService) GetUserById(userId string) (user *app_param.ResultUserItem, err error) {
+	user = &app_param.ResultUserItem{}
 	if userId == "" {
 		return
 	}
@@ -45,37 +45,38 @@ func (r *UserService) GetUserById(userId string) (user *models.UserMain, err err
 		})
 		return
 	}
-	if len(users) > 0 {
-		*user = users[0]
+	if dt, ok := users[userId]; ok {
+		*user = dt
 	}
 
 	return
 }
 
-func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, err error) {
+func (r *UserService) GetUserByIds(userId []string) (users map[string]app_param.ResultUserItem, err error) {
 	if len(userId) == 0 {
 		return
 	}
 	type ResultUserHttpRpc struct {
 		Code int `json:"code"`
 		Data struct {
-			List []models.UserMain `json:"list"`
+			MapList map[string]app_param.ResultUserItem `json:"list"`
 		}
 		Message string `json:"message"`
 	}
-	var rpcUser ResultUserHttpRpc
+
 	var httpHeader = http.Header{}
 	httpHeader.Set(app_obj.HttpUserToken, r.Context.GinContext.GetHeader(app_obj.HttpUserToken))
 
 	request := &rpc.RequestOptions{
-		Context:     r.Context,
-		Method:      "POST",
-		AppName:     parameters.MicroUser,
-		Header:      httpHeader,
-		URI:         "/user/list",
-		Value:       url.Values{},
+		Context: r.Context,
+		Method:  "POST",
+		AppName: parameters.MicroUser,
+		Header:  httpHeader,
+		URI:     "/in/user/get_by_uid",
+		Value:   url.Values{},
 	}
-	request.Value.Set("user_ids", strings.Join(userId, ","))
+	request.Value.Set("user_hid", strings.Join(userId, ","))
+	request.Value.Set("data_type", strings.Join([]string{app_param.UserDataTypeMain, app_param.UserDataTypeInfo}, ","))
 	var body string
 
 	action := rpc.NewHttpRpc(request).
@@ -87,22 +88,22 @@ func (r *UserService) GetUserByIds(userId []string) (users []models.UserMain, er
 		"request": request,
 		"body":    body,
 	})
-
+	var rpcUser ResultUserHttpRpc
 	if err = action.Bind(&rpcUser).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "service.GetUserMapByIds",
 			"error":   err.Error(),
 		})
 	}
-	users = rpcUser.Data.List
+	users = rpcUser.Data.MapList
 	return
 }
 
-func (r *UserService) GetUserMapByIds(userId []string) (user *map[string]models.UserMain, err error) {
-	user = &map[string]models.UserMain{}
-	users, err := r.GetUserByIds(userId)
-	for _, value := range users {
-		(*user)[value.UserHid] = value
+func (r *UserService) GetUserMapByIds(userId []string) (user map[string]app_param.ResultUserItem, err error) {
+	user = map[string]app_param.ResultUserItem{}
+	if user, err = r.GetUserByIds(userId); err != nil {
+		return
 	}
+
 	return
 }

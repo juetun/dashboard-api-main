@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_user
-* @Version: 1.0.0
-* @Date 2021/9/12 12:09 下午
- */
+// Package srv_impl
 package srv_impl
 
 import (
@@ -13,6 +7,7 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
@@ -35,7 +30,7 @@ func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wra
 
 	userHid := strings.TrimSpace(arg.UserHid)
 
-	var user *models.UserMain
+	var user *app_param.ResultUserItem
 	if user, err = NewUserService(r.Context).
 		GetUserById(userHid); err != nil {
 		return
@@ -44,17 +39,13 @@ func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wra
 		err = fmt.Errorf("您要添加的用户信息不存在")
 		return
 	}
-
+	t := time.Now()
 	adminUser := &models.AdminUser{
-		UserHid:  arg.UserHid,
-		RealName: user.Name,
-		Mobile:   user.Mobile,
-		Model: gorm.Model{
-			ID:        0,
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-			DeletedAt: gorm.DeletedAt{},
-		},
+		UserHid:   arg.UserHid,
+		RealName:  user.RealName,
+		Mobile:    user.Mobile,
+		CreatedAt: base.TimeNormal{Time: t},
+		UpdatedAt: base.TimeNormal{Time: t},
 	}
 
 	err = dao_impl.NewDaoPermit(r.Context).

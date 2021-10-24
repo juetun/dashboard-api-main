@@ -9,7 +9,6 @@
 package dao_impl
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"reflect"
@@ -695,25 +694,22 @@ func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 	return
 }
 func (r *DaoPermitImpl) AdminUserAdd(arg *models.AdminUser) (err error) {
+	var data = base.BatchAddDataParameter{
+		DbName:    r.Context.DbName,
+		TableName: arg.TableName(),
+		Data: []base.ModelBase{
+			arg,
+		},
+	}
+	if err = r.BatchAdd(&data); err == nil {
+		return
+	}
+	r.Context.Error(map[string]interface{}{
+		"arg": arg,
+		"err": err,
+	}, "daoPermitAdminUserAdd")
+	return
 
-	fields := []string{"user_hid", "real_name", "updated_at", "deleted_at"}
-	var bt bytes.Buffer
-	bt.WriteString("ON DUPLICATE KEY UPDATE ")
-	for k, value := range fields {
-		if k == 0 {
-			bt.WriteString(fmt.Sprintf("%s=VALUES(%s)", value, value))
-			continue
-		}
-		bt.WriteString(fmt.Sprintf(",%s=VALUES(%s)", value, value))
-	}
-	err = r.Context.Db.Set("gorm:insert_option", bt.String()).
-		Create(arg).Error
-	if err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg": arg,
-			"err": err,
-		}, "daoPermitAdminUserAdd")
-	}
 	return
 }
 func (r *DaoPermitImpl) DeleteAdminUser(ids []string) (err error) {
