@@ -18,7 +18,7 @@ import (
 type DaoPermit interface {
 	GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error)
 
-	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error)
+	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int64, dba *gorm.DB, err error)
 
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
 	GetImportMenuId(menuId ...int) (list []models.AdminImport, err error)
@@ -33,8 +33,8 @@ type DaoPermit interface {
 	GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.AdminImport, err error)
 	GetDefaultImportByMenuIds(pageType, module string, menuId ...int) (res []models.AdminImport, err error)
 	GetImportId(id int) (res models.AdminImport, err error)
-	MenuImportCount(arg *wrappers.ArgMenuImport, count *int) (db *gorm.DB, err error)
-	GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *gorm.DB, err error)
+	MenuImportCount(arg *wrappers.ArgMenuImport, count *int64) (db *gorm.DB, err error)
+	GetImportCount(arg *wrappers.ArgGetImport, count *int64) (db *gorm.DB, err error)
 	GetSelectImportByImportId(groupId int, importId ...int) (res []models.AdminUserGroupPermit, err error)
 	GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error)
 	MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error)
@@ -53,7 +53,7 @@ type DaoPermit interface {
 	DeleteMenuByIds(ids ...string) (err error)
 	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error)
 	Add(data *models.AdminMenu) (err error)
-	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int, dba *gorm.DB, err error)
+	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error)
 	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
 	GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error)
 	GetMenu(menuId ...int) (res []models.AdminMenu, err error)
@@ -61,7 +61,7 @@ type DaoPermit interface {
 	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)
 
 	GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error)
-	GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int, dba *gorm.DB, err error)
+	GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int64, dba *gorm.DB, err error)
 	GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, pagerObject *response.Pager) (res []models.AdminGroup, err error)
 
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)

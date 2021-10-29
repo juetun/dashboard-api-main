@@ -128,18 +128,16 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 	}
 	return
 }
-func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int, dba *gorm.DB, err error) {
+func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int64, dba *gorm.DB, err error) {
 	dba = r.fetchGetDb(db, arg)
-	var c int64
-	if err = dba.Count(&c).Error; err != nil {
+ 	if err = dba.Count(&total).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "DaoServiceImplGetCount")
 		return
 	}
-	total = int(c)
-	return
+ 	return
 }
 
 func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page *response.Pager) (list []models.AdminApp, err error) {

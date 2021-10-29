@@ -20,7 +20,7 @@ type DaoService interface {
 	Update(condition, data map[string]interface{}) (err error)
 	Create(app *models.AdminApp) (err error)
 	GetByIds(id ...int) (res []models.AdminApp, err error)
-	GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int, dba *gorm.DB, err error)
+	GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int64, dba *gorm.DB, err error)
 	GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page *response.Pager) (list []models.AdminApp, err error)
 
 	GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error)

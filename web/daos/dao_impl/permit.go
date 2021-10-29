@@ -44,17 +44,15 @@ func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrappers.ArgMenuI
 	}
 	return
 }
-func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int) (db *gorm.DB, err error) {
+func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int64) (db *gorm.DB, err error) {
 	db = r.getMenuImportCountDb(db, arg)
-	var c int64
-	if err = db.Count(&c).Error; err != nil {
+	if err = db.Count(count).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitImplMenuImportCount")
 		return
 	}
-	*count = int(c)
 	return
 }
 
@@ -153,17 +151,15 @@ func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *
 	}
 	return
 }
-func (r *DaoPermitImpl) GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int, dba *gorm.DB, err error) {
+func (r *DaoPermitImpl) GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int64, dba *gorm.DB, err error) {
 	dba = r.fetchDb(db, arg)
-	var c int64
-	if err = dba.Count(&c).Error; err != nil {
+	if err = dba.Count(&totalCount).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitImplGetImportListCount")
 		return
 	}
-	totalCount = int(c)
 	return
 }
 func (r *DaoPermitImpl) GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error) {
@@ -546,20 +542,18 @@ func (r *DaoPermitImpl) GetImportId(id int) (res models.AdminImport, err error) 
 	}
 	return
 }
-func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int) (db *gorm.DB, err error) {
+func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int64) (db *gorm.DB, err error) {
 	if arg.MenuId == 0 {
 		return
 	}
-	var c int64
 	db = r.getImportListDb(nil, arg)
-	err = db.Count(&c).Error
+	err = db.Count(count).Error
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetImportCount error")
 	}
-	*count = int(c)
 	return
 }
 func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport) (res *gorm.DB) {
@@ -913,7 +907,7 @@ func (r *DaoPermitImpl) Add(data *models.AdminMenu) (err error) {
 	}
 	return
 }
-func (r *DaoPermitImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int, dba *gorm.DB, err error) {
+func (r *DaoPermitImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error) {
 	var m models.AdminUser
 	dba = r.Context.Db.Table(m.TableName()).Unscoped().
 		Where("deleted_at IS NULL")
@@ -923,15 +917,13 @@ func (r *DaoPermitImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUse
 	if arg.UserHId != "" {
 		dba = dba.Where("user_hid=?", arg.UserHId)
 	}
-	var c int64
-	if err = dba.Count(&c).Error; err != nil {
+ 	if err = dba.Count(&total).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetAdminUserCount")
 	}
-	total = int(c)
-	return
+ 	return
 }
 func (r *DaoPermitImpl) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error) {
 	res = []models.AdminUser{}
@@ -1065,7 +1057,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 	return
 }
 
-func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int, dba *gorm.DB, err error) {
+func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int64, dba *gorm.DB, err error) {
 	var m models.AdminGroup
 	dba = r.Context.Db.Table(m.TableName()).Unscoped().Where("deleted_at IS NULL")
 	if arg.Name != "" {
@@ -1084,16 +1076,14 @@ func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGr
 			dba = dba.Where("id = ?", groupId)
 		}
 	}
-	var c int64
-	if err = dba.Count(&c).Error; err != nil {
+ 	if err = dba.Count(&total).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err,
 		}, "daoPermitGetAdminGroupCount")
 		return
 	}
-	total = int(c)
-	return
+ 	return
 }
 func (r *DaoPermitImpl) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGroup, pagerObject *response.Pager) (res []models.AdminGroup, err error) {
 	res = []models.AdminGroup{}
