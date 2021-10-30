@@ -10,7 +10,6 @@ package admin_impl
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 
@@ -32,23 +31,27 @@ func (r *ConServiceImpl) getJsonArg(c *gin.Context, data interface{}) (err error
 		return
 	}
 	bt.Write(body)
-	fmt.Println(string(body))
 	err = json.Unmarshal(body, data)
 	return
 }
+
 func (r *ConServiceImpl) Edit(c *gin.Context) {
 	var (
 		arg wrappers.ArgServiceEdit
-		err error
 		res *wrappers.ResultServiceEdit
+		err error
 	)
 	if err = c.ShouldBind(&arg); err != nil {
-		r.Response(c, -1, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
+	if err = arg.Default(c); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	srv := srv_impl.NewSrvServiceImpl(base.CreateContext(&r.ControllerBase, c))
 	if res, err = srv.Edit(&arg); err != nil {
-		r.Response(c, -1, res, err.Error())
+		r.ResponseError(c, err)
 		return
 	}
 	r.Response(c, 0, res, "success")

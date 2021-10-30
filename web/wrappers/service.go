@@ -9,6 +9,7 @@
 package wrappers
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
@@ -65,3 +66,8 @@ type (
 		Result bool `json:"result"`
 	}
 )
+
+func (r *ArgServiceEdit) Default(c *gin.Context) (err error) {
+
+	return
+}

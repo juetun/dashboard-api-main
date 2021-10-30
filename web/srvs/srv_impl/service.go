@@ -14,6 +14,7 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -73,7 +74,7 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 		"name":       arg.Name,
 		"desc":       arg.Desc,
 		"is_stop":    arg.IsStop,
-		"updated_at": t.Format("2006-01-02 16:04:05"),
+		"updated_at": t.Format(utils.DateGeneral),
 	}
 	condition := map[string]interface{}{"id": arg.Id}
 	if err = dao.Update(condition, data); err != nil {
@@ -107,7 +108,7 @@ func (r *SrvServiceImpl) Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDe
 		err = fmt.Errorf("您要查看的服务信息不存在或已删除")
 		return
 	}
-	if err=dt[0].UnmarshalHosts();err!=nil{
+	if err = dt[0].UnmarshalHosts(); err != nil {
 		return
 	}
 	res.AdminApp = dt[0]

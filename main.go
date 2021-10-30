@@ -15,7 +15,7 @@ func main() {
 		PluginOss,
 		PluginAppMap,
 		func(arg *app_start.PluginsOperate) (err error) {
-			middlewares.MiddleWareComponent= append(middlewares.MiddleWareComponent, middlewares.CrossOriginResourceSharing())
+			middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, middlewares.CrossOriginResourceSharing())
 			return
 		},
 	).LoadPlugins() // 加载插件动作
@@ -23,5 +23,5 @@ func main() {
 	app_start.NewWebApplication(
 		middlewares.SignHttp(), // 添加签名中间件
 	).LoadRouter(). // 记载gin 路由配置
-		Run()
+			Run()
 }
