@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/utils/hashid"
+	"github.com/juetun/dashboard-api-main/pkg/route_match"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +26,7 @@ type AdminImport struct {
 	AppName       string     `json:"app_name" gorm:"column:app_name" form:"app_name"`
 	AppVersion    string     `json:"app_version" gorm:"column:app_version" form:"app_version"`
 	UrlPath       string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
+	RegexpString  string     `json:"regexp_string" gorm:"column:regexp_string" form:"regexp_string"`
 	SortValue     int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
 	RequestMethod string     `json:"request_method" gorm:"column:request_method" form:"request_method"`
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
@@ -39,6 +41,12 @@ func (r *AdminImport) GetTableComment() (res string) {
 	return "接口管理表"
 }
 
+func (r *AdminImport) InitRegexpString() (err error) {
+	if r.UrlPath != "" {
+		r.RegexpString, err = route_match.RoutePathToRegexp(r.UrlPath)
+	}
+	return
+}
 func (r *AdminImport) TableName() string {
 	return "admin_import"
 }

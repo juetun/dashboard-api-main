@@ -28,11 +28,21 @@ type DaoPermitImport struct {
 }
 
 func (r *DaoPermitImport) AddData(adminImport *models.AdminImport) (err error) {
+	logContent := map[string]interface{}{
+		"adminImport": adminImport,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitImportAddData")
+		}
+	}()
+	if err = adminImport.InitRegexpString(); err != nil {
+		logContent["desc"] = "InitRegexpString"
+		return
+	}
 	if err = r.Context.Db.Create(adminImport).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"adminImport": adminImport,
-			"err":         err.Error(),
-		}, "DaoPermitImportAddData")
+		logContent["desc"] = "Create"
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
@@ -266,7 +276,7 @@ func (r *DaoPermitImport) UpdateMenuImport(condition string, data map[string]int
 	return
 }
 
-func (r *DaoPermitImport) BatchAddData(list []models.AdminImport, ) (err error) {
+func (r *DaoPermitImport) BatchAddData(list []models.AdminImport) (err error) {
 	var m models.AdminImport
 	data := &base.BatchAddDataParameter{
 		DbName:    r.Context.DbName,

@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_menu
-* @Version: 1.0.0
-* @Date 2020/9/16 10:37 下午
- */
+// Package models
 package models
 
 import (
@@ -17,7 +11,7 @@ import (
 )
 
 const (
-	// 菜单名称最大长度
+	// AdminMenuNameMaxLength 菜单名称最大长度
 	AdminMenuNameMaxLength = 6
 )
 
@@ -33,9 +27,9 @@ type AdminMenu struct {
 	Domain             string     `json:"domain" gorm:"column:domain" form:"domain"`
 	UrlPath            string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
 	SortValue          int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
-	OtherValue         string     `json:"other_value" gorm :"column:other_value" form:"other_value"`
-	CreatedAt          time.Time  `json:"-" gorm :"column:created_at"  form:"-"`
-	UpdatedAt          time.Time  `json:"-" gorm :"column:updated_at"  form:"-"`
+	OtherValue         string     `json:"other_value" gorm:"column:other_value" form:"other_value"`
+	CreatedAt          time.Time  `json:"-" gorm:"column:created_at"  form:"-"`
+	UpdatedAt          time.Time  `json:"-" gorm:"column:updated_at"  form:"-"`
 	DeletedAt          *time.Time `json:"-" gorm:"column:deleted_at"`
 }
 
@@ -83,7 +77,7 @@ func (r *AdminMenu) getColumnName(s string) (res string) {
 	return
 }
 
-// Updating data in same transaction
+// AfterUpdate Updating data in same transaction
 func (r *AdminMenu) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
 		tx.Table(r.TableName()).
