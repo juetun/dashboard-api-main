@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:const
-* @Version: 1.0.0
-* @Date 2021/9/12 8:26 下午
- */
+// Package parameters /**
 package parameters
 
 const (

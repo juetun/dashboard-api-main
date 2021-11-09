@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:const
-* @Version: 1.0.0
-* @Date 2020/6/11 11:27 下午
- */
+// Package web /**
 package web
 
 const (
@@ -12,7 +6,7 @@ const (
 )
 
 const (
-	// 导出任务特殊进度标记
+	// RunProgressInit 导出任务特殊进度标记
 	RunProgressInit     = 1
 	RunProgressStart    = 2  // 开始获取第一页的进度
 	RunProgressFistPage = 8  // 第一页数据获取成功后的进度

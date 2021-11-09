@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_import
-* @Version: 1.0.0
-* @Date 2020/12/9 11:08 下午
- */
+// Package models /**
 package models
 
 import (

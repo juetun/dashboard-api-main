@@ -165,7 +165,7 @@ func (r *DaoPermitImport) DeleteByCondition(condition interface{}) (res bool, er
 		}, "DaoPermitImportDeleteByCondition0")
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).Where(condition).
+	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Where(condition).
 		Delete(&models.AdminImport{}).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
@@ -189,7 +189,7 @@ func (r *DaoPermitImport) UpdateByCondition(condition interface{}, data map[stri
 		return
 	}
 	if err = r.Context.Db.Table(m.TableName()).
-		Where(condition).
+		Where(condition).Scopes(base.ScopesDeletedAt()).
 		Updates(data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
@@ -229,7 +229,7 @@ func (r *DaoPermitImport) GetImportMenuByImportIds(iIds ...int) (list []models.A
 		return
 	}
 	var m models.AdminMenuImport
-	if err = r.Context.Db.Table(m.TableName()).
+	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
 		Where("import_id IN (?)", iIds).
 		Find(&list).
 		Error; err != nil {
@@ -251,7 +251,7 @@ func (r *DaoPermitImport) UpdateMenuImport(condition string, data map[string]int
 		DbName:    r.Context.DbName,
 		TableName: m.TableName(),
 	}
-	if e = fetchData.SourceDb.Table(fetchData.TableName).
+	if e = fetchData.SourceDb.Table(fetchData.TableName).Scopes(base.ScopesDeletedAt()).
 		Where(condition).
 		Updates(data).
 		Error; e == nil {
@@ -314,7 +314,7 @@ func (r *DaoPermitImport) DeleteImportByIds(id ...int) (err error) {
 		return
 	}
 	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).Unscoped().
+	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Unscoped().
 		Where("id IN(?)", id).
 		Delete(&models.AdminImport{}).Error; err == nil {
 		r.Context.Error(map[string]interface{}{
@@ -326,7 +326,7 @@ func (r *DaoPermitImport) DeleteImportByIds(id ...int) (err error) {
 	}
 
 	var m1 models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m1.TableName()).
+	if err = r.Context.Db.Table(m1.TableName()).Scopes(base.ScopesDeletedAt()).
 		Where("menu_id IN(?) AND path_type=?", id, "api").
 		Delete(&models.AdminImport{}).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -346,7 +346,7 @@ func (r *DaoPermitImport) GetImportByCondition(condition map[string]interface{})
 	}
 	var m models.AdminImport
 
-	if err = r.Context.Db.Table(m.TableName()).Where(condition).Find(&list).Limit(1000).Error; err != nil {
+	if err = r.Context.Db.Table(m.TableName()).Where(condition).Scopes(base.ScopesDeletedAt()).Find(&list).Limit(1000).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err.Error(),
