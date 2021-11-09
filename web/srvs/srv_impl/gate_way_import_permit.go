@@ -82,10 +82,14 @@ func (r *SrvGatewayImportPermitImpl) RoutePathToRegexp(path string) (regexpStrin
 
 // 获取指定appName下的接口列表
 func (r *SrvGatewayImportPermitImpl) getAppImportList(appName, userHid string) (list []models.AdminImport, err error) {
-	var mapAdminImport map[int]models.AdminImport
-	var listMenuImport []models.AdminMenuImport
+	var (
+		mapAdminImport map[int]models.AdminImport
+		listMenuImport []models.AdminMenuImport
+	)
+
 	mapAdminImport, err = dao_impl.NewDaoGatewayPermit(r.Context).
-		GetImportListByAppName(appName, false)
+		GetImportListByAppName(appName)
+
 	if userHid != "" {
 		if listMenuImport, err = r.getUserGroupImportList(appName, userHid); err != nil {
 			return
@@ -100,7 +104,7 @@ func (r *SrvGatewayImportPermitImpl) getAppImportList(appName, userHid string) (
 	return
 }
 
-// TODO
+// TODO 获取用户的接口权限
 func (r *SrvGatewayImportPermitImpl) getUserGroupImportList(appName, userHid string) (list []models.AdminMenuImport, err error) {
 
 	return
@@ -110,7 +114,10 @@ func (r *SrvGatewayImportPermitImpl) getUserGroupImportList(appName, userHid str
 func (r *SrvGatewayImportPermitImpl) equalFlag(arg *wrapper_intranet.ArgGetImportPermit, res *wrapper_intranet.ResultGetImportPermit, importList []models.AdminImport) (ok bool) {
 
 	for _, adminImport := range importList {
-		if adminImport.UrlPath == fmt.Sprintf("%s/%s", arg.PathType, arg.Uri) && r.inSlice(arg.Method, adminImport.GetRequestMethods()) {
+		if adminImport.UrlPath != fmt.Sprintf("%s/%s", arg.PathType, arg.Uri) {
+			continue
+		}
+		if r.inSlice(arg.Method, adminImport.GetRequestMethods()) {
 			res.NeedLogin = adminImport.NeedLogin > 0
 			res.NeedSign = adminImport.NeedSign > 0
 			ok = true

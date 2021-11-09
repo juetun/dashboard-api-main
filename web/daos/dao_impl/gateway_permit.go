@@ -38,11 +38,11 @@ func (r *DaoGatewayPermitImpl) SetCacheKeyImportWithApp(appName string, data int
 func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithApp(appName string, data interface{}) (isNil bool, err error) {
 	k, _ := r.GetCacheKeyImportWithAppKey(appName)
 	var e error
+	isNil = true
 	if e = r.Context.CacheClient.
 		Get(r.Context.GinContext.Request.Context(), k).
 		Scan(data); e != nil {
 		if e == redis.Nil {
-			isNil = true
 			return
 		}
 		r.Context.Error(map[string]interface{}{
@@ -53,12 +53,17 @@ func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithApp(appName string, data int
 		err = base.NewErrorRuntime(e, base.ErrorRedisCode)
 		return
 	}
+	isNil = false
 	return
 }
-func (r *DaoGatewayPermitImpl) GetImportListByAppName(appName string, refreshCache bool) (res map[int]models.AdminImport, err error) {
+func (r *DaoGatewayPermitImpl) GetImportListByAppName(appName string, refreshCache ...bool) (res map[int]models.AdminImport, err error) {
 	res = make(map[int]models.AdminImport, 50)
 	var isNil bool
-	if !refreshCache { // 如果不是强制刷新缓存,则优先从缓存读取
+	var f bool
+	if len(refreshCache) > 0 {
+		f = refreshCache[0]
+	}
+	if !f { // 如果不是强制刷新缓存,则优先从缓存读取
 		if isNil, err = r.GetCacheKeyImportWithApp(appName, &res); err != nil {
 			return
 		}
