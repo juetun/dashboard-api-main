@@ -12,6 +12,11 @@ import (
 
 const (
 	DefaultOpen = 1
+
+	NeedLoginTrue = 1
+	NeedLoginNot  = 2
+	NeedSignTrue  = 1
+	NeedSignNot   = 2
 )
 
 type AdminImport struct {
@@ -72,7 +77,13 @@ func (r *AdminImport) SetRequestMethods(methods []string) {
 func (r *AdminImport) GetRequestMethods() (res []string) {
 	res = []string{}
 	if r.RequestMethod != "" {
-		res = strings.Split(r.RequestMethod, ",")
+		tmp := strings.Split(r.RequestMethod, ",")
+		for _, s := range tmp {
+			if s == "" {
+				continue
+			}
+			res = append(res, strings.ToUpper(s))
+		}
 	}
 	return
 }

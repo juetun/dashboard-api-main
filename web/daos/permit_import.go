@@ -10,11 +10,14 @@ package daos
 
 import (
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
 type DaoPermitImport interface {
 
 	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
+
+	GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error)
 
 	AddData(adminImport *models.AdminImport) (err error)
 

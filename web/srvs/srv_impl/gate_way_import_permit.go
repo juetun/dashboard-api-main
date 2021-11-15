@@ -3,6 +3,7 @@ package srv_impl
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
@@ -15,68 +16,119 @@ type SrvGatewayImportPermitImpl struct {
 	base.ServiceBase
 }
 
-func (r *SrvGatewayImportPermitImpl) GetImportPermit(arg *wrapper_intranet.ArgGetImportPermit) (res *wrapper_intranet.ResultGetImportPermit, err error) {
-
-	var (
-		ok         bool
-		importList []models.AdminImport
-	)
-	res = &wrapper_intranet.ResultGetImportPermit{}
-
-	importList, err = r.getAppImportList(arg.AppName, arg.UserHid)
-
-	// 先路径用等于匹配
-	if ok = r.equalFlag(arg, res, importList); ok {
-		return
+func (r *SrvGatewayImportPermitImpl) GetImportPermit(arg *wrapper_intranet.ArgGetImportPermit) (res wrapper_intranet.ResultGetImportPermit, err error) {
+	res = wrapper_intranet.ResultGetImportPermit{
+		RouterNotNeedSign:  map[string]*wrapper_intranet.RouterNotNeedItem{},
+		RouterNotNeedLogin: map[string]*wrapper_intranet.RouterNotNeedItem{},
 	}
 
-	// 如果路径匹配不到则用正则表达式匹配
-	if ok, err = r.regexpFlag(arg, res, importList); ok {
+	dao := dao_impl.NewDaoPermitImport(r.Context)
+
+	var importList []models.AdminImport
+
+	if importList, err = dao.GetImportForGateway(arg); err != nil {
 		return
 	}
-	return
+	for _, item := range importList {
 
-}
-func (r *SrvGatewayImportPermitImpl) regexpFlag(arg *wrapper_intranet.ArgGetImportPermit, res *wrapper_intranet.ResultGetImportPermit, importList []models.AdminImport) (ok bool, err error) {
-
-	var (
-		okFlag       bool
-		regexpString string
-	)
-
-	for _, adminImport := range importList {
-
-		if !r.inSlice(arg.Method, adminImport.GetRequestMethods()) { // 如果requestMethod不匹配，则接跳过
+		if item.AppName == "" {
 			continue
 		}
-		if regexpString, err = r.RoutePathToRegexp(adminImport.UrlPath); err != nil {
-			err = fmt.Errorf("系统配置的接口路径不正确(%d)", adminImport.Id)
+		item.UrlPath = fmt.Sprintf("/%s", strings.TrimLeft(item.UrlPath, "/"))
+		if err = r.needSignNot(&res, &item); err != nil {
 			return
 		}
 
-		if okFlag, err = r.RoutePathMath(regexpString, fmt.Sprintf("%s/%s", arg.PathType, arg.Uri)); err != nil {
-			err = fmt.Errorf("匹配路由参数异常%s(system:%s)", regexpString, fmt.Sprintf("%s/%s", arg.PathType, arg.Uri))
+		if err = r.needLoginNot(&res, &item); err != nil {
 			return
 		}
 
-		if okFlag {
-			res.NeedLogin = adminImport.NeedLogin > 0
-			res.NeedSign = adminImport.NeedSign > 0
-			ok = true
-			return
-		}
 	}
 	return
+
 }
+
+func (r *SrvGatewayImportPermitImpl) needLoginNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
+	if item.NeedLogin == models.NeedLoginTrue {
+		return
+	}
+	var reGxp string
+	if res.RouterNotNeedLogin == nil {
+		res.RouterNotNeedLogin = map[string]*wrapper_intranet.RouterNotNeedItem{}
+	}
+	if _, ok := res.RouterNotNeedLogin[item.AppName]; !ok {
+		res.RouterNotNeedLogin[item.AppName] = &wrapper_intranet.RouterNotNeedItem{
+			GeneralPath: map[string]wrapper_intranet.ItemGateway{},
+			RegexpPath:  []wrapper_intranet.ItemGateway{},
+		}
+	}
+	var notHaveRegexp bool
+	if reGxp, notHaveRegexp, err = r.RoutePathToRegexp(item.UrlPath); err != nil {
+		return
+	}
+
+	if notHaveRegexp {
+		res.RouterNotNeedLogin[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{
+			Methods: item.GetRequestMethods(),
+		}
+		return
+	}
+	res.RouterNotNeedLogin[item.AppName].RegexpPath = append(res.RouterNotNeedLogin[item.AppName].RegexpPath, wrapper_intranet.ItemGateway{
+		Uri:     reGxp,
+		Methods: item.GetRequestMethods(),
+	})
+
+	return
+}
+
+func (r *SrvGatewayImportPermitImpl) needSignNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
+
+	if item.NeedSign == models.NeedSignTrue {
+		return
+	}
+
+	var reGxp string
+	if res.RouterNotNeedSign == nil {
+		res.RouterNotNeedSign = map[string]*wrapper_intranet.RouterNotNeedItem{}
+	}
+	if _, ok := res.RouterNotNeedSign[item.AppName]; !ok {
+		res.RouterNotNeedSign[item.AppName] = &wrapper_intranet.RouterNotNeedItem{
+			GeneralPath: map[string]wrapper_intranet.ItemGateway{},
+			RegexpPath:  []wrapper_intranet.ItemGateway{},
+		}
+	}
+	var notHaveRegexp bool
+	if reGxp, notHaveRegexp, err = r.RoutePathToRegexp(item.UrlPath); err != nil {
+		return
+	}
+
+	if notHaveRegexp {
+		res.RouterNotNeedSign[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{
+			Methods: item.GetRequestMethods(),
+		}
+		return
+	}
+
+	res.RouterNotNeedSign[item.AppName].RegexpPath = append(res.RouterNotNeedSign[item.AppName].RegexpPath, wrapper_intranet.ItemGateway{
+		Uri:     reGxp,
+		Methods: item.GetRequestMethods(),
+	})
+
+	return
+}
+
 func (r *SrvGatewayImportPermitImpl) RoutePathMath(regexpString, path string) (matched bool, err error) {
 	matched, err = regexp.Match(regexpString, []byte(path))
 	return
 }
 
-func (r *SrvGatewayImportPermitImpl) RoutePathToRegexp(path string) (regexpString string, err error) {
+func (r *SrvGatewayImportPermitImpl) RoutePathToRegexp(path string) (regexpString string, notHaveRegexp bool, err error) {
 	var mat *regexp.Regexp
 	mat, err = regexp.Compile(":[^/]+")
 	regexpString = fmt.Sprintf("^%s$", mat.ReplaceAllString(path, "([^/]+)"))
+	if regexpString == fmt.Sprintf("^%s$", path) {
+		notHaveRegexp = true
+	}
 	return
 }
 
@@ -107,23 +159,6 @@ func (r *SrvGatewayImportPermitImpl) getAppImportList(appName, userHid string) (
 // TODO 获取用户的接口权限
 func (r *SrvGatewayImportPermitImpl) getUserGroupImportList(appName, userHid string) (list []models.AdminMenuImport, err error) {
 
-	return
-}
-
-// 先路径用等于匹配
-func (r *SrvGatewayImportPermitImpl) equalFlag(arg *wrapper_intranet.ArgGetImportPermit, res *wrapper_intranet.ResultGetImportPermit, importList []models.AdminImport) (ok bool) {
-
-	for _, adminImport := range importList {
-		if adminImport.UrlPath != fmt.Sprintf("%s/%s", arg.PathType, arg.Uri) {
-			continue
-		}
-		if r.inSlice(arg.Method, adminImport.GetRequestMethods()) {
-			res.NeedLogin = adminImport.NeedLogin > 0
-			res.NeedSign = adminImport.NeedSign > 0
-			ok = true
-			return
-		}
-	}
 	return
 }
 

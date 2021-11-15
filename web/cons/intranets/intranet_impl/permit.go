@@ -16,7 +16,7 @@ type ConPermitIntranetImpl struct {
 func (r *ConPermitIntranetImpl) GetImportPermit(c *gin.Context) {
 	var args wrapper_intranet.ArgGetImportPermit
 	var err error
-	var res *wrapper_intranet.ResultGetImportPermit
+	var res wrapper_intranet.ResultGetImportPermit
 
 	if err = c.Bind(&args); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)

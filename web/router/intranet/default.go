@@ -13,5 +13,6 @@ func init() {
 		con := intranet_impl.NewConPermitIntranet()
 		path := r.Group(urlPrefix)
 		path.GET("/get_import_permit", con.GetImportPermit) // 获取接口权限
-	})
+
+ 	})
 }

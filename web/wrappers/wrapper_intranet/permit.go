@@ -14,13 +14,19 @@ type (
 		Uri      string `json:"uri"`
 	}
 	ResultGetImportPermit struct {
-		NeedLogin  bool `json:"need_login"`  // 是否需要登录
-		NeedSign   bool `json:"need_sign"`   // 是否需要签名验证
-		HavePermit bool `json:"have_permit"` // 是否有权限
+		RouterNotNeedSign  map[string]*RouterNotNeedItem `json:"not_sign"`  // 不需要签名验证的路由权限
+		RouterNotNeedLogin map[string]*RouterNotNeedItem `json:"not_login"` // 不需要登录的路由权限
+	}
+	RouterNotNeedItem struct {
+		GeneralPath map[string]ItemGateway `json:"general,omitempty"` // 普通路径
+		RegexpPath  []ItemGateway          `json:"regexp,omitempty"`  // 按照正则匹配的路径
+	}
+	ItemGateway struct {
+		Uri     string   `json:"url,omitempty"`
+		Methods []string `json:"method,omitempty"`
 	}
 )
 
 func (r *ArgGetImportPermit) Default(c *gin.Context) (err error) {
-
 	return
 }

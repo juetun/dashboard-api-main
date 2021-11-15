@@ -20,11 +20,50 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 	"gorm.io/gorm"
 )
 
 type DaoPermitImport struct {
 	base.ServiceDao
+}
+
+func (r *DaoPermitImport) GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error) {
+	condition := map[string]interface{}{}
+	if arg.AppName != "" {
+		condition["app_name"] = arg.AppName
+	}
+	var m models.AdminImport
+	db := r.Context.Db.Table(m.TableName()).
+		Where(condition).Scopes(base.ScopesDeletedAt()).
+		Where("need_login = ? OR need_sign = ?", models.NeedLoginNot, models.NeedSignNot)
+	var e error
+	if e = db.
+		Find(&list).
+		Error; e == nil {
+		return
+	}
+
+	logContent := map[string]interface{}{
+		"err": e.Error(),
+	}
+
+	defer func() {
+		r.Context.Error(logContent, "DaoPermitImportGetImportForGateway")
+	}()
+
+	if err = r.CreateTableWithError(r.Context.Db, m.TableName(), e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
+		logContent["err1"] = err.Error()
+		logContent["desc"] = "CreateTableWithError"
+		return
+	}
+
+	if list, err = r.GetImportForGateway(arg); err != nil {
+		logContent["err2"] = err.Error()
+		logContent["desc"] = "ReGetImportForGateway"
+		return
+	}
+	return
 }
 
 func (r *DaoPermitImport) AddData(adminImport *models.AdminImport) (err error) {
@@ -346,7 +385,11 @@ func (r *DaoPermitImport) GetImportByCondition(condition map[string]interface{})
 	}
 	var m models.AdminImport
 
-	if err = r.Context.Db.Table(m.TableName()).Where(condition).Scopes(base.ScopesDeletedAt()).Find(&list).Limit(1000).Error; err != nil {
+	if err = r.Context.Db.Table(m.TableName()).
+		Where(condition).
+		Scopes(base.ScopesDeletedAt()).
+		Find(&list).
+		Limit(1000).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err.Error(),

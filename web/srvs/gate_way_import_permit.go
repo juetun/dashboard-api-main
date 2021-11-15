@@ -5,5 +5,5 @@ import (
 )
 
 type SrvGatewayImportPermit interface {
-	GetImportPermit(w *wrapper_intranet.ArgGetImportPermit) (res *wrapper_intranet.ResultGetImportPermit, err error)
+	GetImportPermit(w *wrapper_intranet.ArgGetImportPermit) (res wrapper_intranet.ResultGetImportPermit, err error)
 }
