@@ -74,6 +74,19 @@ func (r *AdminImport) SetRequestMethods(methods []string) {
 	}
 	return
 }
+func (r *AdminImport) GetRequestMethodMap() (res map[string]uint8) {
+	res = map[string]uint8{}
+	if r.RequestMethod != "" {
+		tmp := strings.Split(r.RequestMethod, ",")
+		for _, s := range tmp {
+			if s == "" {
+				continue
+			}
+			res[strings.ToUpper(s)] = 1
+		}
+	}
+	return
+}
 func (r *AdminImport) GetRequestMethods() (res []string) {
 	res = []string{}
 	if r.RequestMethod != "" {

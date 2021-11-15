@@ -69,13 +69,13 @@ func (r *SrvGatewayImportPermitImpl) needLoginNot(res *wrapper_intranet.ResultGe
 
 	if notHaveRegexp {
 		res.RouterNotNeedLogin[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{
-			Methods: item.GetRequestMethods(),
+			Methods: item.GetRequestMethodMap(),
 		}
 		return
 	}
 	res.RouterNotNeedLogin[item.AppName].RegexpPath = append(res.RouterNotNeedLogin[item.AppName].RegexpPath, wrapper_intranet.ItemGateway{
 		Uri:     reGxp,
-		Methods: item.GetRequestMethods(),
+		Methods: item.GetRequestMethodMap(),
 	})
 
 	return
@@ -104,14 +104,14 @@ func (r *SrvGatewayImportPermitImpl) needSignNot(res *wrapper_intranet.ResultGet
 
 	if notHaveRegexp {
 		res.RouterNotNeedSign[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{
-			Methods: item.GetRequestMethods(),
+			Methods: item.GetRequestMethodMap(),
 		}
 		return
 	}
 
 	res.RouterNotNeedSign[item.AppName].RegexpPath = append(res.RouterNotNeedSign[item.AppName].RegexpPath, wrapper_intranet.ItemGateway{
 		Uri:     reGxp,
-		Methods: item.GetRequestMethods(),
+		Methods: item.GetRequestMethodMap(),
 	})
 
 	return

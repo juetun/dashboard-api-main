@@ -22,8 +22,8 @@ type (
 		RegexpPath  []ItemGateway          `json:"regexp,omitempty"`  // 按照正则匹配的路径
 	}
 	ItemGateway struct {
-		Uri     string   `json:"url,omitempty"`
-		Methods []string `json:"method,omitempty"`
+		Uri     string     `json:"url,omitempty"`
+		Methods map[string]uint8 `json:"method,omitempty"`
 	}
 )
 

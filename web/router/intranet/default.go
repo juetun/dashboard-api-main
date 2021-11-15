@@ -11,8 +11,8 @@ import (
 func init() {
 	app_start.HandleFuncIntranet = append(app_start.HandleFuncIntranet, func(r *gin.Engine, urlPrefix string) {
 		con := intranet_impl.NewConPermitIntranet()
+
 		path := r.Group(urlPrefix)
 		path.GET("/get_import_permit", con.GetImportPermit) // 获取接口权限
-
  	})
 }
