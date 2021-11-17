@@ -1,17 +1,17 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_group
-* @Version: 1.0.0
-* @Date 2021/9/12 11:40 上午
- */
+// Package daos /**
 package daos
 
-type DaoPermitGroup interface {
+import (
+	"github.com/juetun/dashboard-api-main/web/models"
+)
 
+type DaoPermitGroup interface {
 	DeleteUserGroupByUserId(userId ...string) (err error)
 
 	DeleteUserGroupPermitByGroupId(ids ...string) (err error)
 
 	DeleteUserGroupPermit(pathType string, menuId ...int) (err error)
+
+	// GetPermitGroupByUid 根据用户ID获取用户所属管理员组
+	GetPermitGroupByUid(hid string, refreshCache ...bool) (res []models.AdminUserGroup, err error)
 }

@@ -16,6 +16,33 @@ type SrvGatewayImportPermitImpl struct {
 	base.ServiceBase
 }
 
+func (r *SrvGatewayImportPermitImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUerImportPermit) (res wrapper_intranet.ResultGetUerImportPermit, err error) {
+
+	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	var uGroup []models.AdminUserGroup
+	if uGroup, err = daoGroup.GetPermitGroupByUid(arg.UHid); err != nil {
+		return
+	}
+
+	if len(uGroup) == 0 {
+		err = fmt.Errorf(models.GatewayErrMap[models.GatewayNotHavePermit])
+		r.Context.Error(map[string]interface{}{"err": err.Error(), "arg": arg}, "SrvGatewayImportPermitImplGetUerImportPermit")
+		err = base.NewErrorRuntime(err, models.GatewayNotHavePermit)
+		return
+	}
+	groupId := r.getGroupIdWithAdminUserGroup(uGroup)
+
+	return
+}
+
+func (r *SrvGatewayImportPermitImpl) getGroupIdWithAdminUserGroup(uGroup []models.AdminUserGroup) (groupId []int) {
+	groupId = make([]int, 0, len(uGroup))
+	for _, group := range uGroup {
+		groupId = append(groupId, group.GroupId)
+	}
+	return
+}
+
 func (r *SrvGatewayImportPermitImpl) GetImportPermit(arg *wrapper_intranet.ArgGetImportPermit) (res wrapper_intranet.ResultGetImportPermit, err error) {
 	res = wrapper_intranet.ResultGetImportPermit{
 		RouterNotNeedSign:  map[string]*wrapper_intranet.RouterNotNeedItem{},

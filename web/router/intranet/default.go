@@ -14,5 +14,7 @@ func init() {
 
 		path := r.Group(urlPrefix)
 		path.GET("/get_import_permit", con.GetImportPermit) // 获取接口权限
- 	})
+
+		path.GET("/get_have_permit", con.GetUerImportPermit) // 判断用户是否有接口权限
+	})
 }

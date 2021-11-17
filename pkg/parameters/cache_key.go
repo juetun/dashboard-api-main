@@ -6,7 +6,9 @@ import (
 
 const (
 	// CacheKeyImportWithAppKey SKU缓存参数
-	CacheKeyImportWithAppKey     = "p:app_client:%s"  // 接口按照appname缓存的key
+	CacheKeyImportWithAppKey     = "p:app_c:%s"  // 接口按照appname缓存的key
 	CacheKeyImportWithAppKeyTime = 7 * 24 * time.Hour // 接口按照appname缓存的生命周期
 
+	CacheKeyUserGroupWithAppKey     = "p:u_grp:%s"  // 用户所属的管理组
+	CacheKeyUserGroupWithAppKeyTime = 7 * 24 * time.Hour // 用户所属的管理组的生命周期
 )

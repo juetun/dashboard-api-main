@@ -1,16 +1,20 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_user_group
-* @Version: 1.0.0
-* @Date 2020/9/16 10:38 下午
- */
+// Package models /**
 package models
 
 import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
+)
+
+const (
+	GatewayNotHavePermit = iota + 11000
+)
+
+var (
+	GatewayErrMap = map[int]string{
+		GatewayNotHavePermit: "您不是系统管理员",
+	}
 )
 
 type AdminUserGroup struct {

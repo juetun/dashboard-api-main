@@ -12,6 +12,34 @@ type ConPermitIntranetImpl struct {
 	base.ControllerBase
 }
 
+// GetUerImportPermit 判断接口是否有权限访问
+func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
+	var (
+		err  error
+		args wrapper_intranet.ArgGetUerImportPermit
+		res  wrapper_intranet.ResultGetUerImportPermit
+	)
+
+	if err = c.Bind(&args); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
+
+	if err = args.Default(c); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
+
+	srv := srv_impl.NewSrvGatewayImportPermit(base.CreateContext(&r.ControllerBase, c))
+
+	if res, err = srv.GetUerImportPermit(&args); err != nil {
+		r.ResponseError(c, err)
+		return
+	}
+	r.Response(c, base.SuccessCode, res)
+	return
+}
+
 // GetImportPermit 获取接口权限
 func (r *ConPermitIntranetImpl) GetImportPermit(c *gin.Context) {
 	var args wrapper_intranet.ArgGetImportPermit
@@ -26,6 +54,7 @@ func (r *ConPermitIntranetImpl) GetImportPermit(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
+
 	srv := srv_impl.NewSrvGatewayImportPermit(base.CreateContext(&r.ControllerBase, c))
 
 	if res, err = srv.GetImportPermit(&args); err != nil {
