@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_user_group_permit
-* @Version: 1.0.0
-* @Date 2020/9/16 10:38 下午
- */
+// Package models /**
 package models
 
 import (
@@ -12,15 +6,17 @@ import (
 )
 
 const (
-	PathTypePage    = "pages"
-	PathTypeApi     = "api"
+	PathTypePage = "pages"
+	PathTypeApi  = "api"
+
 	SetPermitAdd    = "add"
 	SetPermitCancel = "cancel"
 )
 
 type AdminUserGroupPermit struct {
 	Id        int        `gorm:"column:id;primary_key" json:"id"`
-	GroupId   int        `json:"group_id" gorm:"column:group_id" `
+	GroupId   int64      `json:"group_id" gorm:"column:group_id"`
+	AppName   string     `json:"app_name" gorm:"column:app_name"`
 	PathType  string     `json:"path_type" gorm:"column:path_type"`
 	Module    string     `json:"module"  gorm:"column:module"`
 	MenuId    int        `json:"menu_id" gorm:"column:menu_id"`

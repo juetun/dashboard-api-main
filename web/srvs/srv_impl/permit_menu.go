@@ -146,7 +146,7 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 	return
 }
 
-func (r *SrvPermitMenuImpl) getPermitByGroupIds(dao daos.DaoPermit, module string, pathType []string, groupIds ...int) (menuIds []int, err error) {
+func (r *SrvPermitMenuImpl) getPermitByGroupIds(dao daos.DaoPermit, module string, pathType []string, groupIds ...int64) (menuIds []int, err error) {
 	res, err := dao.GetMenuIdsByPermitByGroupIds(module, pathType, groupIds...)
 	if err != nil {
 		return
@@ -291,7 +291,7 @@ func (r *SrvPermitMenuImpl) orgPermit(group map[int][]wrappers.ResultPermitMenu,
 	}
 }
 
-func (r *SrvPermitMenuImpl) getCurrentSystem(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu, ) (res []string, err error) {
+func (r *SrvPermitMenuImpl) getCurrentSystem(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (res []string, err error) {
 	if arg.Module != "" {
 		res = []string{arg.Module, wrappers.DefaultPermitModule}
 		return
@@ -377,6 +377,7 @@ func (r *SrvPermitMenuImpl) initGroupAndIsSuperAdmin(arg *wrappers.ArgPermitMenu
 }
 
 func (r *SrvPermitMenuImpl) orgRoutParentMap(parentId int, list []models.AdminMenu, dataChild *wrappers.ResultPermitMenu) (returnData map[string][]string) {
+	_ = dataChild
 	l := len(list)
 	returnData = make(map[string][]string, l)
 	res := make(map[int][]int, l)
@@ -420,15 +421,15 @@ func (r *SrvPermitMenuImpl) getParentId(mapIdToParent map[int]int, nodeId, paren
 	return
 }
 
-func (r *SrvPermitMenuImpl) getUserGroupIds(arg *ArgGetUserGroupIds) (res []int, superAdmin bool, err error) {
-	res = []int{}
-	groups, err := arg.Dao.GetGroupByUserId(arg.UserId)
-	if err != nil {
+func (r *SrvPermitMenuImpl) getUserGroupIds(arg *ArgGetUserGroupIds) (res []int64, superAdmin bool, err error) {
+	res = []int64{}
+	var groups []wrappers.AdminGroupUserStruct
+	if groups, err = arg.Dao.GetGroupByUserId(arg.UserId); err != nil {
 		return
 	}
-	res = make([]int, 0, len(groups))
+	res = make([]int64, 0, len(groups))
 	for _, group := range groups {
-		if group.IsSuperAdmin > 0 { // 如果是超级管理员
+		if group.AdminGroup.IsSuperAdmin > 0 { // 如果是超级管理员
 			superAdmin = true
 			return
 		}

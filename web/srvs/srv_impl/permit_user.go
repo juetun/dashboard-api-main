@@ -105,8 +105,8 @@ func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser, dao daos.DaoPe
 		return
 	}
 	var tmp wrappers.AdminUserGroupName
-	gIds := make([]int, 0, len(listResult))
-	gIdsMap := make(map[int]int, len(listResult))
+	gIds := make([]int64, 0, len(listResult))
+	gIdsMap := make(map[int64]int64, len(listResult))
 	for _, item := range listResult {
 		if _, ok := gIdsMap[item.GroupId]; !ok {
 			gIdsMap[item.GroupId] = item.GroupId
@@ -122,7 +122,7 @@ func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser, dao daos.DaoPe
 		return
 	}
 
-	groupMap := make(map[int]models.AdminGroup, len(groupList))
+	groupMap := make(map[int64]models.AdminGroup, len(groupList))
 	for _, value := range groupList {
 		groupMap[value.Id] = value
 	}

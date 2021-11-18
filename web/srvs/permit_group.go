@@ -13,6 +13,10 @@ import (
 )
 
 type SrvPermitGroup interface {
+
+	// GetUserGroup 获取用户所在的用户组ID
+	GetUserGroup(userHid string) (isAdmin,isSuperAdmin bool,groupIds []int64, err error)
+
 	AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error)
 
 	AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error)

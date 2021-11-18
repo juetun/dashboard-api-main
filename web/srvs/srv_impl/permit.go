@@ -303,9 +303,9 @@ func (r *PermitServiceImpl) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithChe
 	return
 }
 
-func (r *PermitServiceImpl) getGroupPermitMenu(dao daos.DaoPermit, module string, groupId int) (mapPermitMenu map[int]int, err error) {
+func (r *PermitServiceImpl) getGroupPermitMenu(dao daos.DaoPermit, module string, groupId int64) (mapPermitMenu map[int]int, err error) {
 	var groupPermit []models.AdminUserGroupPermit
-	if groupPermit, err = dao.GetMenuIdsByPermitByGroupIds(module, []string{models.PathTypePage}, []int{groupId}...); err != nil {
+	if groupPermit, err = dao.GetMenuIdsByPermitByGroupIds(module, []string{models.PathTypePage}, []int64{groupId}...); err != nil {
 		return
 	} else {
 		mapPermitMenu = make(map[int]int, len(groupPermit))
@@ -692,7 +692,7 @@ func (r *PermitServiceImpl) addNewMenuPermit(dao daos.DaoPermit, newPermit []int
 	return
 }
 
-func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int, groupId int) (err error) {
+func (r *PermitServiceImpl) addNewApiPermit(dao daos.DaoPermit, newPermit []int, groupId int64) (err error) {
 	if len(newPermit) == 0 {
 		return
 	}

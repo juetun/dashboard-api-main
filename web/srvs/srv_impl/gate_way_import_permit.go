@@ -12,42 +12,65 @@ import (
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
-type SrvGatewayImportPermitImpl struct {
+type SrvGatewayImportImpl struct {
 	base.ServiceBase
 }
 
-func (r *SrvGatewayImportPermitImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUerImportPermit) (res wrapper_intranet.ResultGetUerImportPermit, err error) {
-
-	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
-	var uGroup []models.AdminUserGroup
-	if uGroup, err = daoGroup.GetPermitGroupByUid(arg.UHid); err != nil {
+func (r *SrvGatewayImportImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUerImportPermit) (res *wrapper_intranet.ResultGetUerImportPermit, err error) {
+	res = wrapper_intranet.NewResultGetUerImportPermit(arg)
+	var (
+		isAdmin      bool
+		isSuperAdmin bool
+		groupIds     []int64
+	)
+	if isAdmin, isSuperAdmin, groupIds, err = NewSrvPermitGroupImpl(r.Context).GetUserGroup(arg.UHid); err != nil {
+		return
+	}
+	if len(groupIds) == 0 {
+		err = fmt.Errorf("您没有权限访问本系统")
+		return
+	}
+	if !isAdmin {
+		err = fmt.Errorf("您不是系统管理员，无权限访问")
+		return
+	}
+	if isSuperAdmin { // 如果是超级管理员
+		res.IsSuper = true
+		for _, item := range arg.UrlInfo {
+			res.MapHavePermit[item.ToUk()] = true
+		}
 		return
 	}
 
-	if len(uGroup) == 0 {
-		err = fmt.Errorf(models.GatewayErrMap[models.GatewayNotHavePermit])
-		r.Context.Error(map[string]interface{}{"err": err.Error(), "arg": arg}, "SrvGatewayImportPermitImplGetUerImportPermit")
-		err = base.NewErrorRuntime(err, models.GatewayNotHavePermit)
+	// 不是超级管理员
+	if err = r.getImportPermitAsGeneralAdmin(arg, groupIds, res); err != nil {
 		return
 	}
-	groupId := r.getGroupIdWithAdminUserGroup(uGroup)
+	return
+}
+
+// 普通用户判断是否有接口权限
+func (r *SrvGatewayImportImpl) getImportPermitAsGeneralAdmin(arg *wrapper_intranet.ArgGetUerImportPermit, groupIds []int64, res *wrapper_intranet.ResultGetUerImportPermit) (err error) {
+
+	var (
+		apps   = make([]string, 0, len(arg.UrlInfo))
+		mapApp = map[string]string{}
+		ok     bool
+	)
+
+	for _, item := range arg.UrlInfo {
+		if _, ok = mapApp[item.App]; !ok {
+			mapApp[item.App] = item.App
+			apps = append(apps, item.App)
+		}
+	}
 
 	return
 }
 
-func (r *SrvGatewayImportPermitImpl) getGroupIdWithAdminUserGroup(uGroup []models.AdminUserGroup) (groupId []int) {
-	groupId = make([]int, 0, len(uGroup))
-	for _, group := range uGroup {
-		groupId = append(groupId, group.GroupId)
-	}
-	return
-}
+func (r *SrvGatewayImportImpl) GetImportPermit(arg *wrapper_intranet.ArgGetImportPermit) (res wrapper_intranet.ResultGetImportPermit, err error) {
 
-func (r *SrvGatewayImportPermitImpl) GetImportPermit(arg *wrapper_intranet.ArgGetImportPermit) (res wrapper_intranet.ResultGetImportPermit, err error) {
-	res = wrapper_intranet.ResultGetImportPermit{
-		RouterNotNeedSign:  map[string]*wrapper_intranet.RouterNotNeedItem{},
-		RouterNotNeedLogin: map[string]*wrapper_intranet.RouterNotNeedItem{},
-	}
+	res = wrapper_intranet.ResultGetImportPermit{RouterNotNeedSign: map[string]*wrapper_intranet.RouterNotNeedItem{}, RouterNotNeedLogin: map[string]*wrapper_intranet.RouterNotNeedItem{}}
 
 	dao := dao_impl.NewDaoPermitImport(r.Context)
 
@@ -75,7 +98,7 @@ func (r *SrvGatewayImportPermitImpl) GetImportPermit(arg *wrapper_intranet.ArgGe
 
 }
 
-func (r *SrvGatewayImportPermitImpl) needLoginNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
+func (r *SrvGatewayImportImpl) needLoginNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
 	if item.NeedLogin == models.NeedLoginTrue {
 		return
 	}
@@ -89,15 +112,15 @@ func (r *SrvGatewayImportPermitImpl) needLoginNot(res *wrapper_intranet.ResultGe
 			RegexpPath:  []wrapper_intranet.ItemGateway{},
 		}
 	}
+
 	var notHaveRegexp bool
+
 	if reGxp, notHaveRegexp, err = r.RoutePathToRegexp(item.UrlPath); err != nil {
 		return
 	}
 
 	if notHaveRegexp {
-		res.RouterNotNeedLogin[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{
-			Methods: item.GetRequestMethodMap(),
-		}
+		res.RouterNotNeedLogin[item.AppName].GeneralPath[item.UrlPath] = wrapper_intranet.ItemGateway{Methods: item.GetRequestMethodMap()}
 		return
 	}
 	res.RouterNotNeedLogin[item.AppName].RegexpPath = append(res.RouterNotNeedLogin[item.AppName].RegexpPath, wrapper_intranet.ItemGateway{
@@ -108,7 +131,7 @@ func (r *SrvGatewayImportPermitImpl) needLoginNot(res *wrapper_intranet.ResultGe
 	return
 }
 
-func (r *SrvGatewayImportPermitImpl) needSignNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
+func (r *SrvGatewayImportImpl) needSignNot(res *wrapper_intranet.ResultGetImportPermit, item *models.AdminImport) (err error) {
 
 	if item.NeedSign == models.NeedSignTrue {
 		return
@@ -144,12 +167,12 @@ func (r *SrvGatewayImportPermitImpl) needSignNot(res *wrapper_intranet.ResultGet
 	return
 }
 
-func (r *SrvGatewayImportPermitImpl) RoutePathMath(regexpString, path string) (matched bool, err error) {
+func (r *SrvGatewayImportImpl) RoutePathMath(regexpString, path string) (matched bool, err error) {
 	matched, err = regexp.Match(regexpString, []byte(path))
 	return
 }
 
-func (r *SrvGatewayImportPermitImpl) RoutePathToRegexp(path string) (regexpString string, notHaveRegexp bool, err error) {
+func (r *SrvGatewayImportImpl) RoutePathToRegexp(path string) (regexpString string, notHaveRegexp bool, err error) {
 	var mat *regexp.Regexp
 	mat, err = regexp.Compile(":[^/]+")
 	regexpString = fmt.Sprintf("^%s$", mat.ReplaceAllString(path, "([^/]+)"))
@@ -160,36 +183,36 @@ func (r *SrvGatewayImportPermitImpl) RoutePathToRegexp(path string) (regexpStrin
 }
 
 // 获取指定appName下的接口列表
-func (r *SrvGatewayImportPermitImpl) getAppImportList(appName, userHid string) (list []models.AdminImport, err error) {
-	var (
-		mapAdminImport map[int]models.AdminImport
-		listMenuImport []models.AdminMenuImport
-	)
-
-	mapAdminImport, err = dao_impl.NewDaoGatewayPermit(r.Context).
-		GetImportListByAppName(appName)
-
-	if userHid != "" {
-		if listMenuImport, err = r.getUserGroupImportList(appName, userHid); err != nil {
-			return
-		}
-		for _, item := range listMenuImport {
-			if dt, ok := mapAdminImport[item.ImportId]; ok {
-				list = append(list, dt)
-			}
-		}
-		return
-	}
-	return
-}
+// func (r *SrvGatewayImportPermitImpl) getAppImportList(appName, userHid string) (list []models.AdminImport, err error) {
+// 	var (
+// 		mapAdminImport map[int]models.AdminImport
+// 		listMenuImport []models.AdminMenuImport
+// 	)
+//
+// 	mapAdminImport, err = dao_impl.NewDaoGatewayPermit(r.Context).
+// 		GetImportListByAppName(appName)
+//
+// 	if userHid != "" {
+// 		if listMenuImport, err = r.getUserGroupImportList(appName, userHid); err != nil {
+// 			return
+// 		}
+// 		for _, item := range listMenuImport {
+// 			if dt, ok := mapAdminImport[item.ImportId]; ok {
+// 				list = append(list, dt)
+// 			}
+// 		}
+// 		return
+// 	}
+// 	return
+// }
 
 // TODO 获取用户的接口权限
-func (r *SrvGatewayImportPermitImpl) getUserGroupImportList(appName, userHid string) (list []models.AdminMenuImport, err error) {
+// func (r *SrvGatewayImportPermitImpl) getUserGroupImportList(appName, userHid string) (list []models.AdminMenuImport, err error) {
+// 	_, _ = appName, userHid
+// 	return
+// }
 
-	return
-}
-
-func (r *SrvGatewayImportPermitImpl) inSlice(val string, slice []string) (ok bool) {
+func (r *SrvGatewayImportImpl) inSlice(val string, slice []string) (ok bool) {
 	for _, item := range slice {
 		if val == item {
 			ok = true
@@ -199,8 +222,8 @@ func (r *SrvGatewayImportPermitImpl) inSlice(val string, slice []string) (ok boo
 	return
 }
 
-func NewSrvGatewayImportPermit(context ...*base.Context) (res srvs.SrvGatewayImportPermit) {
-	p := &SrvGatewayImportPermitImpl{}
+func NewSrvGatewayImport(context ...*base.Context) (res srvs.SrvGatewayImportPermit) {
+	p := &SrvGatewayImportImpl{}
 	p.SetContext(context...)
 	return p
 }

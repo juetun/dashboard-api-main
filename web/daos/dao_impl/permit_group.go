@@ -19,36 +19,54 @@ type DaoPermitGroupImpl struct {
 	base.ServiceBase
 }
 
-func (r *DaoPermitGroupImpl) GetPermitGroupByUid(hid string, refreshCache ...bool) (res []models.AdminUserGroup, err error) {
+func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, data map[string]interface{}) (err error) {
+	var m models.AdminUserGroup
+	if err = r.Context.Db.Table(m.TableName()).
+		Scopes(base.ScopesDeletedAt()).
+		Where("group_id = ?", groupId).
+		Updates(data).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"groupId": groupId,
+			"data":    data,
+			"err":     err.Error(),
+		}, "DaoPermitGroupImplUpdateDaoPermitUserGroupByGroupId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+	err = r.DeleteUserGroupPermitByGroupId(fmt.Sprintf("%d", groupId))
+	return
+}
+
+func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid string, refreshCache ...bool) (res []models.AdminUserGroup, err error) {
 	var freshCache bool
 	if len(refreshCache) > 0 {
 		freshCache = refreshCache[0]
 	}
 	if !freshCache { // 如果不是需要重新刷新缓存
-		dataNil, _ := r.getCacheUserPermitGroup(hid, &res)
+		dataNil, _ := r.getCacheUserPermitGroup(userHid, &res)
 		if !dataNil {
 			return
 		}
 	}
 	var m models.AdminUserGroup
 	if err = r.Context.Db.Table(m.TableName()).
-		Where("user_hid = ?", hid).
+		Where("user_hid = ?", userHid).
 		Scopes(base.ScopesDeletedAt()).
 		Find(&res).Error; err == nil {
 		go func() { // 重新设置缓存
-			_ = r.setCacheUserPermitGroupCache(hid, res)
+			_ = r.setCacheUserPermitGroupCache(userHid, res)
 		}()
 		return
 	}
 	r.Context.Error(map[string]interface{}{
-		"hid": hid,
-		"err": err.Error(),
+		"userHid": userHid,
+		"err":     err.Error(),
 	}, "DaoPermitGroupImplGetPermitGroupByUid")
 	return
 }
 
-func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(hid string, data interface{}) (dataNil bool, err error) {
-	key, _ := r.getUserPermitGroupCacheKey(hid)
+func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid string, data interface{}) (dataNil bool, err error) {
+	key, _ := r.getUserPermitGroupCacheKey(userHid)
 	var e error
 	if e = r.Context.CacheClient.Get(context.TODO(), key).Scan(data); e != nil {
 		if e == redis.Nil {
@@ -56,9 +74,10 @@ func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(hid string, data interface{
 			return
 		}
 		r.Context.Error(map[string]interface{}{
-			"hid": hid,
-			"err": err.Error(),
+			"userHid": userHid,
+			"err":     err.Error(),
 		}, "DaoPermitGroupImplGetCacheUserPermitGroup")
+		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 	}
 	return
 }
@@ -77,6 +96,7 @@ func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid string) (er
 			"userHid": userHid,
 			"err":     err.Error(),
 		}, "DaoPermitGroupImplDeleteCacheUserPermitGroupCache")
+		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 	}
 	return
 }
@@ -89,6 +109,7 @@ func (r *DaoPermitGroupImpl) setCacheUserPermitGroupCache(userHid string, res []
 			"res":     res,
 			"err":     err.Error(),
 		})
+		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 		return
 	}
 	return
@@ -109,6 +130,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupPermitByGroupId(ids ...string) (err 
 			"ids": ids,
 			"err": err,
 		}, "DaoPermitGroupImplDeleteUserGroupPermitByGroupId")
+		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 		return
 	}
 	go func() {
@@ -174,6 +196,7 @@ func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, group
 			"groupIds": groupIds,
 			"err":      err.Error(),
 		}, "DaoPermitGroupImplGetGroupUserByGroupIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
@@ -195,6 +218,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupByUserId(userId ...string) (err erro
 			"userId": userId,
 			"err":    err.Error(),
 		}, "daoPermitDeleteUserGroupByUserId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 
@@ -222,6 +246,8 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupPermit(pathType string, menuId ...in
 			"pathType": pathType,
 			"err":      err,
 		}, "daoPermitDeleteUserGroupPermit")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+
 		return
 	}
 	return

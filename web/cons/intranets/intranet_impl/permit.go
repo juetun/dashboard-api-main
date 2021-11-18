@@ -30,7 +30,7 @@ func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 		return
 	}
 
-	srv := srv_impl.NewSrvGatewayImportPermit(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvGatewayImport(base.CreateContext(&r.ControllerBase, c))
 
 	if res, err = srv.GetUerImportPermit(&args); err != nil {
 		r.ResponseError(c, err)
@@ -55,7 +55,7 @@ func (r *ConPermitIntranetImpl) GetImportPermit(c *gin.Context) {
 		return
 	}
 
-	srv := srv_impl.NewSrvGatewayImportPermit(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvGatewayImport(base.CreateContext(&r.ControllerBase, c))
 
 	if res, err = srv.GetImportPermit(&args); err != nil {
 		r.ResponseError(c, err)

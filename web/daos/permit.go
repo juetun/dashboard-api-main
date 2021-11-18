@@ -26,10 +26,12 @@ type DaoPermit interface {
 	UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error)
 	GetAdminImportById(id ...int) (res []models.AdminImport, err error)
 	BatchGroupPermit(tableName string, list []models.AdminUserGroupPermit) (err error)
-	DeleteGroupPermit(groupId int, pathType string, menuId ...int) (err error)
-	// DeleteByMenuIds(pageMenuIds ...string) (err error)
-	DeleteGroupPermitByGroupId(groupId int) (err error)
-	DeleteGroupPermitByMenuIds(groupId int, module string, pageMenuId, apiMenuId []int) (err error)
+	DeleteGroupPermit(groupId int64, pathType string, menuId ...int) (err error)
+
+	// DeleteGroupPermitByGroupId (pageMenuIds ...string) (err error)
+	DeleteGroupPermitByGroupId(groupId int64) (err error)
+
+	DeleteGroupPermitByMenuIds(groupId int64, module string, pageMenuId, apiMenuId []int) (err error)
 	GetDefaultOpenImportByMenuIds(menuId ...int) (res []models.AdminImport, err error)
 	GetDefaultImportByMenuIds(pageType, module string, menuId ...int) (res []models.AdminImport, err error)
 	GetImportId(id int) (res models.AdminImport, err error)
@@ -46,7 +48,7 @@ type DaoPermit interface {
 	FetchByName(name string) (res models.AdminGroup, err error)
 	InsertAdminGroup(group *models.AdminGroup) (err error)
 	UpdateAdminGroup(group *models.AdminGroup) (err error)
-	GetAdminGroupByIds(gIds ...int) (res []models.AdminGroup, err error)
+	GetAdminGroupByIds(gIds ...int64) (res []models.AdminGroup, err error)
 	GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error)
 	UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error)
 	Save(id int, data map[string]interface{}) (err error)
@@ -67,5 +69,5 @@ type DaoPermit interface {
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
 
 	GetPermitMenuByIds(module []string, menuIds ...int) (res []models.AdminMenu, err error)
-	GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int) (res []models.AdminUserGroupPermit, err error)
+	GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int64) (res []models.AdminUserGroupPermit, err error)
 }

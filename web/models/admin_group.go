@@ -23,9 +23,9 @@ const (
 )
 
 type AdminGroup struct {
-	Id                 int             `json:"id" gorm:"column:id;primary_key" `
+	Id                 int64           `json:"id" gorm:"column:id;primary_key" `
 	Name               string          `json:"name" gorm:"column:name"`
-	ParentId           int             `json:"parent_id"  gorm:"column:parent_id"`
+	ParentId           int64             `json:"parent_id"  gorm:"column:parent_id"`
 	GroupCode          string          `json:"group_code" gorm:"column:group_code"`
 	LastChildGroupCode string          `json:"last_child_group_code" gorm:"column:last_child_group_code"`
 	IsSuperAdmin       uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`

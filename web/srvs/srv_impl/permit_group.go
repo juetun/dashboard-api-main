@@ -67,7 +67,7 @@ func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrapp
 func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
 	l := len(list)
 	res = make([]wrappers.AdminGroup, 0, l)
-	ids := make([]int, 0, l)
+	ids := make([]int64, 0, l)
 	for _, value := range list {
 		ids = append(ids, value.ParentId)
 	}
@@ -75,7 +75,7 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 	if listG, err = dao.GetAdminGroupByIds(ids...); err != nil {
 		return
 	}
-	var m = make(map[int]models.AdminGroup, l)
+	var m = make(map[int64]models.AdminGroup, l)
 	for _, value := range listG {
 		m[value.Id] = value
 	}
@@ -223,7 +223,7 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 		return
 	}
 	var dt []models.AdminGroup
-	if dt, err = dao.GetAdminGroupByIds([]int{arg.Id}...); err != nil {
+	if dt, err = dao.GetAdminGroupByIds([]int64{arg.Id}...); err != nil {
 		return
 	}
 	if len(dt) == 0 {
@@ -237,7 +237,56 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 	if err = dao.UpdateAdminGroup(&dta); err != nil {
 		return
 	}
+	daoUserGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	if err = daoUserGroup.UpdateDaoPermitUserGroupByGroupId(arg.Id, map[string]interface{}{
+		"is_super_admin": dta.IsSuperAdmin,
+		"is_admin_group": dta.IsAdminGroup,
+	}); err != nil {
+		return
+	}
 	res.Result = true
+	return
+}
+
+func (r *SrvPermitGroupImpl) getGroupIdWithAdminUserGroup(uGroup []models.AdminUserGroup) (isAdmin, superAdmin bool, groupId []int64) {
+	groupId = make([]int64, 0, len(uGroup))
+	for _, group := range uGroup {
+		groupId = append(groupId, group.GroupId)
+		if group.IsAdminGroup == models.IsAdminGroupYes { // 判断是否为管理员
+			isAdmin = true
+		}
+		if group.IsSuperAdmin == models.IsSuperAdminYes { // 判断你是否为超级管理员
+			superAdmin = true
+		}
+	}
+	return
+}
+
+// GetUserGroup 获取管理员所在的用户组ID
+func (r *SrvPermitGroupImpl) GetUserGroup(userHid string) (isAdmin, isSuperAdmin bool, groupIds []int64, err error) {
+	groupIds = []int64{}
+
+	if userHid == "" {
+		return
+	}
+
+	var uGroup []models.AdminUserGroup
+
+	if uGroup, err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+		GetPermitGroupByUid(userHid); err != nil {
+		return
+	}
+
+	// 如果没有在权限组中
+	if len(uGroup) == 0 {
+		err = fmt.Errorf(models.GatewayErrMap[models.GatewayNotHavePermit])
+		r.Context.Error(map[string]interface{}{"err": err.Error(), "userHid": userHid}, "SrvGatewayImportPermitImplGetUserGroup")
+		err = base.NewErrorRuntime(err, models.GatewayNotHavePermit)
+		return
+	}
+
+	isAdmin, isSuperAdmin, groupIds = r.getGroupIdWithAdminUserGroup(uGroup)
+
 	return
 }
 

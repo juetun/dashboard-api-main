@@ -25,9 +25,9 @@ func init() {
 		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
 		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd)
 
-		h.POST("/admin_group", controller.AdminGroup)
+		h.POST("/admin_group", controller.AdminGroup) // 管理员用户组列表查询
 		h.POST("/admin_set_permit", controller.AdminSetPermit)
-		h.POST("/edit_admin_group", controller.AdminGroupEdit)
+		h.POST("/edit_admin_group", controller.AdminGroupEdit) // 编辑用户组
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 
 		h.POST("/admin_menu", controller.AdminMenu)               // 菜单列表

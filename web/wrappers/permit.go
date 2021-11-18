@@ -78,7 +78,7 @@ type AdminGroup struct {
 
 type ArgAdminMenuWithCheck struct {
 	ArgAdminMenu
-	GroupId int `json:"group_id" form:"group_id"`
+	GroupId int64 `json:"group_id" form:"group_id"`
 }
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
@@ -99,7 +99,7 @@ type AdminMenuObjectCheck struct {
 }
 type ArgAdminSetPermit struct {
 	app_param.RequestUser
-	GroupId        int    `json:"group_id" form:"group_id"`
+	GroupId        int64    `json:"group_id" form:"group_id"`
 	Type           string `json:"type" form:"type"`
 	PermitIdString string `json:"permit_ids" form:"permit_ids"`
 	PermitIds      []int  `json:"-" form:"-"`
@@ -501,7 +501,7 @@ type ResultAdminGroupEdit struct {
 type ArgAdminGroupEdit struct {
 	app_param.RequestUser
 	Name string `json:"name" form:"name"`
-	Id   int    `json:"id" form:"id"`
+	Id   int64  `json:"id" form:"id"`
 }
 
 func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
@@ -735,7 +735,7 @@ type ArgPermitMenu struct {
 	PathTypes                  []string `json:"-" form:"-"`
 	Module                     string   `json:"module" form:"module"` // 系统ID
 	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
-	GroupId                    []int    `json:"-" form:"-"`
+	GroupId                    []int64    `json:"-" form:"-"`
 }
 
 // Default 初始化默认值
