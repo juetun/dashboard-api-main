@@ -53,15 +53,38 @@ func (r *SrvGatewayImportImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUe
 func (r *SrvGatewayImportImpl) getImportPermitAsGeneralAdmin(arg *wrapper_intranet.ArgGetUerImportPermit, groupIds []int64, res *wrapper_intranet.ResultGetUerImportPermit) (err error) {
 
 	var (
-		apps   = make([]string, 0, len(arg.UrlInfo))
-		mapApp = map[string]string{}
-		ok     bool
+		apps       = arg.GetUrlApps()
+		permitList []wrapper_intranet.AdminUserGroupPermit
 	)
 
-	for _, item := range arg.UrlInfo {
-		if _, ok = mapApp[item.App]; !ok {
-			mapApp[item.App] = item.App
-			apps = append(apps, item.App)
+	if permitList, err = r.GetUserGroupAppPermit(groupIds, apps...); err != nil {
+		return
+	}
+
+	for _, permit := range permitList {
+		for _, item := range arg.UrlInfo {
+			if item.App != "" && permit.AppName == item.App {
+				res.MapHavePermit[item.ToUk()] = permit.AdminImport.MatchPath(item.Uri, item.Method)
+			}
+		}
+	}
+	return
+}
+
+// GetUserGroupAppPermit 获取用户组的每个APP的权限
+func (r *SrvGatewayImportImpl) GetUserGroupAppPermit(groupIds []int64, apps ...string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
+
+	var (
+		dtm []wrapper_intranet.AdminUserGroupPermit
+		dao = dao_impl.NewDaoPermitGroupImpl(r.Context)
+	)
+
+	for _, groupId := range groupIds {
+		for _, app := range apps {
+			if dtm, err = dao.GetGroupAppPermitImport(groupId, app); err != nil {
+				return
+			}
+			res = append(res, dtm...)
 		}
 	}
 

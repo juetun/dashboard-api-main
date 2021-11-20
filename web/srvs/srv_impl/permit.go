@@ -399,7 +399,7 @@ func (r *PermitServiceImpl) permitTab(list []models.AdminMenu, menu *[]wrappers.
 }
 
 //
-func (r *PermitServiceImpl) orgTree(list []models.AdminMenu, parentId int, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int]int) () {
+func (r *PermitServiceImpl) orgTree(list []models.AdminMenu, parentId int, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int]int) {
 	var tmp wrappers.AdminMenuObject
 	for _, value := range list {
 		// 剔除默认数据那条
@@ -729,6 +729,7 @@ type ArgGetUserGroupIds struct {
 }
 
 func (r *PermitServiceImpl) Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error) {
+	_ = arg
 	res = &wrappers.ResultFlag{}
 	return
 }

@@ -17,7 +17,7 @@ func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 	var (
 		err  error
 		args wrapper_intranet.ArgGetUerImportPermit
-		res  wrapper_intranet.ResultGetUerImportPermit
+		res  *wrapper_intranet.ResultGetUerImportPermit
 	)
 
 	if err = c.Bind(&args); err != nil {

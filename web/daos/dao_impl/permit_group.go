@@ -4,6 +4,7 @@ package dao_impl
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -13,10 +14,156 @@ import (
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
 type DaoPermitGroupImpl struct {
-	base.ServiceBase
+	base.ServiceDao
+}
+
+func (r *DaoPermitGroupImpl) GetGroupAppPermitImport(groupId int64, appName string, refreshCache ...bool) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
+	// 如果不需要强制刷新缓存
+	if !r.RefreshCache(refreshCache...) {
+		var dataNil bool
+		if dataNil, err = r.getGroupAppPermitImportFromCache(groupId, appName, &res); err != nil {
+			return
+		}
+		if !dataNil { // 如果缓存中有数据，则使用缓存中的数据
+			return
+		}
+	}
+	if res, err = r.getGroupAppPermitImportFromDb(groupId, appName); err != nil {
+		return
+	}
+
+	if err = r.setGroupAppPermitImportToCache(groupId, appName, res); err != nil {
+		return
+	}
+	return
+}
+
+func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromDb(groupId int64, appName string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
+	var m models.AdminUserGroupPermit
+
+	defer func() {
+		if err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupId": groupId,
+				"appName": appName,
+			}, "DaoPermitGroupImplGetGroupAppPermitImportFromDb")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+ 	db := r.Context.Db.Table(m.TableName())
+	var mi models.AdminImport
+	err = db.Select("a.group_id,a.app_name,a.path_type,b.*").Joins(fmt.Sprintf(" AS a LEFT JOIN  %s AS b ON a.menu_id= b.id ",
+		mi.TableName())).
+		Where("a.group_id = ? AND a.app_name = ? AND a.path_type = ?",
+			groupId,
+			appName,
+			models.PathTypeApi).
+		Scopes(base.ScopesDeletedAt("a")).
+		Scopes(base.ScopesDeletedAt("b")).
+		Find(&res).
+		Error
+
+	return
+}
+func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, appName string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
+	var m models.AdminUserGroupPermit
+
+	defer func() {
+		if err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupId": groupId,
+				"appName": appName,
+			}, "DaoPermitGroupImplGetGroupAppPermitMenuFromDb")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	db := r.Context.Db.Table(m.TableName())
+
+	var mm models.AdminImport
+	db = db.Joins(fmt.Sprintf(" AS a LEFT JOIN  %s AS b ON a.menu_id= b.id",
+		mm.TableName()))
+	if appName != "" {
+		db = db.Where("a.module = ?", appName)
+	}
+	err = db.
+		Where("a.group_id = ? AND a.path_type = ?", groupId, models.PathTypePage).
+		Scopes(base.ScopesDeletedAt("a")).
+		Scopes(base.ScopesDeletedAt("b")).
+		Find(&res).
+		Error
+
+	return
+}
+
+func (r *DaoPermitGroupImpl) setGroupAppPermitImportToCache(groupId int64, appName string, res []wrapper_intranet.AdminUserGroupPermit) (err error) {
+	key, duration := r.getGroupAppPermitImportCacheKey(groupId, appName)
+	defer func() {
+		if err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupId": groupId,
+				"appName": appName,
+				"err":     err.Error(),
+			}, "DaoPermitGroupImplSetGroupAppPermitImportToCache")
+			err = base.NewErrorRuntime(err, base.ErrorRedisCode)
+			return
+		}
+	}()
+
+	op := r.Context.CacheClient.Set(context.TODO(), key, &res, duration)
+	if err = op.Err(); err != nil {
+		return
+	}
+	return
+}
+
+func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, appName string, data interface{}) (dataNil bool, err error) {
+	key, _ := r.getGroupAppPermitImportCacheKey(groupId, appName)
+
+	defer func() {
+		if err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupId": groupId,
+				"appName": appName,
+				"err":     err.Error(),
+			}, "DaoPermitGroupImplGetGroupAppPermitImport")
+			err = base.NewErrorRuntime(err, base.ErrorRedisCode)
+			return
+		}
+	}()
+
+	ctx := context.TODO()
+	op := r.Context.CacheClient.Get(ctx, key)
+
+	var e error
+	if e = op.Err(); e != nil {
+		if e == redis.Nil {
+			dataNil = true
+			return
+		}
+		err = e
+		return
+	}
+
+	if errString := op.Scan(data).Error(); errString != "" {
+		err = fmt.Errorf(errString)
+		return
+	}
+	return
+}
+
+// 用户组每个接口权限缓存
+func (r *DaoPermitGroupImpl) getGroupAppPermitImportCacheKey(groupId int64, appName string) (res string, duration time.Duration) {
+	res = fmt.Sprintf(parameters.CacheKeyUserGroupAppImportWithAppKey, groupId, appName)
+
+	// 生成一个基础时间加上随机时间的时间值避免缓存数据在同一个时间失效
+	duration = parameters.CacheKeyUserGroupAppImportTime + time.Duration(rand.Int63n(100))*time.Minute
+	return
 }
 
 func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, data map[string]interface{}) (err error) {
@@ -38,11 +185,8 @@ func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, da
 }
 
 func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid string, refreshCache ...bool) (res []models.AdminUserGroup, err error) {
-	var freshCache bool
-	if len(refreshCache) > 0 {
-		freshCache = refreshCache[0]
-	}
-	if !freshCache { // 如果不是需要重新刷新缓存
+
+	if !r.RefreshCache(refreshCache...) { // 如果不是需要重新刷新缓存
 		dataNil, _ := r.getCacheUserPermitGroup(userHid, &res)
 		if !dataNil {
 			return

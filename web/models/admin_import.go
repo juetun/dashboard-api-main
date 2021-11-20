@@ -100,3 +100,38 @@ func (r *AdminImport) GetRequestMethods() (res []string) {
 	}
 	return
 }
+
+// MatchPath 匹配一个方法链接是否有权限
+func (r *AdminImport) MatchPath(uri string, method string) (res bool) {
+
+	methods := r.GetRequestMethods()
+	var eqMethod bool
+	for _, mth := range methods {
+		if mth == method {
+			eqMethod = true
+			break
+		}
+	}
+
+	if !eqMethod { // 如果不支持方法
+		return
+	}
+
+	var (
+		regexp string
+		err    error
+	)
+
+	if r.UrlPath == "" {
+		return
+	}
+
+	if regexp, err = route_match.RoutePathToRegexp(r.UrlPath); err != nil {
+		return
+	}
+
+	if res, err = route_match.RoutePathMath(regexp, uri); err != nil {
+		return
+	}
+	return
+}

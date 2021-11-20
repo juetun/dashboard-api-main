@@ -5,9 +5,16 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/juetun/dashboard-api-main/web/models"
 )
 
 type (
+	AdminUserGroupPermit struct {
+		GroupId  int64  `json:"group_id" gorm:"column:group_id"`
+		AppName  string `json:"app_name" gorm:"column:app_name"`
+		PathType string `json:"path_type" gorm:"column:path_type"`
+		models.AdminImport
+	}
 	ArgGetUerImportPermit struct {
 		UHid    string          `json:"u_hid" form:"u_hid"`
 		Uris    string          `json:"uris" form:"uris"`
@@ -25,7 +32,7 @@ type (
 	}
 
 	ArgGetImportPermit struct {
-		AppName string `json:"app_name"`
+		AppName string `json:"app_name" form:"app_name"`
 	}
 	ResultGetImportPermit struct {
 		RouterNotNeedSign  map[string]*RouterNotNeedItem `json:"not_sign"`  // 不需要签名验证的路由权限
@@ -74,6 +81,23 @@ func (r *ArgGetUerImportPermit) Default(c *gin.Context) (err error) {
 		return
 	}
 
+	return
+}
+
+func (r *ArgGetUerImportPermit) GetUrlApps() (apps []string) {
+
+	apps = make([]string, 0, len(r.UrlInfo))
+
+	var (
+		ok     bool
+		mapApp = map[string]string{}
+	)
+	for _, item := range r.UrlInfo {
+		if _, ok = mapApp[item.App]; !ok {
+			mapApp[item.App] = item.App
+			apps = append(apps, item.App)
+		}
+	}
 	return
 }
 
