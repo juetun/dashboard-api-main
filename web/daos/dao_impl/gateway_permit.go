@@ -56,8 +56,8 @@ func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithApp(appName string, data int
 	isNil = false
 	return
 }
-func (r *DaoGatewayPermitImpl) GetImportListByAppName(appName string, refreshCache ...bool) (res map[int]models.AdminImport, err error) {
-	res = make(map[int]models.AdminImport, 50)
+func (r *DaoGatewayPermitImpl) GetImportListByAppName(appName string, refreshCache ...bool) (res map[int64]models.AdminImport, err error) {
+	res = make(map[int64]models.AdminImport, 50)
 	var isNil bool
 	var f bool
 	if len(refreshCache) > 0 {

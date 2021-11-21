@@ -76,9 +76,6 @@ type Permit interface {
 	// Menu 权限菜单
 	Menu(c *gin.Context)
 
-	// Flag 请求是否有权限
-	Flag(c *gin.Context)
-
 	// GetAppConfig 获取应用配置
 	GetAppConfig(c *gin.Context)
 }

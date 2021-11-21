@@ -20,7 +20,7 @@ func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 		res  *wrapper_intranet.ResultGetUerImportPermit
 	)
 
-	if err = c.Bind(&args); err != nil {
+	if err = c.ShouldBind(&args); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}

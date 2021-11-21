@@ -22,15 +22,17 @@ import (
 
 type DaoExportImpl struct {
 	base.ServiceDao
+	DbExport     *gorm.DB `json:"db"`
+	DbExportName string   `json:"db_name"` // 数据库的链接配置KEY
 }
 
 func NewDaoExportImpl(c ...*base.Context) (res daos.DaoExport) {
 	p := &DaoExportImpl{}
 	p.SetContext(c...)
 	s, ctx := p.Context.GetTraceId()
-	p.Context.Db, p.Context.DbName, _ = base.GetDbClient(&base.GetDbClientData{
+	p.DbExport, p.DbExportName, _ = base.GetDbClient(&base.GetDbClientData{
 		Context:     p.Context,
-		DbNameSpace: daos.DatabaseDefault,
+		DbNameSpace: daos.DatabaseWeb,
 		CallBack: func(db *gorm.DB, dbName string) (dba *gorm.DB, err error) {
 			dba = db.WithContext(context.WithValue(ctx, app_obj.DbContextValueKey, base.DbContextValue{
 				TraceId: s,
@@ -41,15 +43,22 @@ func NewDaoExportImpl(c ...*base.Context) (res daos.DaoExport) {
 	})
 	return p
 }
+func (r DaoExportImpl) GetExportDb() (db *gorm.DB, dbName string) {
+	db = r.DbExport
+	dbName = r.DbExportName
+	return
+}
 func (r DaoExportImpl) Update(model *models.ZExportData) (err error) {
 	var m models.ZExportData
-	if err = r.Context.Db.Table(m.TableName()).
+	db, dbName := r.GetExportDb()
+	if err = db.Table(m.TableName()).
 		Where("hid = ?", model.Hid).
 		Updates(model).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
-			"model": model,
-			"err":   err.Error(),
+			"model":  model,
+			"dbName": dbName,
+			"err":    err.Error(),
 		}, "DaoExportImplUpdate")
 		return
 	}
@@ -60,14 +69,16 @@ func (r DaoExportImpl) UpdateByHIds(data map[string]interface{}, hIds *[]string)
 		return
 	}
 	var m models.ZExportData
-	if err = r.Context.Db.Table(m.TableName()).
+	db, dbName := r.GetExportDb()
+	if err = db.Table(m.TableName()).
 		Where("hid in(?)", *hIds).
 		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
-			"data": data,
-			"hIds": hIds,
-			"err":  err.Error(),
+			"data":   data,
+			"hIds":   hIds,
+			"dbName": dbName,
+			"err":    err.Error(),
 		}, "daoExportImplUpdateByHIds")
 		return
 	}
@@ -92,13 +103,15 @@ func (r DaoExportImpl) Progress(args *wrappers.ArgumentsExportProgress) (res *[]
 		return
 	}
 	var m models.ZExportData
-	if err = r.Context.Db.Table(m.TableName()).
+	db, dbName := r.GetExportDb()
+	if err = db.Table(m.TableName()).
 		Where("create_user_hid=? AND hid in (?)", args.UserHid, args.IdString).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
-			"args": args,
-			"err":  err.Error(),
+			"args":   args,
+			"dbName": dbName,
+			"err":    err.Error(),
 		}, "daoExportImplProgress")
 		return
 	}
@@ -110,7 +123,8 @@ func (r DaoExportImpl) GetListByUser(userHid string, limit int) (res *[]models.Z
 	}
 	var m models.ZExportData
 	res = &[]models.ZExportData{}
-	if err = r.Context.Db.Table(m.TableName()).
+	db, dbName := r.GetExportDb()
+	if err = db.Table(m.TableName()).
 		Where("create_user_hid=?", userHid).
 		Order("created_at desc").
 		Limit(limit).
@@ -119,6 +133,7 @@ func (r DaoExportImpl) GetListByUser(userHid string, limit int) (res *[]models.Z
 		r.Context.Error(map[string]interface{}{
 			"userHid": userHid,
 			"limit":   limit,
+			"dbName":  dbName,
 			"err":     err.Error(),
 		}, "daoExportImplGetListByUser")
 		return

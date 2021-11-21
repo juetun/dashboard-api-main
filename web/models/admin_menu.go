@@ -13,12 +13,14 @@ import (
 const (
 	// AdminMenuNameMaxLength 菜单名称最大长度
 	AdminMenuNameMaxLength = 6
+
+	CommonMenuDefaultLabel = "公共接口" // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
 )
 
 type AdminMenu struct {
-	Id                 int        `gorm:"column:id;primary_key" json:"id" form:"id"`
+	Id                 int64      `gorm:"column:id;primary_key" json:"id" form:"id"`
 	PermitKey          string     `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
-	ParentId           int        `json:"parent_id" gorm:"column:parent_id" form:"parent_id"`
+	ParentId           int64      `json:"parent_id" gorm:"column:parent_id" form:"parent_id"`
 	Module             string     `json:"module" gorm:"column:module" form:"module"`
 	Label              string     `json:"label" gorm:"column:label" form:"label"`
 	Icon               string     `json:"icon" gorm:"column:icon" form:"icon"`
@@ -38,7 +40,7 @@ func (r *AdminMenu) TableName() string {
 }
 
 func (r *AdminMenu) getPathName() (res string) {
-	res, _ = hashid.Encode(r.TableName(), r.Id)
+	res, _ = hashid.Encode(r.TableName(), int(r.Id))
 	return
 }
 func (r *AdminMenu) ToMapStringInterface() (res map[string]interface{}) {
@@ -89,6 +91,46 @@ func (r *AdminMenu) AfterUpdate(tx *gorm.DB) (err error) {
 func (r *AdminMenu) AfterCreate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
 		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.getPathName())
+	}
+	return
+}
+
+type DefaultSystemMenuNeedParams struct {
+	Module         string    `json:"module"`
+	UpdateTime     time.Time `json:"update_time"`
+	CreateTime     time.Time `json:"create_time"`
+	ParentSystemId int64     `json:"parent_system_id"`
+}
+
+func (r *AdminMenu) InitDefaultSystemMenu(data *DefaultSystemMenuNeedParams) (res []*AdminMenu) {
+
+	res = []*AdminMenu{
+		{
+			Module:             data.Module,
+			ParentId:           data.ParentSystemId,
+			Label:              "首页",
+			Icon:               "md-home",
+			ManageImportPermit: 1,
+			HideInMenu:         0,
+			UrlPath:            "",
+			SortValue:          90000001,
+			OtherValue:         "",
+			CreatedAt:          data.CreateTime,
+			UpdatedAt:          data.UpdateTime,
+		},
+		{
+			Module:             data.Module,
+			ParentId:           data.ParentSystemId,
+			Label:              CommonMenuDefaultLabel,
+			Icon:               "",
+			ManageImportPermit: 1,
+			HideInMenu:         1,
+			UrlPath:            "",
+			SortValue:          90000000,
+			OtherValue:         "",
+			CreatedAt:          data.CreateTime,
+			UpdatedAt:          data.UpdateTime,
+		},
 	}
 	return
 }

@@ -15,23 +15,27 @@ import (
 
 type DaoPermitImport interface {
 
+	GetDefaultOpenImportByMenuIds(menuId ...int64) (res []models.AdminImport, err error)
+
 	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
 
 	GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error)
+
+	GetImportFromDbByIds(ids ...int64) (res map[int64]*models.AdminImport, err error)
 
 	AddData(adminImport *models.AdminImport) (err error)
 
 	BatchAddData([]models.AdminImport) (err error)
 
-	DeleteImportByIds(id ...int) (err error)
+	DeleteImportByIds(id ...int64) (err error)
 
 	UpdateMenuImport(condition string, data map[string]interface{}) (err error)
 
 	BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error)
 
-	GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error)
+	GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error)
 
-	GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error)
+	GetChildImportByMenuId(menuIds ...int64) (list []models.AdminMenuImport, err error)
 
 	UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error)
 

@@ -10,10 +10,7 @@ package dao_impl
 
 import (
 	"fmt"
-	"reflect"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -21,11 +18,34 @@ import (
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
-type DaoPermitImport struct {
+type DaoPermitImportImpl struct {
 	base.ServiceDao
 }
 
-func (r *DaoPermitImport) GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error) {
+func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]*models.AdminImport, err error) {
+	l := len(ids)
+	res = make(map[int64]*models.AdminImport, l)
+	if l == 0 {
+		return
+	}
+	var m models.AdminImport
+	var data []*models.AdminImport
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?)", ids).
+		Scopes(base.ScopesDeletedAt()).
+		Find(&data).Error; err == nil {
+		for _, item := range data {
+			res[item.Id] = item
+		}
+		return
+	}
+	r.Context.Error(map[string]interface{}{
+		"ids": ids,
+		"err": err.Error(),
+	}, "DaoPermitImportImplGetImportFromDbByIds")
+	return
+}
+func (r *DaoPermitImportImpl) GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error) {
 	condition := map[string]interface{}{}
 	if arg.AppName != "" {
 		condition["app_name"] = arg.AppName
@@ -63,7 +83,7 @@ func (r *DaoPermitImport) GetImportForGateway(arg *wrapper_intranet.ArgGetImport
 	return
 }
 
-func (r *DaoPermitImport) AddData(adminImport *models.AdminImport) (err error) {
+func (r *DaoPermitImportImpl) AddData(adminImport *models.AdminImport) (err error) {
 	logContent := map[string]interface{}{
 		"adminImport": adminImport,
 	}
@@ -85,7 +105,7 @@ func (r *DaoPermitImport) AddData(adminImport *models.AdminImport) (err error) {
 	return
 }
 
-func (r *DaoPermitImport) getColumnName(s string) (res string) {
+func (r *DaoPermitImportImpl) getColumnName(s string) (res string) {
 	li := strings.Split(s, ";")
 	res = s
 	for _, s2 := range li {
@@ -102,96 +122,33 @@ func (r *DaoPermitImport) getColumnName(s string) (res string) {
 	}
 	return
 }
-func (r *DaoPermitImport) BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error) {
+func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error) {
 	if len(list) == 0 {
 		return
 	}
-	var ind = 0
-	var keys []string
-	var fieldNum int
-	var columns []string
-	var vals []interface{}
-	var vvGroup = make([]string, 0, len(list))
-	vals = make([]interface{}, 0, fieldNum)
-	tagValue := "gorm"
-	var tName string
-	var tag string
-	for _, data := range list {
-
-		var valueStruct reflect.Value
-		if ind == 0 {
-			types := reflect.TypeOf(data)
-			fieldNum = types.NumField()
-			keys = make([]string, 0, fieldNum)
-			columns = make([]string, 0, fieldNum)
-			for i := 0; i < fieldNum; i++ {
-				t := types.Field(i).Tag
-				tName = t.Get(tagValue)
-				tag = r.getColumnName(tName)
-				if tag == "id" {
-					continue
-				}
-				keys = append(keys, tag)
-				if tag == "created_at" {
-					continue
-				}
-				columns = append(columns, fmt.Sprintf("`%s`=VALUES(`%s`)", tag, tag))
-			}
-		}
-		types := reflect.TypeOf(data)
-		vv := make([]string, 0, fieldNum)
-		for i := 0; i < fieldNum; i++ {
-			tName = types.Field(i).Tag.Get(tagValue)
-			if tag = r.getColumnName(tName); tag == "id" {
-				continue
-			}
-			values := reflect.ValueOf(data)
-			valueStruct = values.Field(i)
-			switch valueStruct.Kind() {
-			case reflect.Interface:
-				vals = append(vals, valueStruct.Interface())
-			case reflect.Ptr:
-				if valueStruct.IsZero() {
-					vals = append(vals, nil)
-				} else {
-					vals = append(vals, valueStruct.Elem().Interface())
-				}
-			case reflect.Bool:
-				vals = append(vals, strconv.FormatBool(valueStruct.Bool()))
-			case reflect.String:
-				vals = append(vals, valueStruct.String())
-			default:
-				switch valueStruct.Type().String() {
-				case "time.Time":
-					vals = append(vals, valueStruct.Interface().(time.Time).Format("2006-01-02 15:04:05"))
-				case "time.Duration":
-					vals = append(vals, valueStruct.Interface().(time.Duration).String())
-				case "int":
-					vals = append(vals, fmt.Sprintf("%v", valueStruct.Int()))
-				default:
-					vals = append(vals, valueStruct.String())
-				}
-			}
-			vv = append(vv, "?")
-		}
-		vvGroup = append(vvGroup, fmt.Sprintf("(%s)", strings.Join(vv, ",")))
-		ind++
+	var dtList []base.ModelBase
+	for _, menuImport := range list {
+		dtList = append(dtList, &menuImport)
 	}
-	sql := fmt.Sprintf("INSERT INTO `%s`(`"+strings.Join(keys, "`,`")+"`) VALUES "+strings.Join(vvGroup, ",")+
-		" ON DUPLICATE KEY UPDATE "+strings.Join(columns, ","), tableName)
-	if err = r.Context.Db.Exec(sql, vals...).Error; err != nil {
+	var batchData = base.BatchAddDataParameter{
+		DbName:    r.Context.DbName,
+		Db:        r.Context.Db,
+		TableName: tableName,
+		Data:      dtList,
+	}
+	if err = r.BatchAdd(&batchData); err != nil {
 		r.Context.Error(map[string]interface{}{
-			"sql":  sql,
 			"data": list,
-			"vals": vals,
 			"err":  err,
-		}, "DaoPermitImportBatchMenuImport error")
+		}, "DaoPermitImportBatchMenuImport")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
 	}
+
 	return
 }
 
-func (r *DaoPermitImport) DeleteByCondition(condition interface{}) (res bool, err error) {
+func (r *DaoPermitImportImpl) DeleteByCondition(condition interface{}) (res bool, err error) {
 	var m models.AdminImport
 	if condition == nil {
 		err = fmt.Errorf("您没有选择要删除的数据")
@@ -213,7 +170,7 @@ func (r *DaoPermitImport) DeleteByCondition(condition interface{}) (res bool, er
 	return
 }
 
-func (r *DaoPermitImport) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
+func (r *DaoPermitImportImpl) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
 	var m models.AdminImport
 	if condition == nil || len(data) == 0 {
 		err = fmt.Errorf("您没有选择要更新的数据")
@@ -239,7 +196,7 @@ func (r *DaoPermitImport) UpdateByCondition(condition interface{}, data map[stri
 	return
 }
 
-func (r *DaoPermitImport) GetChildImportByMenuId(menuIds ...int) (list []models.AdminMenuImport, err error) {
+func (r *DaoPermitImportImpl) GetChildImportByMenuId(menuIds ...int64) (list []models.AdminMenuImport, err error) {
 
 	list = []models.AdminMenuImport{}
 	if len(menuIds) == 0 {
@@ -259,7 +216,7 @@ func (r *DaoPermitImport) GetChildImportByMenuId(menuIds ...int) (list []models.
 	}
 	return
 }
-func (r *DaoPermitImport) GetImportMenuByImportIds(iIds ...int) (list []models.AdminMenuImport, err error) {
+func (r *DaoPermitImportImpl) GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error) {
 	list = []models.AdminMenuImport{}
 	if len(iIds) == 0 {
 		return
@@ -278,7 +235,7 @@ func (r *DaoPermitImport) GetImportMenuByImportIds(iIds ...int) (list []models.A
 	}
 	return
 }
-func (r *DaoPermitImport) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
+func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
 
 	var m models.AdminMenuImport
 	var e error
@@ -312,7 +269,7 @@ func (r *DaoPermitImport) UpdateMenuImport(condition string, data map[string]int
 	return
 }
 
-func (r *DaoPermitImport) BatchAddData(list []models.AdminImport) (err error) {
+func (r *DaoPermitImportImpl) BatchAddData(list []models.AdminImport) (err error) {
 	var m models.AdminImport
 	data := &base.BatchAddDataParameter{
 		DbName:    r.Context.DbName,
@@ -345,7 +302,7 @@ func (r *DaoPermitImport) BatchAddData(list []models.AdminImport) (err error) {
 	}
 	return
 }
-func (r *DaoPermitImport) DeleteImportByIds(id ...int) (err error) {
+func (r *DaoPermitImportImpl) DeleteImportByIds(id ...int64) (err error) {
 	if len(id) == 0 {
 		return
 	}
@@ -360,22 +317,15 @@ func (r *DaoPermitImport) DeleteImportByIds(id ...int) (err error) {
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
-
-	var m1 models.AdminUserGroupPermit
-	if err = r.Context.Db.Table(m1.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("menu_id IN(?) AND path_type=?", id, "api").
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"id":  id,
-			"err": err,
-		}, "daoPermitDeleteImportByIds1")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	daoGroupImport := NewDaoPermitGroupImport(r.Context)
+	if err = daoGroupImport.DeleteGroupImportWithMenuId(id...); err != nil {
 		return
 	}
+
 	return
 }
 
-func (r *DaoPermitImport) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
+func (r *DaoPermitImportImpl) GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error) {
 	list = []models.AdminImport{}
 	if len(condition) == 0 {
 		return
@@ -395,8 +345,32 @@ func (r *DaoPermitImport) GetImportByCondition(condition map[string]interface{})
 	}
 	return
 }
-func NewDaoPermitImport(c ...*base.Context) daos.DaoPermitImport {
-	p := &DaoPermitImport{}
+
+func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (res []models.AdminImport, err error) {
+	res = []models.AdminImport{}
+	if len(menuId) == 0 {
+		return
+	}
+	var m models.AdminImport
+	var ami models.AdminMenuImport
+	if err = r.Context.Db.Table(ami.TableName()).
+		Unscoped().
+		Select(`b.*`).
+		Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
+		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ", menuId, models.DefaultOpen).
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"menuId": menuId,
+			"err":    err,
+		}, "GetDefaultOpenImportByMenuIds")
+		return
+	}
+	return
+}
+func NewDaoPermitImport(c ...*base.Context) (res daos.DaoPermitImport) {
+	p := &DaoPermitImportImpl{}
 	p.SetContext(c...)
-	return p
+	res = p
+	return
 }

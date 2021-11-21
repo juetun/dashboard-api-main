@@ -13,7 +13,6 @@ import (
 )
 
 type PermitService interface {
-	Flag(arg *wrappers.ArgFlag) (res *wrappers.ResultFlag, err error)
 
 
 	AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res *wrappers.ResultAdminSetPermit, err error)

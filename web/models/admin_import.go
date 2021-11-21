@@ -20,7 +20,7 @@ const (
 )
 
 type AdminImport struct {
-	Id            int        `gorm:"primary_key" json:"id" form:"id"`
+	Id            int64      `gorm:"primary_key" json:"id" form:"id"`
 	PermitKey     string     `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
 	AppName       string     `json:"app_name" gorm:"column:app_name" form:"app_name"`
 	AppVersion    string     `json:"app_version" gorm:"column:app_version" form:"app_version"`
@@ -46,13 +46,16 @@ func (r *AdminImport) InitRegexpString() (err error) {
 	}
 	return
 }
+
 func (r *AdminImport) TableName() string {
 	return "admin_import"
 }
+
 func (r *AdminImport) GetPathName() (res string) {
-	res, _ = hashid.Encode(r.TableName(), r.Id)
+	res, _ = hashid.Encode(r.TableName(), int(r.Id))
 	return
 }
+
 func (r *AdminImport) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
 		tx.Table(r.TableName()).
@@ -61,6 +64,7 @@ func (r *AdminImport) AfterUpdate(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
 func (r *AdminImport) AfterCreate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
 		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.GetPathName())
@@ -87,6 +91,7 @@ func (r *AdminImport) GetRequestMethodMap() (res map[string]uint8) {
 	}
 	return
 }
+
 func (r *AdminImport) GetRequestMethods() (res []string) {
 	res = []string{}
 	if r.RequestMethod != "" {

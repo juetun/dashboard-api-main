@@ -13,7 +13,7 @@ func init() {
 		con := intranet_impl.NewConPermitIntranet()
 
 		path := r.Group(urlPrefix)
-		path.GET("/get_import_permit", con.GetImportPermit) // 获取接口权限
+		path.GET("/get_import_permit", con.GetImportPermit) // 获取接口权限 (哪些接口不需要签名验证，哪些接口不需要登录)
 
 		path.GET("/get_have_permit", con.GetUerImportPermit) // 判断用户是否有接口权限
 	})

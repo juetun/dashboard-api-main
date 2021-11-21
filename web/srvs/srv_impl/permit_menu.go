@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_menu
-* @Version: 1.0.0
-* @Date 2021/9/12 1:51 下午
- */
+// Package srv_impl /**
 package srv_impl
 
 import (
@@ -36,7 +30,7 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 判断参数是否正常
-	if err = r.initParentId(dao, arg); err != nil {
+	if err = r.initParentId(arg); err != nil {
 		return
 	}
 
@@ -73,6 +67,7 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 }
 
 func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error) {
+	_ = dao
 	divString := "/"
 	pathSlice := strings.Split(strings.TrimLeft(arg.NowRoutePath, "/"), divString)
 	switch len(pathSlice) {
@@ -136,8 +131,8 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 		return
 	}
 
-	var menuIds []int
-	if menuIds, err = r.getPermitByGroupIds(dao, arg.Module, arg.PathTypes, arg.GroupId...); err != nil { // 普通管理员
+	var menuIds []int64
+	if menuIds, err = r.getPermitByGroupIds(arg.Module, arg.GroupId...); err != nil { // 普通管理员
 		return
 	}
 	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
@@ -146,12 +141,13 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 	return
 }
 
-func (r *SrvPermitMenuImpl) getPermitByGroupIds(dao daos.DaoPermit, module string, pathType []string, groupIds ...int64) (menuIds []int, err error) {
-	res, err := dao.GetMenuIdsByPermitByGroupIds(module, pathType, groupIds...)
+func (r *SrvPermitMenuImpl) getPermitByGroupIds(module string, groupIds ...int64) (menuIds []int64, err error) {
+	res, err := dao_impl.NewDaoPermitGroupMenu(r.Context).
+		GetMenuIdsByPermitByGroupIds(module, groupIds...)
 	if err != nil {
 		return
 	}
-	menuIds = make([]int, 0, len(res))
+	menuIds = make([]int64, 0, len(res))
 	for _, value := range res {
 		menuIds = append(menuIds, value.MenuId)
 	}
@@ -168,10 +164,10 @@ func (r *SrvPermitMenuImpl) getGroupMenu(
 	dao daos.DaoPermit,
 	arg *wrappers.ArgPermitMenu,
 	res *wrappers.ResultPermitMenuReturn,
-	menuIds ...int) (err error) {
+	menuIds ...int64) (err error) {
 	var (
-		groupPermit map[int][]wrappers.ResultPermitMenu
-		permitMap   map[int]wrappers.ResultPermitMenu
+		groupPermit map[int64][]wrappers.ResultPermitMenu
+		permitMap   map[int64]wrappers.ResultPermitMenu
 		list        []models.AdminMenu
 	)
 
@@ -188,7 +184,7 @@ func (r *SrvPermitMenuImpl) getGroupMenu(
 		err = fmt.Errorf("您没有操作权限,请刷新或联系管理员(1)")
 		return
 	}
-	var parentId int
+	var parentId int64
 	if arg.ParentId > 0 {
 		for k, item := range res.Menu {
 			if item.Id == arg.ParentId {
@@ -213,13 +209,13 @@ func (r *SrvPermitMenuImpl) getGroupMenu(
 
 func (r *SrvPermitMenuImpl) groupPermit(list []models.AdminMenu) (
 	systemList []wrappers.ResultSystemMenu,
-	groupPermit map[int][]wrappers.ResultPermitMenu,
-	permitMap map[int]wrappers.ResultPermitMenu,
+	groupPermit map[int64][]wrappers.ResultPermitMenu,
+	permitMap map[int64]wrappers.ResultPermitMenu,
 ) {
 	systemList = make([]wrappers.ResultSystemMenu, 0, 30)
-	groupPermit = map[int][]wrappers.ResultPermitMenu{}
+	groupPermit = map[int64][]wrappers.ResultPermitMenu{}
 	l := len(list)
-	permitMap = make(map[int]wrappers.ResultPermitMenu, l)
+	permitMap = make(map[int64]wrappers.ResultPermitMenu, l)
 	var data wrappers.ResultPermitMenu
 	for _, item := range list {
 
@@ -266,7 +262,7 @@ func (r *SrvPermitMenuImpl) orgResultPermitMenu(item models.AdminMenu) (res wrap
 	return
 }
 
-func (r *SrvPermitMenuImpl) orgPermit(group map[int][]wrappers.ResultPermitMenu, pid int, res *wrappers.ResultPermitMenu, permitMap map[int]wrappers.ResultPermitMenu) {
+func (r *SrvPermitMenuImpl) orgPermit(group map[int64][]wrappers.ResultPermitMenu, pid int64, res *wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu) {
 
 	if res == nil {
 		res = &wrappers.ResultPermitMenu{}
@@ -376,20 +372,20 @@ func (r *SrvPermitMenuImpl) initGroupAndIsSuperAdmin(arg *wrappers.ArgPermitMenu
 	return
 }
 
-func (r *SrvPermitMenuImpl) orgRoutParentMap(parentId int, list []models.AdminMenu, dataChild *wrappers.ResultPermitMenu) (returnData map[string][]string) {
+func (r *SrvPermitMenuImpl) orgRoutParentMap(parentId int64, list []models.AdminMenu, dataChild *wrappers.ResultPermitMenu) (returnData map[string][]string) {
 	_ = dataChild
 	l := len(list)
 	returnData = make(map[string][]string, l)
-	res := make(map[int][]int, l)
-	mapIdToParent := make(map[int]int, l)
-	mapIdConfig := make(map[int]models.AdminMenu, l)
+	res := make(map[int64][]int64, l)
+	mapIdToParent := make(map[int64]int64, l)
+	mapIdConfig := make(map[int64]models.AdminMenu, l)
 	for _, value := range list {
 		mapIdConfig[value.Id] = value
 		if value.Id == parentId {
 			continue
 		}
 		if _, ok := res[value.Id]; !ok {
-			res[value.Id] = make([]int, 0, 6)
+			res[value.Id] = make([]int64, 0, 6)
 		}
 		mapIdToParent[value.Id] = value.ParentId
 	}
@@ -408,7 +404,7 @@ func (r *SrvPermitMenuImpl) orgRoutParentMap(parentId int, list []models.AdminMe
 	return
 }
 
-func (r *SrvPermitMenuImpl) getParentId(mapIdToParent map[int]int, nodeId, parentId int, value *[]int) {
+func (r *SrvPermitMenuImpl) getParentId(mapIdToParent map[int64]int64, nodeId, parentId int64, value *[]int64) {
 	if parentId <= 0 {
 		return
 	}
@@ -449,13 +445,14 @@ func (r *SrvPermitMenuImpl) syncOperate(handlers []MenuHandler, arg *wrappers.Ar
 	}
 	syncG.Wait()
 }
-func (r *SrvPermitMenuImpl) initParentId(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (err error) {
+func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error) {
 
 	if arg.Module == "" {
 		return
 	}
 	var dt []models.AdminMenu
-	if dt, err = dao.GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
+	if dt, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetMenuByCondition(map[string]interface{}{"permit_key": arg.Module}); err != nil {
 		return
 	}
 	if len(dt) == 0 {

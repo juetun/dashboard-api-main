@@ -20,46 +20,49 @@ func NewControllerPermit() admins.Permit {
 }
 
 func (r *ControllerPermit) MenuImportSet(c *gin.Context) {
-	var arg wrappers.ArgMenuImportSet
+	var (
+		res *wrappers.ResultMenuImportSet
+		arg wrappers.ArgMenuImportSet
+	)
 	var err error
 
 	if err = c.Bind(&arg); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	if err = arg.Default(c); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	// 记录日志
-	if res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
 		MenuImportSet(&arg); err != nil {
-		r.Response(c, 500000002, nil, err.Error())
+		r.ResponseError(c, err)
 		return
-	} else {
-		r.Response(c, 0, res)
 	}
+	r.Response(c, base.SuccessCode, res)
+
 }
 func (r *ControllerPermit) GetMenu(c *gin.Context) {
 	var arg wrappers.ArgGetMenu
 	var err error
-
+	var res wrappers.ResultGetMenu
 	if err = c.Bind(&arg); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	if err = arg.Default(c); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 
 	// 记录日志
-	if res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
 		GetMenu(&arg); err != nil {
-		r.Response(c, 500000002, nil, err.Error())
+		r.ResponseError(c, err)
 		return
-	} else {
-		r.Response(c, 0, res)
 	}
+	r.Response(c, base.SuccessCode, res)
 
 }
 func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
@@ -560,10 +563,10 @@ func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
 	// 记录日志
 	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
 		AdminSetPermit(&arg); err != nil {
-		r.Response(c, 500000002, nil, err.Error())
+		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminGroup(c *gin.Context) {
@@ -610,7 +613,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
@@ -634,27 +637,6 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 
-}
-func (r *ControllerPermit) Flag(c *gin.Context) {
-	var (
-		err error
-		arg wrappers.ArgFlag
-		res *wrappers.ResultFlag
-	)
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
-		Flag(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	r.Response(c, 0, res)
 }

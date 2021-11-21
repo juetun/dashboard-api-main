@@ -43,7 +43,7 @@ func (r *DaoPermitGroupImpl) GetGroupAppPermitImport(groupId int64, appName stri
 }
 
 func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromDb(groupId int64, appName string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
-	var m models.AdminUserGroupPermit
+	var m models.AdminUserGroupImport
 
 	defer func() {
 		if err != nil {
@@ -55,14 +55,13 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromDb(groupId int64, appNam
 		}
 	}()
 
- 	db := r.Context.Db.Table(m.TableName())
+	db := r.Context.Db.Table(m.TableName())
 	var mi models.AdminImport
-	err = db.Select("a.group_id,a.app_name,a.path_type,b.*").Joins(fmt.Sprintf(" AS a LEFT JOIN  %s AS b ON a.menu_id= b.id ",
+	err = db.Select("a.group_id,a.app_name,a.path_type,b.*").Joins(fmt.Sprintf(" AS a LEFT JOIN  %s AS b ON a.import_id= b.id ",
 		mi.TableName())).
-		Where("a.group_id = ? AND a.app_name = ? AND a.path_type = ?",
+		Where("a.group_id = ? AND a.app_name = ?",
 			groupId,
-			appName,
-			models.PathTypeApi).
+			appName).
 		Scopes(base.ScopesDeletedAt("a")).
 		Scopes(base.ScopesDeletedAt("b")).
 		Find(&res).
@@ -71,7 +70,7 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromDb(groupId int64, appNam
 	return
 }
 func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, appName string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
-	var m models.AdminUserGroupPermit
+	var m models.AdminUserGroupMenu
 
 	defer func() {
 		if err != nil {
@@ -92,7 +91,7 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, appName 
 		db = db.Where("a.module = ?", appName)
 	}
 	err = db.
-		Where("a.group_id = ? AND a.path_type = ?", groupId, models.PathTypePage).
+		Where("a.group_id = ?", groupId).
 		Scopes(base.ScopesDeletedAt("a")).
 		Scopes(base.ScopesDeletedAt("b")).
 		Find(&res).
@@ -180,7 +179,7 @@ func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, da
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
-	err = r.DeleteUserGroupPermitByGroupId(fmt.Sprintf("%d", groupId))
+	err = r.DeleteUserGroupPermitByGroupId(groupId)
 	return
 }
 
@@ -259,33 +258,29 @@ func (r *DaoPermitGroupImpl) setCacheUserPermitGroupCache(userHid string, res []
 	return
 }
 
-func (r *DaoPermitGroupImpl) DeleteUserGroupPermitByGroupId(ids ...string) (err error) {
-	if len(ids) == 0 {
+func (r *DaoPermitGroupImpl) DeleteUserGroupPermitByGroupId(groupIds ...int64) (err error) {
+	if len(groupIds) == 0 {
 		return
 	}
-	var m models.AdminUserGroupPermit
-	if err = r.Context.Db.
-		Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("group_id IN (?) ", ids).
-		Delete(&models.AdminGroup{}).
-		Error; err != nil {
+	daoPermitGroupMenu := NewDaoPermitGroupMenu(r.Context)
+
+	if err = daoPermitGroupMenu.DeleteGroupMenuByGroupIds(groupIds...); err != nil {
 		r.Context.Error(map[string]interface{}{
-			"ids": ids,
-			"err": err,
+			"groupIds": groupIds,
+			"err":      err,
 		}, "DaoPermitGroupImplDeleteUserGroupPermitByGroupId")
 		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 		return
 	}
 	go func() {
-		_ = r.DeleteUserGroupCacheByGroupIds(ids...)
+		_ = r.DeleteUserGroupCacheByGroupIds(groupIds...)
 	}()
 
 	return
 }
 
 // DeleteUserGroupCacheByGroupIds 根据用户组ID删除用户对应的权限组关系操作
-func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...string) (err error) {
+func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...int64) (err error) {
 
 	var list []models.AdminUserGroup
 
@@ -323,7 +318,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...string) 
 	return
 }
 
-func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, groupIds ...string) (list []models.AdminUserGroup, err error) {
+func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, groupIds ...int64) (list []models.AdminUserGroup, err error) {
 	var m models.AdminUserGroup
 	db := r.Context.Db.Distinct("user_hid").
 		Table(m.TableName()).
@@ -375,28 +370,43 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupByUserId(userId ...string) (err erro
 	return
 }
 
-func (r *DaoPermitGroupImpl) DeleteUserGroupPermit(pathType string, menuId ...int) (err error) {
-	if len(menuId) == 0 || pathType == "" {
+func (r *DaoPermitGroupImpl) DeleteUserGroupPermit(menuId ...int64) (err error) {
+	if len(menuId) == 0 {
 		return
 	}
-	var m models.AdminUserGroupPermit
+	var m models.AdminUserGroupMenu
 	if err = r.Context.Db.Table(m.TableName()).
 		Scopes(base.ScopesDeletedAt()).
-		Where("menu_id IN (?) AND path_type = ?", menuId, pathType).
-		Delete(&models.AdminUserGroupPermit{}).
+		Where("menu_id IN (?) ", menuId).
+		Delete(&m).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
-			"menu_id":  menuId,
-			"pathType": pathType,
-			"err":      err,
-		}, "daoPermitDeleteUserGroupPermit")
+			"menu_id": menuId,
+			"err":     err,
+		}, "DaoPermitGroupImplDeleteUserGroupPermit")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 
 		return
 	}
 	return
 }
-
+func (r *DaoPermitGroupImpl) DeleteAdminGroupByIds(ids ...int64) (err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var m models.AdminGroup
+	err = r.Context.Db.Table(m.TableName()).
+		Where("id IN (?) ", ids).
+		Delete(&models.AdminGroup{}).
+		Error
+	if err != nil {
+		r.Context.Error(map[string]interface{}{
+			"ids": ids,
+			"err": err,
+		}, "DaoPermitGroupImplDeleteAdminGroupByIds")
+	}
+	return
+}
 func NewDaoPermitGroupImpl(ctx ...*base.Context) (res daos.DaoPermitGroup) {
 	p := &DaoPermitGroupImpl{}
 	p.SetContext(ctx...)

@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_user
-* @Version: 1.0.0
-* @Date 2021/9/12 12:05 下午
- */
+// Package dao_impl /**
 package dao_impl
 
 import (

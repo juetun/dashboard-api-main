@@ -31,7 +31,7 @@ const (
 
 type (
 	ArgGetImportByMenuIdSingle struct {
-		NowMenuId       int    `json:"now_menu_id" form:"now_menu_id"`
+		NowMenuId       int64  `json:"now_menu_id" form:"now_menu_id"`
 		NowModule       string `json:"now_module" form:"now_module"`
 		NowPermitKey    string `json:"now_permit_key" form:"now_permit_key"`
 		NowRoutePath    string `json:"now_route_path" form:"now_route_path"`
@@ -43,8 +43,8 @@ type (
 		ArgGetImportByMenuIdSingle
 	}
 	ResultGetImportByMenuId struct {
-		ImportIds []int `json:"import_ids"`
-		MenuIds   []int `json:"menu_ids"`
+		ImportIds []int64 `json:"import_ids"`
+		MenuIds   []int64 `json:"menu_ids"`
 	}
 )
 
@@ -99,12 +99,12 @@ type AdminMenuObjectCheck struct {
 }
 type ArgAdminSetPermit struct {
 	app_param.RequestUser
-	GroupId        int64    `json:"group_id" form:"group_id"`
-	Type           string `json:"type" form:"type"`
-	PermitIdString string `json:"permit_ids" form:"permit_ids"`
-	PermitIds      []int  `json:"-" form:"-"`
-	Act            string `json:"act" form:"act"`
-	Module         string `json:"-"`
+	GroupId        int64   `json:"group_id" form:"group_id"`
+	Type           string  `json:"type" form:"type"`
+	PermitIdString string  `json:"permit_ids" form:"permit_ids"`
+	PermitIds      []int64 `json:"-" form:"-"`
+	Act            string  `json:"act" form:"act"`
+	Module         string  `json:"-"`
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
@@ -116,14 +116,14 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 		return
 	}
 	permitIds := strings.Split(r.PermitIdString, ",")
-	r.PermitIds = make([]int, 0, len(permitIds))
+	r.PermitIds = make([]int64, 0, len(permitIds))
 	if r.PermitIdString != "" {
-		var id int
+		var id int64
 		for _, value := range permitIds {
 			if value == "" {
 				continue
 			}
-			if id, err = strconv.Atoi(value); err != nil {
+			if id, err = strconv.ParseInt(value, 10, 64); err != nil {
 				return
 			}
 			if id == 0 {
@@ -156,7 +156,7 @@ type ResultAdminSetPermit struct {
 	Result bool `json:"result"`
 }
 type ArgDeleteImport struct {
-	ID int `uri:"id" binding:"required"`
+	ID int64 `uri:"id" binding:"required"`
 }
 type ResultDeleteImport struct {
 	Result bool `json:"result"`
@@ -211,10 +211,10 @@ type AdminImportList struct {
 	Menu           []AdminImportListMenu `json:"menu"`
 }
 type AdminImportListMenu struct {
-	SystemModuleId int    `json:"system_module_id"`
-	MenuId         int    `json:"menu_id"`
-	Id             int    `json:"id"` // 接口
-	ImportId       int    `json:"import_id"`
+	SystemModuleId int64  `json:"system_module_id"`
+	MenuId         int64  `json:"menu_id"`
+	Id             int64  `json:"id"` // 接口
+	ImportId       int64  `json:"import_id"`
 	MenuName       string `json:"menu_name"`
 	SystemMenuKey  string `json:"system_menu_key"`
 	SystemIcon     string `json:"system_icon"`
@@ -233,7 +233,7 @@ type ResultImportList struct {
 	*response.Pager
 }
 type ArgEditImport struct {
-	Id            int      `json:"id" form:"id"`
+	Id            int64    `json:"id" form:"id"`
 	AppName       string   `json:"app_name" form:"app_name"`
 	AppVersion    string   `json:"app_version" form:"app_version"`
 	SortValue     int      `json:"sort_value" form:"sort_value"`
@@ -301,10 +301,10 @@ func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
 
 type ArgMenuImportSet struct {
 	app_param.RequestUser
-	MenuId    int    `json:"menu_id" form:"menu_id"`
-	ImportId  string `json:"import_id" form:"import_id"`
-	ImportIds []int  `json:"-" form:"-"`
-	Type      string `json:"type" form:"type"`
+	MenuId    int64   `json:"menu_id" form:"menu_id"`
+	ImportId  string  `json:"import_id" form:"import_id"`
+	ImportIds []int64 `json:"-" form:"-"`
+	Type      string  `json:"type" form:"type"`
 }
 type ResultMenuImportSet struct {
 	Result bool `json:"result"`
@@ -319,12 +319,12 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 		return
 	}
 	iIds := strings.Split(r.ImportId, ",")
-	r.ImportIds = make([]int, 0, len(iIds))
+	r.ImportIds = make([]int64, 0, len(iIds))
 	for _, value := range iIds {
 		if value == "" {
 			continue
 		}
-		id, _ := strconv.Atoi(value)
+		id, _ := strconv.ParseInt(value, 10, 64)
 		if id > 0 {
 			r.ImportIds = append(r.ImportIds, id)
 		}
@@ -335,11 +335,10 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 type ArgGetImport struct {
 	app_param.RequestUser
 	response.PageQuery
-	Select  string `form:"select" json:"select,omitempty"`
-	MenuId  int    `json:"menu_id,omitempty" form:"menu_id"`
-	Checked bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
-	GroupId int    `json:"group_id,omitempty" form:"group_id"`
-
+	Select      string `form:"select" json:"select,omitempty"`
+	MenuId      int64  `json:"menu_id,omitempty" form:"menu_id"`
+	Checked     bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
+	GroupId     int64  `json:"group_id,omitempty" form:"group_id"`
 	PermitKey   string `json:"permit_key" form:"permit_key"`
 	AppName     string `json:"app_name" form:"app_name"`
 	DefaultOpen uint8  `json:"default_open" form:"default_open"`
@@ -472,8 +471,8 @@ type ResultAdminUserGroupAdd struct {
 
 type ArgAdminGroupDelete struct {
 	app_param.RequestUser
-	Ids      string   `json:"ids" form:"ids"`
-	IdString []string `json:"-" form:"-"`
+	Ids      string  `json:"ids" form:"ids"`
+	IdString []int64 `json:"-" form:"-"`
 }
 
 func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
@@ -481,12 +480,16 @@ func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
 		return
 	}
 	idString := strings.Split(r.Ids, ",")
-	r.IdString = []string{}
+	r.IdString = []int64{}
+	var id int64
 	for _, v := range idString {
 		if v == "" {
 			continue
 		}
-		r.IdString = append(r.IdString, v)
+		if id, err = strconv.ParseInt(v, 10, 64); err != nil {
+			return
+		}
+		r.IdString = append(r.IdString, id)
 	}
 	return
 }
@@ -575,7 +578,7 @@ type ArgMenuDelete struct {
 	app_param.RequestUser
 	Ids           string   `json:"ids" form:"ids"`
 	IdValue       []string `json:"-"`
-	IdValueNumber []int    `json:"-"`
+	IdValueNumber []int64  `json:"-"`
 }
 
 func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
@@ -583,14 +586,14 @@ func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
 		return
 	}
 	r.IdValue = make([]string, 0, 5)
-	r.IdValueNumber = make([]int, 0, 5)
-	var v int
+	r.IdValueNumber = make([]int64, 0, 5)
+	var v int64
 	if r.Ids != "" {
 		idValue := strings.Split(r.Ids, ",")
 		for _, value := range idValue {
 			if value != "" {
 				r.IdValue = append(r.IdValue, value)
-				if v, err = strconv.Atoi(value); err != nil {
+				if v, err = strconv.ParseInt(value, 10, 64); err != nil {
 					return
 				}
 				r.IdValueNumber = append(r.IdValueNumber, v)
@@ -625,15 +628,15 @@ type ResultAdminGroup struct {
 type ArgAdminMenu struct {
 	app_param.RequestUser
 	response.PageQuery
-	Id         int    `json:"id" form:"id"`
+	Id         int64  `json:"id" form:"id"`
 	Label      string `json:"label" form:"label"`
 	AppName    string `json:"app_name" form:"app_name"`
 	UserHId    string `json:"user_hid" form:"user_hid"`
-	ParentId   int    `json:"parent_id" form:"parent_id"`
+	ParentId   int64  `json:"parent_id" form:"parent_id"`
 	IsMenuShow int    `json:"is_menu_show" form:"is_menu_show"`
 	IsDel      int    `json:"is_del" form:"is_del"`
 	Module     string `json:"module" form:"module"`
-	SystemId   int    `json:"system_id" form:"system_id"`
+	SystemId   int64  `json:"system_id" form:"system_id"`
 }
 
 func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
@@ -658,8 +661,8 @@ type ResultAdminMenuOtherValue struct {
 	Checked         bool `json:"checked"`
 }
 type ResultAdminMenuSingle struct {
-	Id                 int    `json:"id"`
-	ParentId           int    `json:"parent_id"`
+	Id                 int64  `json:"id"`
+	ParentId           int64  `json:"parent_id"`
 	AppName            string `json:"app_name"`
 	Title              string `json:"title"`
 	Label              string `json:"label"`
@@ -689,7 +692,7 @@ func NewResultAdminMenu() *ResultAdminMenu {
 }
 
 type ResultSystemAdminMenu struct {
-	Id                 int    `gorm:"primary_key" json:"id" form:"id"`
+	Id                 int64  `gorm:"primary_key" json:"id" form:"id"`
 	PermitKey          string `json:"permit_key" gorm:"column:permit_key"`
 	ManageImportPermit uint8  `json:"manage_import_permit" gorm:"column:manage_import_permit" form:"manage_import_permit"`
 	Label              string `json:"label" gorm:"column:label" form:"label"`
@@ -730,12 +733,12 @@ type ResultAdminUserList struct {
 type ArgPermitMenu struct {
 	app_param.RequestUser
 	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
-	ParentId                   int      `json:"parent_id"` // 上级菜单ID
+	ParentId                   int64    `json:"parent_id"` // 上级菜单ID
 	PathType                   string   `json:"path_type" form:"path_type"`
 	PathTypes                  []string `json:"-" form:"-"`
 	Module                     string   `json:"module" form:"module"` // 系统ID
 	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
-	GroupId                    []int64    `json:"-" form:"-"`
+	GroupId                    []int64  `json:"-" form:"-"`
 }
 
 // Default 初始化默认值
@@ -783,8 +786,8 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 		OpList:          map[string][]OpOne{},
 		NotReadMsgCount: 0,
 		NowImportAndMenu: ResultGetImportByMenuId{
-			ImportIds: []int{},
-			MenuIds:   []int{},
+			ImportIds: []int64{},
+			MenuIds:   []int64{},
 		},
 	}
 	return
@@ -797,7 +800,7 @@ type Op struct {
 }
 
 type ResultSystemMenu struct {
-	Id        int    `gorm:"primary_key" json:"id" form:"id"`
+	Id        int64  `gorm:"primary_key" json:"id" form:"id"`
 	PermitKey string `json:"permit_key" gorm:"column:permit_key"`
 	Label     string `json:"label" gorm:"column:label" form:"label"`
 	Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
@@ -807,7 +810,7 @@ type ResultSystemMenu struct {
 	Active    bool   `json:"active"`
 }
 type ResultPermitMenu struct {
-	Id        int                `json:"-"`
+	Id        int64              `json:"-"`
 	Path      string             `json:"path,omitempty"`
 	Module    string             `json:"-"`
 	Name      string             `json:"name,omitempty"`
@@ -847,7 +850,7 @@ type AdminGroupUserStruct struct {
 }
 type ArgGetMenu struct {
 	app_param.RequestUser
-	MenuId int `json:"menu_id" form:"menu_id"`
+	MenuId int64 `json:"menu_id" form:"menu_id"`
 }
 
 type ResultGetMenu struct {

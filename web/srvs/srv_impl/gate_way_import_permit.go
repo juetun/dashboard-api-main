@@ -31,7 +31,7 @@ func (r *SrvGatewayImportImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUe
 		return
 	}
 	if !isAdmin {
-		err = fmt.Errorf("您不是系统管理员，无权限访问")
+		err = fmt.Errorf("您不是系统管理员,无权限访问")
 		return
 	}
 	if isSuperAdmin { // 如果是超级管理员

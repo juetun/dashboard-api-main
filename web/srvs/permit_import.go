@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_import
-* @Version: 1.0.0
-* @Date 2021/9/12 11:36 上午
- */
+// Package srvs /**
 package srvs
 
 import (
@@ -13,8 +7,7 @@ import (
 )
 
 type SrvPermitImport interface {
-
-	SetApiPermit(dao daos.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error)
+	SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err error)
 
 	ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error)
 
@@ -30,7 +23,7 @@ type SrvPermitImport interface {
 
 	DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappers.ResultDeleteImport, err error)
 
-	GetChildMenu(nowMenuId int) (menuIds []int, err error)
+	GetChildMenu(nowMenuId int64) (menuIds []int64, err error)
 
-	GetChildImport(nowMenuId int) (importIds []int, err error)
+	GetChildImport(nowMenuId int64) (importIds []int64, err error)
 }

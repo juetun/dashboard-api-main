@@ -89,6 +89,7 @@ func (r ControllerExportData) Progress(c *gin.Context) {
 }
 
 func (r ControllerExportData) List(c *gin.Context) {
+
 	var args wrappers.ArgumentsExportList
 	var err error
 
@@ -106,7 +107,7 @@ func (r ControllerExportData) List(c *gin.Context) {
 	res, err = srv.List(&args)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "export.list", "err", err.Error())
-		r.Response(c, 500000000, nil, err.Error())
+		r.ResponseError(c, err)
 		return
 	}
 	r.Response(c, 0, res)
