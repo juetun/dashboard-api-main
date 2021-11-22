@@ -43,10 +43,14 @@ func (r *ControllerPermit) MenuImportSet(c *gin.Context) {
 	r.Response(c, base.SuccessCode, res)
 
 }
+
 func (r *ControllerPermit) GetMenu(c *gin.Context) {
-	var arg wrappers.ArgGetMenu
-	var err error
-	var res wrappers.ResultGetMenu
+	var (
+		err error
+		arg wrappers.ArgGetMenu
+		res wrappers.ResultGetMenu
+	)
+
 	if err = c.Bind(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -66,9 +70,11 @@ func (r *ControllerPermit) GetMenu(c *gin.Context) {
 
 }
 func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
-	var arg wrappers.ArgAdminMenu
-	var err error
-	var res wrappers.ResAdminMenuSearch
+	var (
+		arg wrappers.ArgAdminMenu
+		err error
+		res wrappers.ResAdminMenuSearch
+	)
 
 	if err = c.Bind(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
@@ -85,7 +91,7 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 
 }
 
@@ -109,7 +115,7 @@ func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
@@ -131,7 +137,7 @@ func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
@@ -155,7 +161,7 @@ func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
@@ -183,7 +189,7 @@ func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
@@ -209,7 +215,7 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	var arg wrappers.ArgAdminGroupEdit
@@ -235,7 +241,7 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) DeleteImport(c *gin.Context) {
@@ -252,7 +258,7 @@ func (r *ControllerPermit) DeleteImport(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	} else {
-		r.Response(c, 0, res)
+		r.Response(c, base.SuccessCode, res)
 	}
 }
 
@@ -275,7 +281,7 @@ func (r *ControllerPermit) UpdateImportValue(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 	return
 }
 func (r *ControllerPermit) ImportList(c *gin.Context) {
@@ -297,7 +303,7 @@ func (r *ControllerPermit) ImportList(c *gin.Context) {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 	return
 }
 func (r *ControllerPermit) EditImport(c *gin.Context) {
@@ -319,7 +325,7 @@ func (r *ControllerPermit) EditImport(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 	return
 }
 func (r *ControllerPermit) GetImport(c *gin.Context) {
@@ -344,7 +350,7 @@ func (r *ControllerPermit) GetImport(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 
 }
 
@@ -372,30 +378,32 @@ func (r *ControllerPermit) GetImportByMenuId(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 
 }
 
 func (r *ControllerPermit) MenuImport(c *gin.Context) {
-	var arg wrappers.ArgMenuImport
-	var err error
+	var (
+		arg wrappers.ArgMenuImport
+		err error
+		res *wrappers.ResultMenuImport
+	)
 
 	if err = c.ShouldBind(&arg); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
 	if err = arg.Default(c); err != nil {
-		r.Response(c, 500000001, nil, err.Error())
+		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
-
 	// 记录日志
-	if res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
 		MenuImport(&arg); err != nil {
-		r.Response(c, 500000002, nil, err.Error())
+		r.ResponseError(c, err)
 		return
 	} else {
-		r.Response(c, 0, res)
+		r.Response(c, base.SuccessCode, res)
 	}
 }
 func (r *ControllerPermit) MenuDelete(c *gin.Context) {
@@ -421,7 +429,7 @@ func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 
 }
 
@@ -444,7 +452,7 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) MenuAdd(c *gin.Context) {
@@ -468,7 +476,7 @@ func (r *ControllerPermit) MenuAdd(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
@@ -492,7 +500,7 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminMenu(c *gin.Context) {
@@ -516,7 +524,7 @@ func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 func (r *ControllerPermit) AdminUser(c *gin.Context) {
@@ -542,7 +550,7 @@ func (r *ControllerPermit) AdminUser(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 // AdminSetPermit 设置权限
@@ -588,7 +596,7 @@ func (r *ControllerPermit) AdminGroup(c *gin.Context) {
 		r.ResponseError(c, err)
 		return
 	}
-	r.Response(c, 0, res)
+	r.Response(c, base.SuccessCode, res)
 }
 
 // Menu 获取权限菜单
@@ -617,6 +625,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 }
 
 func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
+
 	var (
 		arg wrappers.ArgGetAppConfig
 		res *wrappers.ResultGetAppConfig

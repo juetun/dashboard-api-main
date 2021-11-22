@@ -18,9 +18,7 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIds(groupId ...int64) (er
 	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
 		Where("group_id IN (?)", groupId)
 
-	db = db.Where(db)
-	if err = db.
-		Delete(&m).
+	if err = db.Delete(&m).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"groupId": groupId,
@@ -36,16 +34,12 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupPermitByMenuIds(groupId int64, modul
 	}
 	var m models.AdminUserGroupMenu
 	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("group_id =? AND module=?", groupId, module)
+		Where("group_id = ? AND module = ?", groupId, module)
 
 	if len(pageMenuId) > 0 {
-		db = db.Where("menu_id IN (?) AND path_type=?", pageMenuId, models.PathTypePage)
+		db = db.Where("menu_id IN (?)", pageMenuId)
 	}
-
-	db = db.Where(db)
-	if err = db.
-		Delete(&m).
-		Error; err != nil {
+ 	if err = db.Delete(&m).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"groupId":    groupId,
 			"pageMenuId": pageMenuId,

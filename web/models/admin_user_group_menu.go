@@ -15,11 +15,11 @@ const (
 
 type AdminUserGroupMenu struct {
 	Id        int64      `gorm:"column:id;primary_key" json:"id"`
-	GroupId   int64      `json:"group_id" gorm:"column:group_id"`
-	Module    string     `json:"module"  gorm:"column:module"`
-	MenuId    int64      `json:"menu_id" gorm:"column:menu_id"`
-	CreatedAt time.Time  `gorm:"column:created_at" json:"-" `
-	UpdatedAt time.Time  `gorm:"column:updated_at" json:"-" `
+	GroupId   int64      `json:"group_id" gorm:"column:group_id;uniqueIndex:idx_uid,priority:1;not null;default:0;comment:管理员组ID"`
+	Module    string     `json:"module"  gorm:"column:module;uniqueIndex:idx_uid,priority:2;not null;default:'';comment:菜单所属系统"`
+	MenuId    int64      `json:"menu_id" gorm:"column:menu_id;uniqueIndex:idx_uid,priority:3;not null;default:0;comment:菜单ID"`
+	CreatedAt time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 

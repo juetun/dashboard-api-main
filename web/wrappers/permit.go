@@ -46,6 +46,271 @@ type (
 		ImportIds []int64 `json:"import_ids"`
 		MenuIds   []int64 `json:"menu_ids"`
 	}
+	ArgGetAppConfig struct {
+		app_param.RequestUser
+		Module string `json:"module" form:"module"`
+		Env    string `json:"env" form:"env"`
+	}
+	ResultGetAppConfig map[string]string
+
+	AdminGroup struct {
+		models.AdminGroup
+		ParentName string `json:"parent_name"`
+	}
+
+	ArgAdminMenuWithCheck struct {
+		ArgAdminMenu
+		GroupId int64 `json:"group_id" form:"group_id"`
+	}
+
+	ResultMenuWithCheck struct {
+		List []AdminMenuObject       `json:"list"`
+		Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
+	}
+
+	AdminMenuObjectCheck struct {
+		ResultAdminMenuSingle
+		Children []AdminMenuObject `json:"children"`
+	}
+
+	ArgAdminSetPermit struct {
+		app_param.RequestUser
+		GroupId        int64   `json:"group_id" form:"group_id"`
+		Type           string  `json:"type" form:"type"`
+		PermitIdString string  `json:"permit_ids" form:"permit_ids"`
+		PermitIds      []int64 `json:"-" form:"-"`
+		Act            string  `json:"act" form:"act"`
+		Module         string  `json:"-"`
+	}
+
+	ResultAdminSetPermit struct {
+		Result bool `json:"result"`
+	}
+	ArgDeleteImport struct {
+		ID int64 `uri:"id" binding:"required"`
+	}
+	ResultDeleteImport struct {
+		Result bool `json:"result"`
+	}
+	ArgImportList struct {
+		app_param.RequestUser
+		response.PageQuery
+		PermitKey   string `json:"permit_key" form:"permit_key"`
+		AppName     string `json:"app_name" form:"app_name"`
+		DefaultOpen uint8  `json:"default_open" form:"default_open"`
+		NeedLogin   uint8  `json:"need_login" form:"need_login"`
+		NeedSign    uint8  `json:"need_sign" form:"need_sign"`
+		UrlPath     string `json:"url_path" form:"url_path"`
+	}
+	ArgUpdateImportValue struct {
+		app_param.RequestUser
+		Id     string   `json:"id" form:"id"`
+		Ids    []string `json:"-" form:"-"`
+		Column string   `json:"column" form:"column"`
+		Val    string   `json:"val" form:"val"`
+	}
+
+	ResultImportList struct {
+		*response.Pager
+	}
+	ArgEditImport struct {
+		Id            int64    `json:"id" form:"id"`
+		AppName       string   `json:"app_name" form:"app_name"`
+		AppVersion    string   `json:"app_version" form:"app_version"`
+		SortValue     int      `json:"sort_value" form:"sort_value"`
+		NeedLogin     uint8    `json:"need_login" form:"need_login"`
+		NeedSign      uint8    `json:"need_sign" form:"need_sign"`
+		UrlPath       string   `json:"url_path" form:"url_path"`
+		UrlPaths      []string `json:"-" form:"-"`
+		RequestMethod []string `json:"request_methods" form:"request_methods"`
+		DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
+		RequestTime   string   `json:"request_time" form:"-"`
+	}
+
+	ResultEditImport struct {
+		Result bool `json:"result"`
+	}
+	ResultUpdateImportValue struct {
+		Result bool `json:"result"`
+	}
+	AdminImportList struct {
+		models.AdminImport
+		RequestMethods []string              `json:"request_methods"`
+		Menu           []AdminImportListMenu `json:"menu"`
+	}
+	AdminImportListMenu struct {
+		SystemModuleId int64  `json:"system_module_id"`
+		MenuId         int64  `json:"menu_id"`
+		Id             int64  `json:"id"` // 接口
+		ImportId       int64  `json:"import_id"`
+		MenuName       string `json:"menu_name"`
+		SystemMenuKey  string `json:"system_menu_key"`
+		SystemIcon     string `json:"system_icon"`
+		SystemName     string `json:"system_name"`
+	}
+
+	OpOne string
+	Op    struct {
+		PermitKey     string `json:"pk"  gorm:"column:permit_key"`
+		MenuPermitKey string `json:"-" gorm:"column:menu_permit_key"`
+	}
+
+	ResultSystemMenu struct {
+		Id        int64  `gorm:"primary_key" json:"id" form:"id"`
+		PermitKey string `json:"permit_key" gorm:"column:permit_key"`
+		Label     string `json:"label" gorm:"column:label" form:"label"`
+		Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
+		SortValue int    `json:"sort_value,omitempty" gorm:"column:sort_value" form:"sort_value"`
+		Module    string `json:"module" gorm:"column:module" form:"module"`
+		Domain    string `json:"domain" gorm:"column:domain" form:"domain"`
+		Active    bool   `json:"active"`
+	}
+	ResultPermitMenu struct {
+		Id        int64              `json:"-"`
+		Path      string             `json:"path,omitempty"`
+		Module    string             `json:"-"`
+		Name      string             `json:"name,omitempty"`
+		Label     string             `json:"label,omitempty"`
+		Meta      PermitMeta         `json:"meta,omitempty"`
+		Children  []ResultPermitMenu `json:"children"`
+		Component interface{}        `json:"component,omitempty"`
+	}
+	AdminMenu struct {
+		ID         int    `json:"id"`
+		PathName   string `json:"path_name" form:"path_name"`
+		ParentId   int    `json:"parent_id" gorm:"parent_id" form:"parent_id"`
+		Label      string `json:"label" gorm:"label" form:"label"`
+		Icon       string `json:"icon" gorm:"icon" form:"icon"`
+		IsMenuShow int    `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
+		UrlPath    string `json:"url_path" gorm:"url_path" form:"url_path"`
+		SortValue  int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
+		OtherValue string `json:"other_value" gorm:"other_value" form:"other_value"`
+	}
+	ArgFlag struct {
+		app_param.RequestUser
+	}
+	ResultFlag struct {
+	}
+
+	AdminGroupUserStruct struct {
+		models.AdminUserGroup
+		models.AdminGroup
+	}
+	ArgGetMenu struct {
+		app_param.RequestUser
+		MenuId int64 `json:"menu_id" form:"menu_id"`
+	}
+
+	ResultGetMenu struct {
+		models.AdminMenu
+	}
+
+	ArgGetImport struct {
+		app_param.RequestUser
+		response.PageQuery
+		Select      string `form:"select" json:"select,omitempty"`
+		MenuId      int64  `json:"menu_id,omitempty" form:"menu_id"`
+		Checked     bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
+		GroupId     int64  `json:"group_id,omitempty" form:"group_id"`
+		PermitKey   string `json:"permit_key" form:"permit_key"`
+		AppName     string `json:"app_name" form:"app_name"`
+		DefaultOpen uint8  `json:"default_open" form:"default_open"`
+		NeedLogin   uint8  `json:"need_login" form:"need_login"`
+		NeedSign    uint8  `json:"need_sign" form:"need_sign"`
+		UrlPath     string `json:"url_path" form:"url_path"`
+	}
+	AdminImport struct {
+		models.AdminImport
+		Checked bool `json:"checked"`
+	}
+
+	ResultGetImport struct {
+		*response.Pager
+	}
+	ArgAdminMenuSearch struct {
+		app_param.RequestUser
+		UserHid string `json:"user_hid" form:"user_hid"`
+	}
+
+	ResAdminMenuSearch struct {
+		List []models.AdminMenu `json:"list"`
+	}
+	ArgAdminUserAdd struct {
+		app_param.RequestUser
+		UserHid string `json:"user_hid" form:"user_hid"`
+	}
+	ResultAdminUserAdd struct {
+		Result bool `json:"result"`
+	}
+	ArgAdminUserDelete struct {
+		app_param.RequestUser
+		Ids      string   `json:"ids" form:"ids"`
+		IdString []string `json:"-" form:"-"`
+	}
+
+	ArgMenuAdd struct {
+		app_param.RequestUser
+		models.AdminMenu
+	}
+
+	DaoOrderBy struct {
+		Column     string `json:"column"`      // 排序字段
+		SortFormat string `json:"sort_format"` // 排序方式
+	}
+
+	ResultMenuImport struct {
+		*response.Pager
+	}
+	ResultMenuImportItem struct {
+		models.AdminImport
+		Checked bool `json:"checked,omitempty"` // 是否要查看选中权限情况
+	}
+	ArgMenuImport struct {
+		app_param.RequestUser
+		response.PageQuery
+		MenuId  int    `json:"menu_id" form:"menu_id"`
+		AppName string `json:"app_name" form:"app_name"`
+		UrlPath string `json:"url_path" form:"url_path"`
+	}
+
+	ArgMenuImportSet struct {
+		app_param.RequestUser
+		MenuId    int64   `json:"menu_id" form:"menu_id"`
+		ImportId  string  `json:"import_id" form:"import_id"`
+		ImportIds []int64 `json:"-" form:"-"`
+		Type      string  `json:"type" form:"type"`
+	}
+
+	ResultMenuImportSet struct {
+		Result bool `json:"result"`
+	}
+
+	ResultAdminUserDelete struct {
+		Result bool `json:"result"`
+	}
+
+	ArgAdminUserGroupRelease struct {
+		app_param.RequestUser
+		Ids      string   `json:"ids" form:"ids"`
+		IdString []string `json:"-" form:"-"`
+	}
+
+	ResultAdminUserGroupRelease struct {
+		Result bool `json:"result"`
+	}
+
+	ResultAdminGroupDelete struct {
+		Result bool `json:"result"`
+	}
+
+	ResultAdminGroupEdit struct {
+		Result bool `json:"result"`
+	}
+	ArgAdminGroupEdit struct {
+		app_param.RequestUser
+		Name string `json:"name" form:"name"`
+		Id   int64  `json:"id" form:"id"`
+	}
 )
 
 func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
@@ -57,28 +322,11 @@ func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ArgGetAppConfig struct {
-	app_param.RequestUser
-	Module string `json:"module" form:"module"`
-	Env    string `json:"env" form:"env"`
-}
-
 func (r *ArgGetAppConfig) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
 	return
-}
-
-type ResultGetAppConfig map[string]string
-type AdminGroup struct {
-	models.AdminGroup
-	ParentName string `json:"parent_name"`
-}
-
-type ArgAdminMenuWithCheck struct {
-	ArgAdminMenu
-	GroupId int64 `json:"group_id" form:"group_id"`
 }
 
 func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
@@ -87,24 +335,6 @@ func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
 	}
 	r.PageQuery.DefaultPage()
 	return
-}
-
-type ResultMenuWithCheck struct {
-	List []AdminMenuObject       `json:"list"`
-	Menu []ResultSystemAdminMenu `json:"menu"` // 一级系统权限列表
-}
-type AdminMenuObjectCheck struct {
-	ResultAdminMenuSingle
-	Children []AdminMenuObject `json:"children"`
-}
-type ArgAdminSetPermit struct {
-	app_param.RequestUser
-	GroupId        int64   `json:"group_id" form:"group_id"`
-	Type           string  `json:"type" form:"type"`
-	PermitIdString string  `json:"permit_ids" form:"permit_ids"`
-	PermitIds      []int64 `json:"-" form:"-"`
-	Act            string  `json:"act" form:"act"`
-	Module         string  `json:"-"`
 }
 
 func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
@@ -152,33 +382,6 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultAdminSetPermit struct {
-	Result bool `json:"result"`
-}
-type ArgDeleteImport struct {
-	ID int64 `uri:"id" binding:"required"`
-}
-type ResultDeleteImport struct {
-	Result bool `json:"result"`
-}
-type ArgImportList struct {
-	app_param.RequestUser
-	response.PageQuery
-	PermitKey   string `json:"permit_key" form:"permit_key"`
-	AppName     string `json:"app_name" form:"app_name"`
-	DefaultOpen uint8  `json:"default_open" form:"default_open"`
-	NeedLogin   uint8  `json:"need_login" form:"need_login"`
-	NeedSign    uint8  `json:"need_sign" form:"need_sign"`
-	UrlPath     string `json:"url_path" form:"url_path"`
-}
-type ArgUpdateImportValue struct {
-	app_param.RequestUser
-	Id     string   `json:"id" form:"id"`
-	Ids    []string `json:"-" form:"-"`
-	Column string   `json:"column" form:"column"`
-	Val    string   `json:"val" form:"val"`
-}
-
 func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -202,52 +405,12 @@ func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultUpdateImportValue struct {
-	Result bool `json:"result"`
-}
-type AdminImportList struct {
-	models.AdminImport
-	RequestMethods []string              `json:"request_methods"`
-	Menu           []AdminImportListMenu `json:"menu"`
-}
-type AdminImportListMenu struct {
-	SystemModuleId int64  `json:"system_module_id"`
-	MenuId         int64  `json:"menu_id"`
-	Id             int64  `json:"id"` // 接口
-	ImportId       int64  `json:"import_id"`
-	MenuName       string `json:"menu_name"`
-	SystemMenuKey  string `json:"system_menu_key"`
-	SystemIcon     string `json:"system_icon"`
-	SystemName     string `json:"system_name"`
-}
-
 func (r *ArgImportList) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
 	r.PageQuery.DefaultPage()
 	return
-}
-
-type ResultImportList struct {
-	*response.Pager
-}
-type ArgEditImport struct {
-	Id            int64    `json:"id" form:"id"`
-	AppName       string   `json:"app_name" form:"app_name"`
-	AppVersion    string   `json:"app_version" form:"app_version"`
-	SortValue     int      `json:"sort_value" form:"sort_value"`
-	NeedLogin     uint8    `json:"need_login" form:"need_login"`
-	NeedSign      uint8    `json:"need_sign" form:"need_sign"`
-	UrlPath       string   `json:"url_path" form:"url_path"`
-	UrlPaths      []string `json:"-" form:"-"`
-	RequestMethod []string `json:"request_methods" form:"request_methods"`
-	DefaultOpen   uint8    `json:"default_open" gorm:"column:default_open" form:"default_open"`
-	RequestTime   string   `json:"request_time" form:"-"`
-}
-
-type ResultEditImport struct {
-	Result bool `json:"result"`
 }
 
 func (r *ArgEditImport) Default(c *gin.Context) (err error) {
@@ -274,42 +437,10 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 	return
 }
 
-type DaoOrderBy struct {
-	Column     string `json:"column"`      // 排序字段
-	SortFormat string `json:"sort_format"` // 排序方式
-}
-
-type ResultMenuImport struct {
-	*response.Pager
-}
-type ResultMenuImportItem struct {
-	models.AdminImport
-	Checked bool `json:"checked,omitempty"` // 是否要查看选中权限情况
-}
-type ArgMenuImport struct {
-	app_param.RequestUser
-	response.PageQuery
-	MenuId  int    `json:"menu_id" form:"menu_id"`
-	AppName string `json:"app_name" form:"app_name"`
-	UrlPath string `json:"url_path" form:"url_path"`
-}
-
 func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
 	_ = c
 	return
 }
-
-type ArgMenuImportSet struct {
-	app_param.RequestUser
-	MenuId    int64   `json:"menu_id" form:"menu_id"`
-	ImportId  string  `json:"import_id" form:"import_id"`
-	ImportIds []int64 `json:"-" form:"-"`
-	Type      string  `json:"type" form:"type"`
-}
-type ResultMenuImportSet struct {
-	Result bool `json:"result"`
-}
-
 func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -332,25 +463,6 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ArgGetImport struct {
-	app_param.RequestUser
-	response.PageQuery
-	Select      string `form:"select" json:"select,omitempty"`
-	MenuId      int64  `json:"menu_id,omitempty" form:"menu_id"`
-	Checked     bool   `json:"checked,omitempty" form:"checked"` // 是否要查看选中权限情况
-	GroupId     int64  `json:"group_id,omitempty" form:"group_id"`
-	PermitKey   string `json:"permit_key" form:"permit_key"`
-	AppName     string `json:"app_name" form:"app_name"`
-	DefaultOpen uint8  `json:"default_open" form:"default_open"`
-	NeedLogin   uint8  `json:"need_login" form:"need_login"`
-	NeedSign    uint8  `json:"need_sign" form:"need_sign"`
-	UrlPath     string `json:"url_path" form:"url_path"`
-}
-type AdminImport struct {
-	models.AdminImport
-	Checked bool `json:"checked"`
-}
-
 func (r *ArgGetImport) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -359,40 +471,11 @@ func (r *ArgGetImport) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultGetImport struct {
-	*response.Pager
-}
-type ArgAdminMenuSearch struct {
-	app_param.RequestUser
-	UserHid string `json:"user_hid" form:"user_hid"`
-}
-
-func (r *ArgAdminMenuSearch) Default() {
-
-}
-
-type ResAdminMenuSearch struct {
-	List []models.AdminMenu `json:"list"`
-}
-type ArgAdminUserAdd struct {
-	app_param.RequestUser
-	UserHid string `json:"user_hid" form:"user_hid"`
-}
-
 func (r *ArgAdminUserAdd) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
 	return
-}
-
-type ResultAdminUserAdd struct {
-	Result bool `json:"result"`
-}
-type ArgAdminUserDelete struct {
-	app_param.RequestUser
-	Ids      string   `json:"ids" form:"ids"`
-	IdString []string `json:"-" form:"-"`
 }
 
 func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
@@ -409,16 +492,6 @@ func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultAdminUserDelete struct {
-	Result bool `json:"result"`
-}
-
-type ArgAdminUserGroupRelease struct {
-	app_param.RequestUser
-	Ids      string   `json:"ids" form:"ids"`
-	IdString []string `json:"-" form:"-"`
-}
-
 func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -427,10 +500,6 @@ func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
 		r.IdString = strings.Split(r.Ids, ",")
 	}
 	return
-}
-
-type ResultAdminUserGroupRelease struct {
-	Result bool `json:"result"`
 }
 
 type ArgAdminUserGroupAdd struct {
@@ -494,19 +563,6 @@ func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultAdminGroupDelete struct {
-	Result bool `json:"result"`
-}
-
-type ResultAdminGroupEdit struct {
-	Result bool `json:"result"`
-}
-type ArgAdminGroupEdit struct {
-	app_param.RequestUser
-	Name string `json:"name" form:"name"`
-	Id   int64  `json:"id" form:"id"`
-}
-
 func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -518,12 +574,8 @@ func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ArgMenuAdd struct {
-	app_param.RequestUser
-	models.AdminMenu
-}
-
 func (r *ArgMenuAdd) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
 	}
@@ -793,47 +845,6 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 	return
 }
 
-type OpOne string
-type Op struct {
-	PermitKey     string `json:"pk"  gorm:"column:permit_key"`
-	MenuPermitKey string `json:"-" gorm:"column:menu_permit_key"`
-}
-
-type ResultSystemMenu struct {
-	Id        int64  `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey string `json:"permit_key" gorm:"column:permit_key"`
-	Label     string `json:"label" gorm:"column:label" form:"label"`
-	Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
-	SortValue int    `json:"sort_value,omitempty" gorm:"column:sort_value" form:"sort_value"`
-	Module    string `json:"module" gorm:"column:module" form:"module"`
-	Domain    string `json:"domain" gorm:"column:domain" form:"domain"`
-	Active    bool   `json:"active"`
-}
-type ResultPermitMenu struct {
-	Id        int64              `json:"-"`
-	Path      string             `json:"path,omitempty"`
-	Module    string             `json:"-"`
-	Name      string             `json:"name,omitempty"`
-	Label     string             `json:"label,omitempty"`
-	Meta      PermitMeta         `json:"meta,omitempty"`
-	Children  []ResultPermitMenu `json:"children"`
-	Component interface{}        `json:"component,omitempty"`
-}
-type AdminMenu struct {
-	ID         int    `json:"id"`
-	PathName   string `json:"path_name" form:"path_name"`
-	ParentId   int    `json:"parent_id" gorm:"parent_id" form:"parent_id"`
-	Label      string `json:"label" gorm:"label" form:"label"`
-	Icon       string `json:"icon" gorm:"icon" form:"icon"`
-	IsMenuShow int    `json:"is_menu_show" gorm:"is_menu_show" form:"is_menu_show"`
-	UrlPath    string `json:"url_path" gorm:"url_path" form:"url_path"`
-	SortValue  int    `json:"sort_value" gorm:"sort_value" form:"sort_value"`
-	OtherValue string `json:"other_value" gorm:"other_value" form:"other_value"`
-}
-type ArgFlag struct {
-	app_param.RequestUser
-}
-
 func (r *ArgFlag) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -841,22 +852,9 @@ func (r *ArgFlag) Default(c *gin.Context) (err error) {
 	return
 }
 
-type ResultFlag struct {
-}
+func (r *ArgAdminMenuSearch) Default() {
 
-type AdminGroupUserStruct struct {
-	models.AdminUserGroup
-	models.AdminGroup
 }
-type ArgGetMenu struct {
-	app_param.RequestUser
-	MenuId int64 `json:"menu_id" form:"menu_id"`
-}
-
-type ResultGetMenu struct {
-	models.AdminMenu
-}
-
 func (r *ArgGetMenu) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
