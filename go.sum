@@ -266,6 +266,8 @@ github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zV
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
 github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69NZV8Q=
 github.com/goji/httpauth v0.0.0-20160601135302-2da839ab0f4d/go.mod h1:nnjvkQ9ptGaCkuDUx6wNykzzlUixGxvkme+H/lnzb+A=
+github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
+github.com/golang-jwt/jwt v3.2.2+incompatible/go.mod h1:8pz2t5EyA70fFQQSrl6XZXzqecmYZeUEB8OUGHkxJ+I=
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 h1:DACJavvAHhabrF08vX0COfcOBJRhZ8lUbR+ZWIs0Y5g=
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0/go.mod h1:E/TSTwGwJL78qG/PmXZO1EjYhfJinVAhrmmHX6Z8B9k=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=
@@ -384,6 +386,8 @@ github.com/juetun/base-wrapper v0.0.128 h1:uvucMR2sw0XG3XadT8eztwVJWsVLLZcBvH5zM
 github.com/juetun/base-wrapper v0.0.128/go.mod h1:2oOV0e3g1cHH4s6nw4NkCl9bUcpIbxV4iKGOuizasMg=
 github.com/juetun/base-wrapper v0.0.129 h1:XNCRPpNntlF0G1/P0cb28Hh1ZkxhygeQpVD3DcNlA9E=
 github.com/juetun/base-wrapper v0.0.129/go.mod h1:2oOV0e3g1cHH4s6nw4NkCl9bUcpIbxV4iKGOuizasMg=
+github.com/juetun/base-wrapper v0.0.130 h1:PMjaKnw5P8dD08s1J/r0UIYnTojT6i4jY+egthlySU4=
+github.com/juetun/base-wrapper v0.0.130/go.mod h1:xpmEU4NaKfukdIyMmYMH3cxP9O1xzQaPubfSJg2yxzE=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
