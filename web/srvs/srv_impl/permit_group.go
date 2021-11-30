@@ -28,7 +28,7 @@ type SrvPermitGroupImpl struct {
 
 func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error) {
 	res = wrappers.ResultAdminGroupDelete{}
- 	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
 	if err = daoGroup.DeleteAdminGroupByIds(arg.IdString...); err != nil {
 		return
 	}
@@ -91,59 +91,79 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 
 	return
 }
-
-func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res *wrappers.ResultMenuImportSet, err error) {
-	res = &wrappers.ResultMenuImportSet{
-		Result: false,
-	}
-	var m models.AdminMenuImport
-	t := time.Now()
-	var menuName string
-	var menus []models.AdminMenu
+func (r *SrvPermitGroupImpl) getMapImport(importIds ...int64) (mapImport map[int64]models.AdminImport, err error) {
+	mapImport = map[int64]models.AdminImport{}
 	dao := dao_impl.NewDaoPermit(r.Context)
+	var importList []models.AdminImport
+	if importList, err = dao.GetAdminImportById(importIds...); err != nil {
+		return
+	}
+	mapImport = make(map[int64]models.AdminImport, len(importList))
+	for _, value := range importList {
+		mapImport[value.Id] = value
+	}
+	return
+}
+
+func (r *SrvPermitGroupImpl) getMenuNameWithMenuId(menuId int64) (menuName string, err error) {
+	var (
+		menus []models.AdminMenu
+	)
 	if menus, err = dao_impl.NewDaoPermitMenu(r.Context).
-		GetMenu(arg.MenuId); err != nil {
+		GetMenu(menuId); err != nil {
 		return
 	} else if len(menus) > 0 {
 		menuName = menus[0].Module
 	}
-	var importList []models.AdminImport
-	if importList, err = dao.GetAdminImportById(arg.ImportIds...); err != nil {
+	return
+}
+func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
+	var (
+		m   models.AdminMenuImport
+		t   = time.Now()
+		dtm models.AdminImport
+		ok  bool
+		dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
+		dt  models.AdminMenuImport
+	)
+
+	for _, value := range arg.ImportIds {
+
+		if value == 0 {
+			continue
+		}
+
+		dt = models.AdminMenuImport{
+			MenuId:        arg.MenuId,
+			MenuModule:    menuName,
+			ImportId:      value,
+			ImportAppName: "",
+			CreatedAt:     t,
+			UpdatedAt:     t,
+		}
+		if dtm, ok = mapImport[dt.ImportId]; ok {
+			dt.ImportAppName = dtm.AppName
+			dt.DefaultOpen = dtm.DefaultOpen
+		}
+		dts = append(dts, dt)
+	}
+	if err = dao_impl.NewDaoPermitImport(r.Context).
+		BatchMenuImport(m.TableName(), dts); err != nil {
 		return
 	}
-	var mapImport = make(map[int64]string, len(importList))
-	for _, value := range importList {
-		mapImport[value.Id] = value.AppName
-	}
 
-	var dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
-	var dt models.AdminMenuImport
-	if arg.Type == "delete" {
-		dt.DeletedAt = &t
-		for _, value := range arg.ImportIds {
-			if value == 0 {
-				continue
-			}
-			dt = models.AdminMenuImport{
-				MenuId:        arg.MenuId,
-				MenuModule:    menuName,
-				ImportId:      value,
-				ImportAppName: "",
-				CreatedAt:     t,
-				UpdatedAt:     t,
-				DeletedAt:     &t,
-			}
-			dt.ImportAppName, _ = mapImport[dt.ImportId]
-			dts = append(dts, dt)
-		}
-		if err = dao_impl.NewDaoPermitImport(r.Context).
-			BatchMenuImport(m.TableName(), dts); err != nil {
-			return
-		}
-		res.Result = true
-		return
-	}
+	return
+}
 
+func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
+	var (
+		m   models.AdminMenuImport
+		t   = time.Now()
+		dtm models.AdminImport
+		ok  bool
+		dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
+		dt  models.AdminMenuImport
+	)
 	for _, value := range arg.ImportIds {
 		if value == 0 {
 			continue
@@ -155,8 +175,12 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 			ImportAppName: "",
 			CreatedAt:     t,
 			UpdatedAt:     t,
+			DeletedAt:     &t,
 		}
-		dt.ImportAppName, _ = mapImport[dt.ImportId]
+		if dtm, ok = mapImport[dt.ImportId]; ok {
+			dt.ImportAppName = dtm.AppName
+			dt.DefaultOpen = dtm.DefaultOpen
+		}
 		dts = append(dts, dt)
 	}
 	if err = dao_impl.NewDaoPermitImport(r.Context).
@@ -164,6 +188,35 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 		return
 	}
 
+	return
+}
+
+func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res *wrappers.ResultMenuImportSet, err error) {
+
+	res = &wrappers.ResultMenuImportSet{Result: false}
+
+	var (
+		menuName  string
+		mapImport map[int64]models.AdminImport
+	)
+	if menuName, err = r.getMenuNameWithMenuId(arg.MenuId); err != nil {
+		return
+	}
+
+	if mapImport, err = r.getMapImport(arg.ImportIds...); err != nil {
+		return
+	}
+
+	switch arg.Type {
+	case "delete":
+		if err = r.menuImportSetDelete(arg, menuName, mapImport); err != nil {
+			return
+		}
+	default:
+		if err = r.menuImportSetNotDelete(arg, menuName, mapImport); err != nil {
+			return
+		}
+	}
 	res.Result = true
 	return
 }
