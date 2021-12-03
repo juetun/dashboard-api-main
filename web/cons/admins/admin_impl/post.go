@@ -49,7 +49,7 @@ func (r *ControllerPost) Index(c *gin.Context) {
 	}
 	arg.DefaultPage()
 	offset := arg.GetOffset()
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, false)
 	postList := &[]wrappers.ConsolePostList{}
@@ -198,7 +198,10 @@ func (r *ControllerPost) Update(c *gin.Context) {
 		r.Response(c, 400001001, nil, "参数格式异常")
 		return
 	}
-	srv.PostUpdate(postIdInt, ps)
+	if err = srv.PostUpdate(postIdInt, ps); err != nil {
+		r.ResponseError(c, err)
+		return
+	}
 	r.Response(c, 0, nil, "操作成功")
 	return
 }
@@ -239,7 +242,7 @@ func (r *ControllerPost) TrashIndex(c *gin.Context) {
 	}
 	arg.DefaultPage()
 	offset := arg.GetOffset()
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	var dba *gorm.DB
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, true)

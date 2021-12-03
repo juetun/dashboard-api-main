@@ -10,6 +10,7 @@ package srv_impl
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -43,7 +44,7 @@ func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete)
 
 func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
 
-	res = &wrappers.ResultAdminGroup{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
+	res = &wrappers.ResultAdminGroup{Pager: *response.NewPager(response.PagerBaseQuery(&arg.PageQuery))}
 
 	var db *gorm.DB
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -123,8 +124,8 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 		t   = time.Now()
 		dtm models.AdminImport
 		ok  bool
-		dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
-		dt  models.AdminMenuImport
+		dts = make([]*models.AdminMenuImport, 0, len(arg.ImportIds))
+		dt  *models.AdminMenuImport
 	)
 
 	for _, value := range arg.ImportIds {
@@ -133,7 +134,7 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 			continue
 		}
 
-		dt = models.AdminMenuImport{
+		dt = &models.AdminMenuImport{
 			MenuId:        arg.MenuId,
 			MenuModule:    menuName,
 			ImportId:      value,
@@ -155,20 +156,69 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 	return
 }
 
+func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet, mapImport map[int64]models.AdminImport) (err error) {
+	var (
+		m   models.AdminMenuImport
+		t   = time.Now()
+		dtm models.AdminImport
+		ok  bool
+		dts = make([]*models.AdminMenuImport, 0, len(arg.ImportIds))
+		dt  *models.AdminMenuImport
+	)
+	var defaultOpen uint8
+	switch arg.Column {
+	case "default_open":
+		var defaultOpen64 uint64
+		if defaultOpen64, err = strconv.ParseUint(arg.Value, 10, 64); err != nil {
+			err = fmt.Errorf("参数格式不正确(%s:%s)", arg.Column, arg.Value)
+			return
+		}
+		if defaultOpen64 > 127 {
+			err = fmt.Errorf("参数格式不正确(%s:%s)", arg.Column, arg.Value)
+			return
+		}
+		defaultOpen= uint8(defaultOpen64)
+	default:
+		err = fmt.Errorf("当前不支持你选择的字段修改")
+		return
+	}
+	dao := dao_impl.NewDaoPermitImport(r.Context)
+	var data []*models.AdminMenuImport
+	if data, err = dao.GetMenuImportByMenuIdAndImportIds(arg.MenuId, arg.ImportIds...); err != nil {
+		return
+	}
+	for _, dt = range data {
+		dt.UpdatedAt = t
+		dt.DeletedAt = nil
+		switch arg.Column {
+		case "default_open":
+			dt.DefaultOpen = defaultOpen
+		}
+		if dtm, ok = mapImport[dt.ImportId]; ok {
+			dt.ImportAppName = dtm.AppName
+ 		}
+		dts = append(dts, dt)
+	}
+	if err = dao.BatchMenuImport(m.TableName(), dts); err != nil {
+		return
+	}
+
+	return
+}
 func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
 		m   models.AdminMenuImport
 		t   = time.Now()
 		dtm models.AdminImport
 		ok  bool
-		dts = make([]models.AdminMenuImport, 0, len(arg.ImportIds))
-		dt  models.AdminMenuImport
+		dts = make([]*models.AdminMenuImport, 0, len(arg.ImportIds))
+		dt  *models.AdminMenuImport
 	)
 	for _, value := range arg.ImportIds {
 		if value == 0 {
 			continue
 		}
-		dt = models.AdminMenuImport{
+		dt = &models.AdminMenuImport{
 			MenuId:        arg.MenuId,
 			MenuModule:    menuName,
 			ImportId:      value,
@@ -210,6 +260,10 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	switch arg.Type {
 	case "delete":
 		if err = r.menuImportSetDelete(arg, menuName, mapImport); err != nil {
+			return
+		}
+	case "update":
+		if err = r.menuImportSetUpdate(arg, mapImport); err != nil {
 			return
 		}
 	default:

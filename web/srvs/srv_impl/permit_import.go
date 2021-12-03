@@ -132,7 +132,7 @@ func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []int64, err er
 }
 func (r *SrvPermitImport) GetImport(arg *wrappers.ArgGetImport) (res *wrappers.ResultGetImport, err error) {
 	res = &wrappers.ResultGetImport{
-		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
+		Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery)),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB

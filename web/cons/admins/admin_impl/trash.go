@@ -40,7 +40,7 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 	arg.DefaultPage()
 	offset := arg.GetOffset()
 
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, false)
 
@@ -224,7 +224,7 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 	}
 	arg.DefaultPage()
 	offset := arg.GetOffset()
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, true)
 	if err != nil {

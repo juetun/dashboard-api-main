@@ -43,7 +43,7 @@ func (r *ControllerLink) Index(c *gin.Context) {
 		return
 	}
 	arg.DefaultPage()
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewLinkService(base.CreateContext(&r.ControllerBase, c))
 	links, cnt, err := srv.LinkList(arg.GetOffset(), pager.PageSize)
 	if err != nil {

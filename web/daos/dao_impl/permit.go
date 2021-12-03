@@ -902,8 +902,7 @@ func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGr
 		db = r.Context.Db
 	}
 	dba = db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("deleted_at IS NULL")
+		Scopes(base.ScopesDeletedAt())
 	if arg.Name != "" {
 		dba = dba.Where("name LIKE ?", "%"+arg.Name+"%")
 	}

@@ -121,7 +121,7 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermit, data *model
 
 func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
 	res = &wrappers.ResultMenuImport{
-		Pager: response.NewPager(response.PagerBaseQuery(arg.PageQuery)),
+		Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery)),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var db *gorm.DB

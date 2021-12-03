@@ -38,7 +38,7 @@ func (r *ControllerTag) Index(c *gin.Context) {
 	}
 	arg.DefaultPage()
 	offset := arg.GetOffset()
-	pager := response.NewPager(response.PagerBaseQuery(arg))
+	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
 	count, tags, err := srv.TagsIndex(pager.PageSize, offset)
 	if err != nil {

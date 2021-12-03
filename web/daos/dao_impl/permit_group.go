@@ -290,7 +290,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...int64) (
 	pageQuery.PageType = response.DefaultPageTypeNext
 	pageQuery.RequestId = "0"
 
-	pager := response.NewPager(response.PagerBaseQuery(pageQuery))
+	pager := response.NewPager(response.PagerBaseQuery(&pageQuery))
 
 	for {
 		if list, err = r.GetGroupUserByGroupIds(pager, groupIds...); err != nil {

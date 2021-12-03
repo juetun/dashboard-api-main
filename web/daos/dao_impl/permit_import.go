@@ -1,6 +1,6 @@
 // Package dao_impl
 /**
-* @Author:changjiang
+* @Author:ChangJiang
 * @Description:
 * @File:permit_import
 * @Version: 1.0.0
@@ -20,6 +20,33 @@ import (
 
 type DaoPermitImportImpl struct {
 	base.ServiceDao
+}
+
+func (r *DaoPermitImportImpl) GetMenuImportByMenuIdAndImportIds(menuId int64, importIds ...int64) (res []*models.AdminMenuImport, err error) {
+	if menuId == 0 || len(importIds) == 0 {
+		return
+	}
+
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var m models.AdminMenuImport
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Db:        r.Context.Db,
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.
+			Db.
+			Table(actErrorHandlerResult.TableName).
+			Where("menu_id = ? AND import_id IN(?)", menuId, importIds).
+			Find(&res).
+			Error
+		return
+	}); err != nil {
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
+	return
 }
 
 func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]*models.AdminImport, err error) {
@@ -122,13 +149,13 @@ func (r *DaoPermitImportImpl) getColumnName(s string) (res string) {
 	}
 	return
 }
-func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []models.AdminMenuImport) (err error) {
+func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []*models.AdminMenuImport) (err error) {
 	if len(list) == 0 {
 		return
 	}
 	var dtList []base.ModelBase
 	for _, menuImport := range list {
-		dtList = append(dtList, &menuImport)
+		dtList = append(dtList, menuImport)
 	}
 	var batchData = base.BatchAddDataParameter{
 		DbName:    r.Context.DbName,

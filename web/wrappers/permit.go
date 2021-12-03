@@ -277,6 +277,8 @@ type (
 		app_param.RequestUser
 		MenuId    int64   `json:"menu_id" form:"menu_id"`
 		ImportId  string  `json:"import_id" form:"import_id"`
+		Column    string  `json:"column" form:"column"`
+		Value     string  `json:"value" form:"value"`
 		ImportIds []int64 `json:"-" form:"-"`
 		Type      string  `json:"type" form:"type"`
 	}
@@ -445,7 +447,7 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
-	if r.Type != "delete" && r.Type != "add" {
+	if r.Type != "delete" && r.Type != "add" && r.Type != "update" {
 		err = fmt.Errorf("type must be delete or add")
 		return
 	}
@@ -670,6 +672,7 @@ func (r *ArgAdminGroup) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
+	r.PageType = response.DefaultPageTypeList
 	return
 }
 
