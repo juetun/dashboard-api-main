@@ -491,7 +491,6 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 	}
 	if err = arg.Default(c); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
-
 		return
 	}
 

@@ -39,7 +39,7 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupPermitByMenuIds(groupId int64, modul
 	if len(pageMenuId) > 0 {
 		db = db.Where("menu_id IN (?)", pageMenuId)
 	}
- 	if err = db.Delete(&m).Error; err != nil {
+	if err = db.Delete(&m).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"groupId":    groupId,
 			"pageMenuId": pageMenuId,
@@ -55,16 +55,28 @@ func (r *DaoPermitGroupMenuImpl) GetMenuIdsByPermitByGroupIds(module string, gro
 		return
 	}
 	var m models.AdminUserGroupMenu
-	if err = r.Context.Db.
-		Table(m.TableName()).
-		Select("distinct `menu_id`,`group_id`,`id`").
-		Where("module = ? AND `group_id` in(?) ", module, groupIds).
-		Find(&res).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupIds": groupIds,
-			"err":      err,
-		}, "DaoPermitGroupMenuImplGetMenuIdsByPermitByGroupIds")
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			Model:     &m,
+			TableName: m.TableName(),
+		}
+		if actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Select("distinct `menu_id`,`group_id`,`id`").
+			Where("module = ? AND `group_id` in(?) ", module, groupIds).
+			Find(&res).
+			Error; actErrorHandlerResult.Err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupIds": groupIds,
+				"err":      actErrorHandlerResult.Err.Error(),
+			}, "DaoPermitGroupMenuImplGetMenuIdsByPermitByGroupIds")
+			return
+		}
+		return
+	}); err != nil {
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
 	return
@@ -74,22 +86,35 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIdAndIds(groupId int64, i
 	if groupId == 0 {
 		return
 	}
-	var m1 models.AdminUserGroupImport
-	db := r.Context.Db.Table(m1.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("group_id = ? ", groupId)
-	if len(ids) > 0 {
-		db = db.Where(" id IN( ? )", ids)
-	}
-	if err = db.
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupId": groupId,
-			"ids":     ids,
-			"err":     err.Error(),
-		}, "DaoPermitGroupImportImplDeleteGroupMenuByGroupIdAndIds")
+
+	var m models.AdminUserGroupImport
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			Model:     &m,
+			TableName: m.TableName(),
+		}
+		db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
+			Where("group_id = ? ", groupId)
+		if len(ids) > 0 {
+			db = db.Where(" id IN( ? )", ids)
+		}
+		if actErrorHandlerResult.Err = db.
+			Delete(&models.AdminImport{}).Error; actErrorHandlerResult.Err != nil {
+			r.Context.Error(map[string]interface{}{
+				"groupId": groupId,
+				"ids":     ids,
+				"err":     actErrorHandlerResult.Err.Error(),
+			}, "DaoPermitGroupImportImplDeleteGroupMenuByGroupIdAndIds")
+			return
+		}
+		return
+	}); err != nil {
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
+
 	return
 }
 

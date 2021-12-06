@@ -824,7 +824,7 @@ type PermitMeta struct {
 }
 type ResultPermitMenuReturn struct {
 	ResultPermitMenu                         // 当前选中的权限
-	RoutParentMap    map[string][]string     `json:"routParentMap"`
+	RoutParentMap    map[string][]string     `json:"routParentMap"`      // 当前菜单列表
 	Menu             []ResultSystemMenu      `json:"menu"`               // 一级系统权限列表 用户从当前系统跳转到其他管理系统
 	OpList           map[string][]OpOne      `json:"op_list"`            // 获取接口权限列表
 	NotReadMsgCount  int                     `json:"not_read_msg_count"` // 未读消息数量

@@ -21,41 +21,57 @@ type DaoPermit interface {
 	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int64, dba *gorm.DB, err error)
 
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
+
 	GetImportMenuId(menuId ...int64) (list []models.AdminImport, err error)
+
 	CreateImport(data *models.AdminImport) (res bool, err error)
+
 	UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error)
+
 	GetAdminImportById(id ...int64) (res []models.AdminImport, err error)
 
-	// BatchGroupPermit(tableName string, list []models.AdminUserGroupPermit) (err error)
-
-	// DeleteGroupPermit(groupId int64, pathType string, menuId ...int64) (err error)
-
-	// DeleteGroupMenuPermitByGroupId (pageMenuIds ...string) (err error)
-	// DeleteGroupMenuPermitByGroupId(groupId int64, menuId ...int64) (err error)
-
-	// DeleteGroupPermitByMenuIds(groupId int64, module string, pageMenuId, apiMenuId []int64) (err error)
-
 	GetDefaultImportByMenuIds(pageType, module string, menuId ...int64) (res []models.AdminImport, err error)
+
 	GetImportId(id int) (res models.AdminImport, err error)
+
 	MenuImportCount(arg *wrappers.ArgMenuImport, count *int64) (db *gorm.DB, err error)
+
 	GetImportCount(arg *wrappers.ArgGetImport, count *int64) (db *gorm.DB, err error)
+
 	GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error)
+
 	MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error)
+
 	AdminUserGroupAdd(data []map[string]interface{}) (err error)
+
 	AdminUserGroupRelease(ids ...string) (err error)
+
 	AdminUserAdd(arg *models.AdminUser) (err error)
+
 	DeleteAdminUser(ids []string) (err error)
- 	FetchByName(name string) (res models.AdminGroup, err error)
+
+	FetchByName(name string) (res models.AdminGroup, err error)
+
 	InsertAdminGroup(group *models.AdminGroup) (err error)
+
 	UpdateAdminGroup(group *models.AdminGroup) (err error)
+
 	GetAdminGroupByIds(gIds ...int64) (res []models.AdminGroup, err error)
+
 	GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error)
+
 	UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error)
+
 	Save(id int64, data map[string]interface{}) (err error)
+
 	DeleteMenuByIds(ids ...string) (err error)
+
 	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error)
+
 	Add(data *models.AdminMenu) (err error)
+
 	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error)
+
 	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
 
 	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)

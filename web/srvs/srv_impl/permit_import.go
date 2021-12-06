@@ -100,13 +100,16 @@ func (r *SrvPermitImport) GetChildImport(nowMenuId int64) (importIds []int64, er
 }
 
 func (r *SrvPermitImport) GetOpList(dao daos.DaoPermit, arg *wrappers.ArgPermitMenu) (opList map[string][]wrappers.OpOne, err error) {
-	var list []wrappers.Op
+	opList = map[string][]wrappers.OpOne{}
+	var (
+		t    wrappers.OpOne
+		list []wrappers.Op
+	)
 	if list, err = dao.GetPermitImportByModule(arg); err != nil {
 		return
 	}
 	l := len(list)
 	opList = make(map[string][]wrappers.OpOne, l)
-	var t wrappers.OpOne
 	for _, value := range list {
 		if _, ok := opList[value.MenuPermitKey]; !ok {
 			opList[value.MenuPermitKey] = make([]wrappers.OpOne, 0, l)
@@ -116,6 +119,7 @@ func (r *SrvPermitImport) GetOpList(dao daos.DaoPermit, arg *wrappers.ArgPermitM
 	}
 	return
 }
+
 func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []int64, err error) {
 	menuIds = []int64{}
 	dao := dao_impl.NewDaoPermit(r.Context)
