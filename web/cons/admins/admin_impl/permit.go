@@ -95,51 +95,6 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 
 }
 
-func (r *ControllerPermit) AdminUserAdd(c *gin.Context) {
-	var arg wrappers.ArgAdminUserAdd
-	var err error
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		return
-	}
-
-	// 记录日志
-	res, err := srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminUserAdd(&arg)
-
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	r.Response(c, base.SuccessCode, res)
-}
-
-func (r *ControllerPermit) AdminUserDelete(c *gin.Context) {
-	var arg wrappers.ArgAdminUserDelete
-	var err error
-	var res wrappers.ResultAdminUserDelete
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	// 记录日志
-	if res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminUserDelete(&arg); err != nil {
-		r.ResponseError(c, err)
-		return
-	}
-	r.Response(c, base.SuccessCode, res)
-}
-
 func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
 	var arg wrappers.ArgAdminUserGroupRelease
 	var err error
@@ -231,12 +186,8 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	}
 
 	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-
-	srv := srv_impl.NewSrvPermitGroupImpl(context)
-	res, err := srv.AdminGroupEdit(&arg)
-
+	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+		AdminGroupEdit(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
 		return
@@ -518,32 +469,6 @@ func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 	// 记录日志
 	srv := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c))
 	res, err := srv.AdminMenu(&arg)
-
-	if err != nil {
-		r.ResponseError(c, err)
-		return
-	}
-	r.Response(c, base.SuccessCode, res)
-}
-
-func (r *ControllerPermit) AdminUser(c *gin.Context) {
-	var arg wrappers.ArgAdminUser
-	err := c.Bind(&arg)
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-
-	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-
-	srv := srv_impl.NewSrvPermitUserImpl(context)
-	res, err := srv.AdminUser(&arg)
 
 	if err != nil {
 		r.ResponseError(c, err)

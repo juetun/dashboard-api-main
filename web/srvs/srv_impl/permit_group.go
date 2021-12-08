@@ -177,7 +177,7 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 			err = fmt.Errorf("参数格式不正确(%s:%s)", arg.Column, arg.Value)
 			return
 		}
-		defaultOpen= uint8(defaultOpen64)
+		defaultOpen = uint8(defaultOpen64)
 	default:
 		err = fmt.Errorf("当前不支持你选择的字段修改")
 		return
@@ -196,7 +196,7 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 		}
 		if dtm, ok = mapImport[dt.ImportId]; ok {
 			dt.ImportAppName = dtm.AppName
- 		}
+		}
 		dts = append(dts, dt)
 	}
 	if err = dao.BatchMenuImport(m.TableName(), dts); err != nil {

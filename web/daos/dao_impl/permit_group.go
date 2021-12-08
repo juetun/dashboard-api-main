@@ -167,18 +167,34 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportCacheKey(groupId int64, appN
 
 func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, data map[string]interface{}) (err error) {
 	var m models.AdminUserGroup
-	if err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("group_id = ?", groupId).
-		Updates(data).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupId": groupId,
-			"data":    data,
-			"err":     err.Error(),
-		}, "DaoPermitGroupImplUpdateDaoPermitUserGroupByGroupId")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	logContent := map[string]interface{}{
+		"groupId": groupId,
+		"data":    data,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImplUpdateDaoPermitUserGroupByGroupId")
+			err = base.NewErrorRuntime(err, base.SuccessCode)
+		}
+	}()
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("group_id = ?", groupId).
+			Updates(data).Error
+		return
+	}); err != nil {
 		return
 	}
+
 	err = r.DeleteUserGroupPermitByGroupId(groupId)
 	return
 }
@@ -265,11 +281,6 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupPermitByGroupId(groupIds ...int64) (
 	daoPermitGroupMenu := NewDaoPermitGroupMenu(r.Context)
 
 	if err = daoPermitGroupMenu.DeleteGroupMenuByGroupIds(groupIds...); err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupIds": groupIds,
-			"err":      err,
-		}, "DaoPermitGroupImplDeleteUserGroupPermitByGroupId")
-		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 		return
 	}
 	go func() {

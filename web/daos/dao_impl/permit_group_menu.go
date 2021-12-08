@@ -15,15 +15,29 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIds(groupId ...int64) (er
 		return
 	}
 	var m models.AdminUserGroupMenu
-	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("group_id IN (?)", groupId)
 
-	if err = db.Delete(&m).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupId": groupId,
-			"err":     err,
-		}, "DaoPermitGroupMenuImplDeleteGroupMenuByGroupIds")
+	logContent := map[string]interface{}{
+		"groupId": groupId,
+		"err":     err,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupMenuImplDeleteGroupMenuByGroupIds")
+		}
+	}()
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
+			Where("group_id IN (?)", groupId).Delete(&m).Error
+		return
+	}); err != nil {
+		return
 	}
 	return
 }

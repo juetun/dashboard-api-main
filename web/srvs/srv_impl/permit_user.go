@@ -14,11 +14,23 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"gorm.io/gorm"
 )
 
 type SrvPermitUserImpl struct {
 	base.ServiceDao
+}
+
+func (r *SrvPermitUserImpl) AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (res *wrapper_admin.ResultAdminUserUpdateWithColumn, err error) {
+	res = &wrapper_admin.ResultAdminUserUpdateWithColumn{}
+
+	if err = dao_impl.NewDaoPermitUser(r.Context).
+		UpdateDataByUserHIds(map[string]interface{}{arg.Column: arg.Value}, arg.UserHidVals...); err != nil {
+		return
+	}
+	res.Result = true
+	return
 }
 
 func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error) {

@@ -237,7 +237,7 @@ type (
 	}
 	ArgAdminUserAdd struct {
 		app_param.RequestUser
-		UserHid string `json:"user_hid" form:"user_hid"`
+		Uid string `json:"uid" form:"uid"`
 	}
 	ResultAdminUserAdd struct {
 		Result bool `json:"result"`

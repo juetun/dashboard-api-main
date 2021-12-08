@@ -26,13 +26,17 @@ var (
 
 type AdminUserGroup struct {
 	Id           int             `json:"id" gorm:"column:id;primary_key" `
-	GroupId      int64           `json:"group_id" gorm:"column:group_id"`
-	UserHid      string          `json:"user_hid"  gorm:"column:user_hid"`
-	IsSuperAdmin uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`
-	IsAdminGroup uint8           `json:"is_admin_group" gorm:"column:is_admin_group"`
-	CreatedAt    base.TimeNormal `json:"-" gorm:"column:created_at" `
-	UpdatedAt    base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
+	GroupId      int64           `json:"group_id" gorm:"column:group_id;not null;default:0;comment:组ID"`
+	UserHid      string          `json:"user_hid"  gorm:"column:user_hid;not null;default:'';comment:用户ID"`
+	IsSuperAdmin uint8           `json:"is_super_admin" gorm:"column:is_super_admin;not null;default:0;comment:是否是超级管理员 0-否,1-是"`
+	IsAdminGroup uint8           `json:"is_admin_group" gorm:"column:is_admin_group;not null;default:0;comment:是否是后台管理员组 0-否,1-是"`
+	CreatedAt    base.TimeNormal `json:"-" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" `
+	UpdatedAt    base.TimeNormal `json:"updated_at" gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" `
 	DeletedAt    *time.Time      `json:"-" gorm:"column:deleted_at" `
+}
+
+func (r *AdminUserGroup) GetTableComment() (res string) {
+	return "用户组用户列表"
 }
 
 func (r *AdminUserGroup) TableName() string {

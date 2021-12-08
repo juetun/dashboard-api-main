@@ -1,12 +1,6 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:permit_user
-* @Version: 1.0.0
-* @Date 2021/9/12 12:07 下午
- */
+// Package daos /**
 package daos
 
 type DaoPermitUser interface {
-
+	UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error)
 }

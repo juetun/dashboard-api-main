@@ -592,21 +592,35 @@ func (r *DaoPermitImpl) GetAdminGroupByIds(gIds ...int64) (res []models.AdminGro
 	}
 	return
 }
+
 func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error) {
 	if len(uIds) == 0 {
 		return
 	}
-	var m models.AdminUserGroup
-	err = r.Context.Db.Table(m.TableName()).
-		Where(" user_hid IN (?)", uIds).
-		Find(&res).
-		Error
-	if err != nil {
-		r.Context.Error(map[string]interface{}{
-			"uIds": uIds,
-			"err":  err,
-		}, "daoPermitGetUserGroupByUIds")
-	}
+	logContent := map[string]interface{}{"uIds": uIds}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitImplGetUserGroupByUIds")
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var m models.AdminUserGroup
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where(" user_hid IN (?)", uIds).
+			Find(&res).
+			Error
+		return
+	})
 	return
 }
 func (r *DaoPermitImpl) UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error) {
@@ -711,12 +725,28 @@ func (r *DaoPermitImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUse
 	if arg.UserHId != "" {
 		dba = dba.Where("user_hid=?", arg.UserHId)
 	}
-	if err = dba.Count(&total).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg": arg,
-			"err": err,
-		}, "daoPermitGetAdminUserCount")
-	}
+
+	logContent := map[string]interface{}{"arg": arg}
+
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "daoPermitGetAdminUserCount")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+			Err:       dba.Count(&total).Error,
+		}
+		return
+	})
+
 	return
 }
 func (r *DaoPermitImpl) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error) {

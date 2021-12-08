@@ -19,9 +19,6 @@ func init() {
 		controller := admin_impl.NewControllerPermit()
 		h := r.Group(urlPrefix + "/permit")
 
-		h.POST("/admin_user", controller.AdminUser)
-		h.POST("/admin_user_add", controller.AdminUserAdd)
-		h.POST("/admin_user_delete", controller.AdminUserDelete)
 		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
 		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd)
 
