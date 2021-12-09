@@ -8,8 +8,8 @@ type ConAdminUser interface {
 	// AdminUser 用户
 	AdminUser(c *gin.Context)
 
-	// AdminUserAdd 用户添加
-	AdminUserAdd(c *gin.Context)
+	// AdminUserEdit 用户添加
+	AdminUserEdit(c *gin.Context)
 
 	// AdminUserDelete 用户删除
 	AdminUserDelete(c *gin.Context)

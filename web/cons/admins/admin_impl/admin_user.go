@@ -61,21 +61,25 @@ func (r *ConAdminUser) AdminUser(c *gin.Context) {
 	r.Response(c, base.SuccessCode, res)
 }
 
-func (r *ConAdminUser) AdminUserAdd(c *gin.Context) {
-	var arg wrappers.ArgAdminUserAdd
-	var err error
+func (r *ConAdminUser) AdminUserEdit(c *gin.Context) {
+	var (
+		res wrappers.ResultAdminUserAdd
+		arg wrappers.ArgAdminUserAdd
+		err error
+	)
 
 	if err = c.Bind(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
+
 	if err = arg.Default(c); err != nil {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminUserAdd(&arg)
+	res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+		AdminUserEdit(&arg)
 
 	if err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)

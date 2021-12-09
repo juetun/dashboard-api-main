@@ -9,7 +9,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/dashboard-api-main/web/daos"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
@@ -33,10 +33,10 @@ func (r *SrvPermitUserImpl) AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdmi
 	return
 }
 
-func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error) {
+func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error) {
 	res = wrappers.ResultAdminUserAdd{}
 	if arg.UserHid == "" {
-		err = fmt.Errorf("您没有选择要添加的用户")
+		err = fmt.Errorf("您没有选择要编辑的用户")
 		return
 	}
 
@@ -48,30 +48,52 @@ func (r *SrvPermitUserImpl) AdminUserAdd(arg *wrappers.ArgAdminUserAdd) (res wra
 		return
 	}
 	if user.UserHid == "" {
-		err = fmt.Errorf("您要添加的用户信息不存在")
+		err = fmt.Errorf("您要编辑的用户信息不存在")
 		return
 	}
 	t := time.Now()
-	adminUser := &models.AdminUser{
-		UserHid:   arg.UserHid,
-		RealName:  user.RealName,
-		Mobile:    user.Mobile,
-		CreatedAt: base.TimeNormal{Time: t},
-		UpdatedAt: base.TimeNormal{Time: t},
+	if arg.RealName == "" {
+		arg.RealName = user.RealName
 	}
+	if arg.Mobile == "" {
+		arg.Mobile = user.Mobile
+	}
+	daoPermitUser := dao_impl.NewDaoPermitUser(r.Context)
+	if arg.Id == 0 { // 如果是添加数据
 
-	err = dao_impl.NewDaoPermit(r.Context).
-		AdminUserAdd(adminUser)
-	if err != nil {
+		adminUser := &models.AdminUser{
+			UserHid:   arg.UserHid,
+			RealName:  arg.RealName,
+			Mobile:    arg.Mobile,
+			CreatedAt: base.TimeNormal{Time: t},
+			UpdatedAt: base.TimeNormal{Time: t},
+		}
+
+		if err = daoPermitUser.AdminUserAdd(adminUser); err != nil {
+			return
+		}
+		res.Result = true
 		return
 	}
-	res.Result = true
+
+	data := map[string]interface{}{
+		"id":         arg.Id,
+		"user_hid":   arg.UserHid,
+		"real_name":  arg.RealName,
+		"mobile":     arg.Mobile,
+		"flag_admin": arg.FlagAdmin,
+		"updated_at": t.Format(utils.DateTimeGeneral),
+		"deleted_at": nil,
+	}
+	if err = daoPermitUser.UpdateDataByUserHIds(data, arg.UserHid); err != nil {
+		return
+	}
 	return
 }
 
 func (r *SrvPermitUserImpl) AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (res wrappers.ResultAdminUserDelete, err error) {
 	res = wrappers.ResultAdminUserDelete{}
-	dao := dao_impl.NewDaoPermit(r.Context)
+	dao := dao_impl.NewDaoPermitUser(r.Context)
 	if err = dao.DeleteAdminUser(arg.IdString); err != nil {
 		return
 	}
@@ -87,7 +109,7 @@ func (r *SrvPermitUserImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers
 
 	res = &wrappers.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
 
-	dao := dao_impl.NewDaoPermit(r.Context)
+	dao := dao_impl.NewDaoPermitUser(r.Context)
 
 	var db *gorm.DB
 
@@ -100,18 +122,19 @@ func (r *SrvPermitUserImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers
 		if list, err = dao.GetAdminUserList(db, arg, pagerObject); err != nil {
 			return
 		}
-		pagerObject.List, err = r.leftAdminUser(list, dao)
+		pagerObject.List, err = r.leftAdminUser(list)
 		return
 	})
 	return
 }
 
-func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser, dao daos.DaoPermit) (res map[string][]wrappers.AdminUserGroupName, err error) {
+func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser) (res map[string][]wrappers.AdminUserGroupName, err error) {
 	res = map[string][]wrappers.AdminUserGroupName{}
 	uIds := make([]string, 0, len(list))
 	for _, value := range list {
 		uIds = append(uIds, value.UserHid)
 	}
+	dao := dao_impl.NewDaoPermit(r.Context)
 	listResult, err := dao.GetUserGroupByUIds(uIds...)
 	if err != nil {
 		return
@@ -153,9 +176,9 @@ func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser, dao daos.DaoPe
 	return
 }
 
-func (r *SrvPermitUserImpl) leftAdminUser(list []models.AdminUser, dao daos.DaoPermit) (res []wrappers.ResultAdminUserList, err error) {
+func (r *SrvPermitUserImpl) leftAdminUser(list []models.AdminUser) (res []wrappers.ResultAdminUserList, err error) {
 	res = []wrappers.ResultAdminUserList{}
-	mapGroupPermit, err := r.getUserGroup(list, dao)
+	mapGroupPermit, err := r.getUserGroup(list)
 	if err != nil {
 		return
 	}

@@ -11,7 +11,7 @@ func init() {
 		controller := admin_impl.NewConAdminUser()
 		h := r.Group(urlPrefix + "/permit")
 		h.POST("/admin_user", controller.AdminUser)
-		h.POST("/admin_user_add", controller.AdminUserAdd)
+		h.POST("/admin_user_edit", controller.AdminUserEdit)
 		h.POST("/admin_user_update_with_column", controller.AdminUserUpdateWithColumn)
 		h.POST("/admin_user_delete", controller.AdminUserDelete)
 		return

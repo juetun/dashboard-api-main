@@ -46,10 +46,6 @@ type DaoPermit interface {
 
 	AdminUserGroupRelease(ids ...string) (err error)
 
-	AdminUserAdd(arg *models.AdminUser) (err error)
-
-	DeleteAdminUser(ids []string) (err error)
-
 	FetchByName(name string) (res models.AdminGroup, err error)
 
 	InsertAdminGroup(group *models.AdminGroup) (err error)
@@ -69,10 +65,6 @@ type DaoPermit interface {
 	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error)
 
 	Add(data *models.AdminMenu) (err error)
-
-	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error)
-
-	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
 
 	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)
 
