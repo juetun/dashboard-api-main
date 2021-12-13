@@ -54,8 +54,8 @@ func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wra
 	res = wrappers.ResAdminMenuSearch{
 		List: []models.AdminMenu{},
 	}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	res.List, err = dao.GetAdminMenuList(arg)
+	res.List, err = dao_impl.NewDaoPermit(r.Context).
+		GetAdminMenuList(arg)
 	return
 }
 
@@ -74,6 +74,7 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 		err = fmt.Errorf("您输入的菜单名已存在")
 		return
 	}
+
 	data := models.AdminMenu{
 		PermitKey:          arg.PermitKey,
 		Module:             arg.Module,
@@ -88,9 +89,11 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 		CreatedAt:          t,
 		UpdatedAt:          t,
 	}
+
 	if err = dao.Add(&data); err != nil {
 		return
 	}
+
 	// 如果是添加系统
 	if arg.Module == wrappers.DefaultPermitModule {
 		if err = r.addSystemDefaultMenu(dao, &data); err != nil {
@@ -123,17 +126,23 @@ func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappe
 	res = &wrappers.ResultMenuImport{
 		Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery)),
 	}
-	dao := dao_impl.NewDaoPermit(r.Context)
-	var db *gorm.DB
+	var (
+		dao = dao_impl.NewDaoPermit(r.Context)
+		db  *gorm.DB
+	)
+
 	if db, err = dao.MenuImportCount(arg, &res.TotalCount); err != nil {
 		return
 	}
+
 	if res.TotalCount == 0 {
 		return
 	}
+
 	if res.List, err = dao.MenuImportList(db, arg); err != nil {
 		return
 	}
+
 	return
 }
 func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error) {
@@ -143,8 +152,9 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	if err = dao.DeleteMenuByIds(arg.IdValue...); err != nil {
 		return
 	}
-	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
-	if err = daoGroup.DeleteUserGroupPermit(arg.IdValueNumber...); err != nil {
+
+	if err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+		DeleteUserGroupPermit(arg.IdValueNumber...); err != nil {
 		return
 	}
 
@@ -155,8 +165,8 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	for _, value := range importList {
 		iIds = append(iIds, value.Id)
 	}
-	daoPermitGroupImport := dao_impl.NewDaoPermitGroupImport(r.Context)
-	if err = daoPermitGroupImport.DeleteGroupImportWithMenuId(iIds...); err != nil {
+	if err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		DeleteGroupImportWithMenuId(iIds...); err != nil {
 		return
 	}
 	res.Result = true
@@ -523,6 +533,7 @@ func (r *PermitServiceImpl) orgNeedMenu(arg *wrappers.ArgAdminSetPermit) (permit
 	permitIds = append(permitIds, homePageId)
 	return
 }
+
 func (r *PermitServiceImpl) deleteGroupMenuPermitByGroupId(arg *wrappers.ArgAdminSetPermit) (err error) {
 	if len(arg.PermitIds) == 0 {
 		return
@@ -532,10 +543,13 @@ func (r *PermitServiceImpl) deleteGroupMenuPermitByGroupId(arg *wrappers.ArgAdmi
 	if err = dao.DeleteGroupMenuPermitByGroupIdAndMenuIds(arg.GroupId, arg.PermitIds...); err != nil {
 		return
 	}
+
 	daoGroupMenu := dao_impl.NewDaoPermitGroupMenu(r.Context)
+
 	if err = daoGroupMenu.DeleteGroupMenuByGroupIdAndIds(arg.GroupId, arg.PermitIds...); err != nil {
 		return
 	}
+
 	return
 }
 func (r *PermitServiceImpl) setMenuPermit(dao daos.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {

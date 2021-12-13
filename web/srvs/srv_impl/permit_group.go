@@ -1,11 +1,5 @@
 // Package srv_impl
-/**
-* @Author:changjiang
-* @Description:
-* @File:PermitGroupImpl
-* @Version: 1.0.0
-* @Date 2021/6/20 10:03 下午
- */
+
 package srv_impl
 
 import (

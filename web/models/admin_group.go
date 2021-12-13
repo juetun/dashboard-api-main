@@ -1,13 +1,8 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_group
-* @Version: 1.0.0
-* @Date 2020/9/20 6:40 下午
- */
+// Package models
 package models
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,16 +11,16 @@ import (
 )
 
 const (
-	GroupCodePrefix     = "A2" // 权限用户组统一前缀
-	GroupCodeStepLength = 3    // 权限用户组统一长度
-
-	MAXGroupNameLength = 20 // 组名长度不能超过20个汉字
+	GroupCodePrefix        = "2" // 权限用户组统一前缀
+	GroupCodeTopStepLength = 8   // 第一级用户组统一长度
+	GroupCodeStepLength    = 3   // 权限用户组（非第一级）统一长度
+	MAXGroupNameLength     = 80  // 组名长度不能超过20个字符
 )
 
 type AdminGroup struct {
 	Id                 int64           `json:"id" gorm:"column:id;primary_key" `
 	Name               string          `json:"name" gorm:"column:name"`
-	ParentId           int64             `json:"parent_id"  gorm:"column:parent_id"`
+	ParentId           int64           `json:"parent_id"  gorm:"column:parent_id"`
 	GroupCode          string          `json:"group_code" gorm:"column:group_code"`
 	LastChildGroupCode string          `json:"last_child_group_code" gorm:"column:last_child_group_code"`
 	IsSuperAdmin       uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`
@@ -41,68 +36,190 @@ func (r *AdminGroup) TableName() string {
 
 func (r AdminGroup) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.GroupCode == "" {
-		groupCode := r.getGroupCode(tx)
-		tx.Table(r.TableName()).
+		var (
+			groupCodeV      string
+			parentGroupCode string
+		)
+		if groupCodeV, parentGroupCode, err = r.getGroupCode(tx); err != nil {
+			return
+		}
+		if err = tx.Table(r.TableName()).
 			Where("id=?", r.ParentId).
-			Update("last_child_group_code", groupCode)
-		tx.Table(r.TableName()).
+			Update("last_child_group_code", strings.TrimLeft(groupCodeV, parentGroupCode)).
+			Error; err != nil {
+			return
+		}
+		if err = tx.Table(r.TableName()).
 			Where("id=?", r.Id).
-			Update("group_code", groupCode)
+			Update("group_code", groupCodeV).
+			Error; err != nil {
+			return
+		}
 	}
 	return
 }
 func (r AdminGroup) AfterCreate(tx *gorm.DB) (err error) {
 	if r.GroupCode == "" {
-		groupCode := r.getGroupCode(tx)
-		tx.Table(r.TableName()).
+		var (
+			groupCodeV      string
+			parentGroupCode string
+		)
+		if groupCodeV, parentGroupCode, err = r.getGroupCode(tx); err != nil {
+			return
+		}
+		if err = tx.Table(r.TableName()).
 			Where("id=?", r.ParentId).
-			Update("last_child_group_code", groupCode)
-		tx.Model(r).Where("id=?", r.Id).Update("group_code", groupCode)
+			Update("last_child_group_code", strings.TrimLeft(groupCodeV, parentGroupCode)).Error; err != nil {
+			return
+		}
+		if err = tx.Model(r).Where("id=?", r.Id).
+			Update("group_code", groupCodeV).Error; err != nil {
+			return
+		}
 	}
 	return
 }
 
-func (r *AdminGroup) getGroupCodePrefix(tx *gorm.DB) (prefix string) {
-	prefix = GroupCodePrefix
-	if r.ParentId != 0 {
-		var dt []AdminGroup
-		tx.Model(r).
-			Where("id=?", r.ParentId).
-			Order("group_code desc").
+func (r *AdminGroup) initGroupCode(tx *gorm.DB) (err error) {
+	var parentAll = make([]AdminGroup, 0, 15)
+	r.OrgAllParent(tx, r.ParentId, &parentAll)
+	var (
+		parentGroup AdminGroup
+	)
+	for _, group := range parentAll {
+		if group.GroupCode != "" {
+			continue
+		}
+
+		if group.ParentId == 0 {
+			group.GroupCode = (&groupCode{
+				Prefix:     GroupCodePrefix,
+				CodeLength: GroupCodeTopStepLength,
+			}).GetCode()
+			if err = tx.Table(group.TableName()).
+				Where("id = ?", group.Id).
+				Limit(1).
+				Updates(map[string]interface{}{"group_code": group.GroupCode}).
+				Error; err != nil {
+				return
+			}
+			parentGroup = group
+			continue
+		} else if group.Id == 0 {
+			var tList []AdminGroup
+			if err = tx.Table(group.TableName()).
+				Where("id = ?", group.Id).
+				Limit(1).
+				Find(&tList).
+				Error; err != nil {
+				return
+			}
+			if len(tList) == 0 {
+				err = fmt.Errorf("数据异常（model:adming_group）")
+				return
+			}
+			parentGroup = tList[0]
+		}
+
+		if group.GroupCode != "" {
+			parentGroup = group
+			continue
+		}
+		group.GroupCode = (&groupCode{
+			Prefix:     parentGroup.GroupCode,
+			FromString: parentGroup.LastChildGroupCode,
+			CodeLength: GroupCodeStepLength,
+		}).GetCode()
+		if err = tx.Table(group.TableName()).
+			Where("id = ?", group.Id).
 			Limit(1).
-			Find(&dt)
-		prefix = dt[0].GroupCode
+			Updates(map[string]interface{}{"group_code": group.GroupCode}).
+			Error; err != nil {
+			return
+		}
+		if err = tx.Table(r.TableName()).
+			Where("id=?", parentGroup.Id).
+			Update("last_child_group_code", strings.TrimLeft(group.GroupCode, parentGroup.GroupCode)).Error; err != nil {
+			return
+		}
+
+		parentGroup = group
 	}
+
 	return
 }
-func (r *AdminGroup) getGroupCode(tx *gorm.DB) (res string) {
-	prefix := r.getGroupCodePrefix(tx)
-	var fromString []byte
-	var dt []AdminGroup
-	tx.Model(r).
-		Where("id=?", r.ParentId).
-		Order("group_code desc").
+func (r *AdminGroup) OrgAllParent(tx *gorm.DB, parentId int64, parentAll *[]AdminGroup) (err error) {
+	if parentId == 0 {
+		return
+	}
+	var m AdminGroup
+	var m1 []AdminGroup
+	if err = tx.Table(m.TableName()).
+		Where("id = ?", parentId).
 		Limit(1).
-		Find(&dt)
-	if len(dt) > 0 {
-		fromString = []byte(strings.TrimPrefix(dt[0].LastChildGroupCode, prefix))
+		Find(&m1).
+		Error; err != nil {
+		return
 	}
-	res = prefix + r.orgString(fromString)
+	if len(m1) > 0 {
+		*parentAll = append(m1, *parentAll...)
+		err = r.OrgAllParent(tx, m1[0].ParentId, parentAll)
+	}
 	return
-	// GroupCodePrefix     = "A2" // 权限用户组统一前缀
-	// GroupCodeStepLength = 4    // 权限用户组统一长度
 }
-func (r *AdminGroup) orgString(fromString []byte) (rs string) {
+
+func (r *AdminGroup) getGroupCode(tx *gorm.DB) (res string, parentGroupCode string, err error) {
+	if err = r.initGroupCode(tx); err != nil {
+		return
+	}
+	var fromString string
+	var dt []AdminGroup
+	if err = tx.Model(r).
+		Where("id = ?", r.ParentId).
+		Limit(1).
+		Find(&dt).Error; err != nil {
+		return
+	}
+	if len(dt) > 0 {
+		fromString = dt[0].LastChildGroupCode
+		res = (&groupCode{
+			Prefix:     dt[0].GroupCode,
+			FromString: fromString,
+		}).GetCode()
+	}
+
+	return
+
+}
+
+type groupCode struct {
+	Prefix     string `json:"prefix"`
+	FromString string `json:"from_string"`
+	CodeLength int    `json:"code_length"`
+}
+
+func (r *groupCode) GetCode() (res string) {
+	r.CodeLength = GroupCodeStepLength
+	if r.Prefix == "" || r.Prefix == GroupCodePrefix {
+		r.Prefix = GroupCodePrefix
+		r.CodeLength = GroupCodeTopStepLength
+	}
+
+	res = r.Prefix + r.orgString(r.CodeLength)
+	return
+}
+
+func (r *groupCode) orgString(codeLength int) (rs string) {
 	s := []byte(`A0BCDE12FGHIJKLMNOP34QRST56UVW7XYZ89`)
-	code := make([]byte, 0, GroupCodeStepLength)
+	code := make([]byte, 0, codeLength)
 	var s1 []byte
-	fromCode := r.flipByte(fromString)
+	fromCode := r.flipByte([]byte(r.FromString))
 	var l = len(s)
 	var nextNeedAdd bool
 	var loc int
-	for i := 0; i < GroupCodeStepLength; i++ {
-		s1 = append(s[i+GroupCodeStepLength:], s[:i+GroupCodeStepLength]...)
-		if len(fromString) == 0 {
+	for i := 0; i < codeLength; i++ {
+		s1 = append(s[i+codeLength:], s[:i+codeLength]...)
+		if r.FromString == "" {
 			code = append(code, s1[0])
 			continue
 		}
@@ -112,22 +229,24 @@ func (r *AdminGroup) orgString(fromString []byte) (rs string) {
 				loc = 0
 			}
 			code = append(code, s1[loc])
-		} else if nextNeedAdd {
+			continue
+		}
+		if nextNeedAdd {
 			nextNeedAdd = false
 			if loc = r.getIndex(fromCode[i], s1) + 1; loc == l {
 				nextNeedAdd = true
 				loc = 0
 			}
 			code = append(code, s1[loc])
-		} else {
-			code = append(code, fromCode[i])
+			continue
 		}
+		code = append(code, fromCode[i])
 
 	}
 	rs = string(r.flipByte(code))
 	return
 }
-func (r *AdminGroup) flipByte(arg []byte) (res []byte) {
+func (r *groupCode) flipByte(arg []byte) (res []byte) {
 	l := len(arg)
 	res = make([]byte, l)
 	for i := 0; i < l; i++ {
@@ -135,7 +254,7 @@ func (r *AdminGroup) flipByte(arg []byte) (res []byte) {
 	}
 	return
 }
-func (r *AdminGroup) getIndex(d byte, f []byte) (res int) {
+func (r *groupCode) getIndex(d byte, f []byte) (res int) {
 	res = -1
 	for k, value := range f {
 		if d == value {

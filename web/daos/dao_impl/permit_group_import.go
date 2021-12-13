@@ -16,18 +16,34 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupMenuPermitByGroupIdAndMenuIds(grou
 		return
 	}
 	var m1 models.AdminUserGroupImport
-	if err = r.Context.Db.Table(m1.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("group_id =? AND  menu_id IN(?) ", groupId, menuIds).
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"groupId": groupId,
-			"menuIds": menuIds,
-			"err":     err.Error(),
-		}, "DaoPermitGroupImportDeleteGroupMenuPermitByGroupIdAndMenuIds")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-		return
+
+	logContent := map[string]interface{}{
+		"groupId": groupId,
+		"menuIds": menuIds,
 	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImportDeleteGroupMenuPermitByGroupIdAndMenuIds")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			Model:     &m1,
+			TableName: m1.TableName(),
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("group_id =? AND  menu_id IN(?) ", groupId, menuIds).
+			Delete(&m1).Error
+		return
+	})
+
 	return
 }
 
@@ -71,20 +87,31 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupImportWithMenuId(menuId ...int64) 
 }
 
 func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.ModelBase) (err error) {
-	var data = base.BatchAddDataParameter{
-		Data:      list,
-		TableName: tableName,
-		DbName:    r.Context.DbName,
-		Db:        r.Context.Db,
+	logContent := map[string]interface{}{
+		"list": list,
 	}
-	if err = r.BatchAdd(&data); err != nil {
-		r.Context.Error(map[string]interface{}{
-			"data": data,
-			"err":  err.Error(),
-		}, "DaoPermitGroupImportImplBatchAddData")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImportImplBatchAddData")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var data = base.BatchAddDataParameter{
+			Data:      list,
+			TableName: tableName,
+			DbName:    r.Context.DbName,
+			Db:        r.Context.Db,
+		}
+		logContent["data"] = data
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db: data.Db,
+		}
+		actErrorHandlerResult.Err = r.BatchAdd(&data)
 		return
-	}
+	})
+
 	return
 }
 func (r *DaoPermitGroupImportImpl) GetSelectImportByImportId(groupId int64, importId ...int64) (res []models.AdminUserGroupImport, err error) {

@@ -695,7 +695,9 @@ func (r *DaoPermitImpl) GetMenuByPermitKey(module string, permitKey ...string) (
 		return
 	}
 
-	if err = db.Limit(len(permitKey)).Find(&res).Error; err != nil {
+	if err = db.Limit(len(permitKey)).
+		Order("sort_value desc").
+		Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"permitKey": permitKey,
 			"err":       err.Error(),
@@ -710,8 +712,10 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 	var m models.AdminMenu
 	dba := r.Context.Db.Table(m.TableName())
 	if arg.SystemId > 0 {
-		if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
-			Where("id=?", arg.SystemId).
+		if err = r.Context.Db.Table(m.TableName()).
+			Scopes(base.ScopesDeletedAt()).
+			Order("sort_value desc").
+			Where("id = ?", arg.SystemId).
 			First(&m).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return

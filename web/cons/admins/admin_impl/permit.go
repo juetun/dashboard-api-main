@@ -172,6 +172,7 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 	}
 	r.Response(c, base.SuccessCode, res)
 }
+
 func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 	var arg wrappers.ArgAdminGroupEdit
 	var err error

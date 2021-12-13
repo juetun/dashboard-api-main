@@ -57,19 +57,36 @@ func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]
 	}
 	var m models.AdminImport
 	var data []*models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("id IN (?)", ids).
-		Scopes(base.ScopesDeletedAt()).
-		Find(&data).Error; err == nil {
-		for _, item := range data {
-			res[item.Id] = item
+	logContent := map[string]interface{}{
+		"ids": ids,
+	}
+	defer func() {
+		if err != nil {
+			r.Context.Error(logContent, "DaoPermitImportImplGetImportFromDbByIds")
 		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = r.Context.Db.Table(m.TableName()).
+			Where("id IN (?)", ids).
+			Scopes(base.ScopesDeletedAt()).
+			Find(&data).Error
+		return
+	})
+	if err != nil {
+		logContent["err"] = err.Error()
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		return
 	}
-	r.Context.Error(map[string]interface{}{
-		"ids": ids,
-		"err": err.Error(),
-	}, "DaoPermitImportImplGetImportFromDbByIds")
+	for _, item := range data {
+		res[item.Id] = item
+	}
 	return
 }
 func (r *DaoPermitImportImpl) GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error) {
