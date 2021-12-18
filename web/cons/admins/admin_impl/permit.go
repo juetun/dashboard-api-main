@@ -132,13 +132,8 @@ func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
 
 		return
 	}
-
-	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-
-	srv := srv_impl.NewSrvPermitGroupImpl(context)
-	res, err := srv.AdminUserGroupAdd(&arg)
+	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+		AdminUserGroupAdd(&arg)
 
 	if err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)

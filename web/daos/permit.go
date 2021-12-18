@@ -42,7 +42,7 @@ type DaoPermit interface {
 
 	MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error)
 
-	AdminUserGroupAdd(data []map[string]interface{}) (err error)
+	// AdminUserGroupAdd(data []map[string]interface{}) (err error)
 
 	AdminUserGroupRelease(ids ...string) (err error)
 
@@ -50,7 +50,7 @@ type DaoPermit interface {
 
 	InsertAdminGroup(group *models.AdminGroup) (err error)
 
-	UpdateAdminGroup(group *models.AdminGroup) (err error)
+	UpdateAdminGroup(data, where map[string]interface{}) (err error)
 
 	GetAdminGroupByIds(gIds ...int64) (res []models.AdminGroup, err error)
 
@@ -75,5 +75,6 @@ type DaoPermit interface {
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
 
 	GetPermitMenuByIds(module []string, menuIds ...int64) (res []models.AdminMenu, err error)
-	// GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int64) (res []models.AdminUserGroupMenu, err error)
+
+
 }

@@ -56,6 +56,7 @@ type (
 	AdminGroup struct {
 		models.AdminGroup
 		ParentName string `json:"parent_name"`
+		UserCount  int    `json:"user_count"`
 	}
 
 	ArgAdminMenuWithCheck struct {
@@ -193,8 +194,18 @@ type (
 	}
 
 	AdminGroupUserStruct struct {
-		models.AdminUserGroup
-		models.AdminGroup
+		Id                 int64  `json:"id" gorm:"column:id;primary_key" `
+		Name               string `json:"name" gorm:"column:name"`
+		ParentId           int64  `json:"parent_id"  gorm:"column:parent_id"`
+		GroupCode          string `json:"group_code" gorm:"column:group_code"`
+		LastChildGroupCode string `json:"last_child_group_code" gorm:"column:last_child_group_code"`
+		IsSuperAdmin       uint8  `json:"is_super_admin" gorm:"column:is_super_admin"`
+		IsAdminGroup       uint8  `json:"is_admin_group" gorm:"column:is_admin_group"`
+
+		GroupId    int64  `json:"group_id" gorm:"column:group_id;not null;uniqueIndex:idx_gid_hid,priority:1;default:0;comment:组ID"`
+		UserHid    string `json:"user_hid"  gorm:"column:user_hid;not null;default:'';uniqueIndex:idx_gid_hid,priority:2;comment:用户ID"`
+		SuperAdmin uint8  `json:"is_super_admin" gorm:"column:super_admin;not null;default:0;comment:是否是超级管理员 0-否,1-是"`
+		AdminGroup uint8  `json:"is_admin_group" gorm:"column:admin_group;not null;default:0;comment:是否是后台管理员组 0-否,1-是"`
 	}
 	ArgGetMenu struct {
 		app_param.RequestUser
@@ -240,7 +251,7 @@ type (
 		UserHid   string `json:"user_hid" form:"user_hid"`
 		RealName  string `json:"real_name" form:"real_name"`
 		Mobile    string `json:"mobile" form:"mobile"`
-		Id        int64 `json:"id" form:"id"`
+		Id        int64  `json:"id" form:"id"`
 		FlagAdmin uint8  `json:"flag_admin" form:"flag_admin"`
 	}
 	ResultAdminUserAdd struct {
@@ -314,8 +325,10 @@ type (
 	}
 	ArgAdminGroupEdit struct {
 		app_param.RequestUser
-		Name string `json:"name" form:"name"`
-		Id   int64  `json:"id" form:"id"`
+		Name         string `json:"name" form:"name"`
+		Id           int64  `json:"id" form:"id"`
+		IsSuperAdmin uint8  `json:"is_super_admin" form:"is_super_admin"`
+		IsAdminGroup uint8  `json:"is_admin_group" form:"is_admin_group"`
 	}
 )
 
@@ -510,11 +523,11 @@ func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
 
 type ArgAdminUserGroupAdd struct {
 	app_param.RequestUser
-	GroupId      int    `json:"group_id" form:"group_id"`
+	GroupId      int64  `json:"group_id" form:"group_id"`
 	UserHid      string `json:"user_hid" form:"user_hid"`
 	GroupIdBatch string `json:"group_id_batch" form:"group_id_batch"`
 	UserHidBatch string `json:"user_hid_batch" form:"user_hid_batch"`
-	GroupIds     []string
+	GroupIds     []int64
 	UserHIds     []string
 }
 
@@ -523,16 +536,27 @@ func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
 		return
 	}
 
-	r.GroupIds = []string{}
+	r.GroupIds = []int64{}
 	r.UserHIds = []string{}
+
 	if r.GroupIdBatch != "" {
-		r.GroupIds = strings.Split(r.GroupIdBatch, ",")
+		var gid int64
+		tmp := strings.Split(r.GroupIdBatch, ",")
+		for _, s := range tmp {
+			if s == "" {
+				continue
+			}
+			if gid, err = strconv.ParseInt(s, 10, 64); err != nil {
+				return
+			}
+			r.GroupIds = append(r.GroupIds, gid)
+		}
 	}
 	if r.UserHidBatch != "" {
 		r.UserHIds = strings.Split(r.UserHidBatch, ",")
 	}
 	if r.GroupId != 0 {
-		r.GroupIds = append(r.GroupIds, strconv.Itoa(r.GroupId))
+		r.GroupIds = append(r.GroupIds, r.GroupId)
 	}
 	if r.UserHid != "" {
 		r.UserHIds = append(r.UserHIds, r.UserHid)
@@ -764,13 +788,21 @@ type ResultSystemAdminMenu struct {
 type ArgAdminUser struct {
 	app_param.RequestUser
 	response.PageQuery
-	Name    string `json:"name" form:"name"`
-	UserHId string `json:"user_hid" form:"user_hid"`
+	Name      string `json:"name" form:"name"`
+	UserHId   string `json:"user_hid" form:"user_hid"`
+	CannotUse int8   `json:"can_not_use" form:"can_not_use"`
 }
 
 func (r *ArgAdminUser) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
+	}
+
+	if r.CannotUse > 0 {
+		if _, ok := models.AdminUserCanNotUseMap[r.CannotUse]; !ok {
+			err = fmt.Errorf("can_not_use数据格式错误")
+			return
+		}
 	}
 	return
 }

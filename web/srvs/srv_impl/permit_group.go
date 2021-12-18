@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -56,21 +58,37 @@ func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrapp
 	}
 	return
 }
-
-func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
+func (r *SrvPermitGroupImpl) getParentGroupMap(dao daos.DaoPermit, list []models.AdminGroup) (parentGroupMap map[int64]models.AdminGroup, ids []int64, err error) {
 	l := len(list)
-	res = make([]wrappers.AdminGroup, 0, l)
-	ids := make([]int64, 0, l)
+	parentGroupMap = make(map[int64]models.AdminGroup, l)
+	pIds := make([]int64, 0, l)
 	for _, value := range list {
-		ids = append(ids, value.ParentId)
+		pIds = append(pIds, value.ParentId)
+		ids = append(ids, value.Id)
 	}
 	var listG []models.AdminGroup
-	if listG, err = dao.GetAdminGroupByIds(ids...); err != nil {
+	if listG, err = dao.GetAdminGroupByIds(pIds...); err != nil {
 		return
 	}
-	var m = make(map[int64]models.AdminGroup, l)
 	for _, value := range listG {
-		m[value.Id] = value
+		parentGroupMap[value.Id] = value
+	}
+	return
+}
+func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
+	res = make([]wrappers.AdminGroup, 0, len(list))
+
+	var (
+		ids               []int64
+		getParentGroupMap map[int64]models.AdminGroup
+		mapGroupUserCount = map[int64]int{}
+	)
+	if getParentGroupMap, ids, err = r.getParentGroupMap(dao, list); err != nil {
+		return
+	}
+	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	if mapGroupUserCount, err = daoGroup.GetGroupUserCount(ids...); err != nil {
+		return
 	}
 
 	var dt wrappers.AdminGroup
@@ -78,7 +96,10 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 		dt = wrappers.AdminGroup{
 			AdminGroup: it,
 		}
-		if dta, ok := m[it.ParentId]; ok {
+		if tp, ok := mapGroupUserCount[it.Id]; ok {
+			dt.UserCount = tp
+		}
+		if dta, ok := getParentGroupMap[it.ParentId]; ok {
 			dt.ParentName = dta.Name
 		}
 		res = append(res, dt)
@@ -268,28 +289,95 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	res.Result = true
 	return
 }
+
+func (r *SrvPermitGroupImpl) validateUserHid(userHid ...string) (userMap map[string]app_param.ResultUserItem, err error) {
+	if userMap, err = NewUserService(r.Context).GetUserByIds(userHid); err != nil {
+		return
+	}
+	if len(userMap) != len(userHid) {
+		err = fmt.Errorf("您选择的管理用户数据异常,请尝试刷新页面重试")
+	}
+	return
+}
+
+func (r *SrvPermitGroupImpl) validateGroupIds(dao daos.DaoPermitGroup, groupIds ...int64) (err error) {
+	var groups []*models.AdminGroup
+	if groups, err = dao.GetGroupByIds(groupIds...); err != nil {
+		return
+	}
+	if len(groups) != len(groupIds) {
+		err = fmt.Errorf("您选择的管理员组数据异常,请尝试刷新页面重试")
+	}
+	return
+}
+
 func (r *SrvPermitGroupImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAdd) (res wrappers.ResultAdminUserGroupAdd, err error) {
 	res = wrappers.ResultAdminUserGroupAdd{}
-	dao := dao_impl.NewDaoPermit(r.Context)
 
-	var args = make([]map[string]interface{}, 0)
-	for _, userHId := range arg.UserHIds {
-		for _, groupId := range arg.GroupIds {
-			args = append(args, map[string]interface{}{
-				"group_id":   groupId,
-				"user_hid":   userHId,
-				"updated_at": time.Now().Format("2006-01-02 15:04:05"),
-				"deleted_at": nil,
-			})
-		}
+	var (
+		data    []base.ModelBase
+		dao     = dao_impl.NewDaoPermitGroupImpl(r.Context)
+		userMap map[string]app_param.ResultUserItem
+		t       = base.GetNowTimeNormal()
+	)
+	if err = r.validateGroupIds(dao, arg.GroupIds...); err != nil {
+		return
 	}
-	err = dao.AdminUserGroupAdd(args)
-	if err != nil {
+	if userMap, err = r.validateUserHid(arg.UserHIds...); err != nil {
+		return
+	}
+	var adminUsers = make([]base.ModelBase, 0, len(userMap))
+	var dt *models.AdminUser
+	for _, item := range userMap {
+		dt = &models.AdminUser{
+			UserHid:   item.UserHid,
+			RealName:  item.RealName,
+			Mobile:    item.Mobile,
+			CreatedAt: t,
+			UpdatedAt: t,
+		}
+		adminUsers = append(adminUsers, dt)
+	}
+
+	if err = dao_impl.NewDaoPermitUser(r.Context).
+		AdminUserAdd(adminUsers); err != nil {
+		return
+	}
+	if data, err = r.orgAdminUserGroup(arg); err != nil {
+		return
+	}
+
+	if err = dao.AdminUserGroupAdd(data); err != nil {
 		return
 	}
 	res.Result = true
+
 	return
 }
+
+func (r *SrvPermitGroupImpl) orgAdminUserGroup(arg *wrappers.ArgAdminUserGroupAdd) (data []base.ModelBase, err error) {
+	data = make([]base.ModelBase, 0, len(arg.UserHIds)*len(arg.GroupIds))
+
+	var (
+		dt *models.AdminUserGroup
+		t  = base.GetNowTimeNormal()
+	)
+
+	for _, userHId := range arg.UserHIds {
+		for _, groupId := range arg.GroupIds {
+			dt = &models.AdminUserGroup{
+				GroupId:   groupId,
+				UserHid:   userHId,
+				UpdatedAt: t,
+				CreatedAt: t,
+			}
+			data = append(data, dt)
+		}
+	}
+
+	return
+}
+
 func (r *SrvPermitGroupImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGroupRelease) (res wrappers.ResultAdminUserGroupRelease, err error) {
 	res = wrappers.ResultAdminUserGroupRelease{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -315,7 +403,9 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 			return
 		}
 		dta = models.AdminGroup{
-			Name: arg.Name,
+			Name:         arg.Name,
+			IsSuperAdmin: arg.IsSuperAdmin,
+			IsAdminGroup: arg.IsAdminGroup,
 		}
 		if err = dao.InsertAdminGroup(&dta); err != nil {
 			return
@@ -338,9 +428,17 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 	}
 	dta = dt[0]
 	dta.Name = arg.Name
-	dta.Id = arg.Id
 	dta.UpdatedAt = base.TimeNormal{Time: time.Now()}
-	if err = dao.UpdateAdminGroup(&dta); err != nil {
+	dta.IsAdminGroup = arg.IsAdminGroup
+	dta.IsSuperAdmin = arg.IsSuperAdmin
+	if err = dao.UpdateAdminGroup(map[string]interface{}{
+		"name":           arg.Name,
+		"updated_at":     base.TimeNormal{Time: time.Now()}.Format(utils.DateTimeGeneral),
+		"is_admin_group": arg.IsAdminGroup,
+		"is_super_admin": arg.IsSuperAdmin,
+	}, map[string]interface{}{
+		"id": arg.Id,
+	}); err != nil {
 		return
 	}
 	daoUserGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)

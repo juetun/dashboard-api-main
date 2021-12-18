@@ -16,6 +16,41 @@ type DaoPermitUserImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...string) (err error) {
+
+	if len(userHIds) == 0 {
+		return
+	}
+
+	logC := map[string]interface{}{
+		"userHIds": userHIds,
+	}
+
+	defer func() {
+		if err != nil {
+			logC["err"] = err.Error()
+			r.Context.Error(logC, "DaoPermitUserImplDeleteAdminUserGroup")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var m models.AdminUserGroup
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("user_hid IN (?)", userHIds).
+			Delete(&m).Error
+		return
+	})
+	return
+}
+
 func (r *DaoPermitUserImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error) {
 	var m models.AdminUser
 	if db == nil {
@@ -27,6 +62,9 @@ func (r *DaoPermitUserImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdmi
 	}
 	if arg.UserHId != "" {
 		dba = dba.Where("user_hid=?", arg.UserHId)
+	}
+	if arg.CannotUse >= 0 {
+		dba = dba.Where("can_not_use =?", arg.CannotUse)
 	}
 
 	logContent := map[string]interface{}{"arg": arg}
@@ -65,13 +103,13 @@ func (r *DaoPermitUserImpl) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdmin
 	return
 }
 
-func (r *DaoPermitUserImpl) DeleteAdminUser(ids []string) (err error) {
-	if len(ids) == 0 {
+func (r *DaoPermitUserImpl) DeleteAdminUser(userHIds ...string) (err error) {
+	if len(userHIds) == 0 {
 		return
 	}
 	var m models.AdminUser
 	err = r.Context.Db.Table(m.TableName()).
-		Where("user_hid IN (?) ", ids).
+		Where("user_hid IN (?) ", userHIds).
 		Scopes(base.ScopesDeletedAt()).
 		Updates(map[string]interface{}{
 			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
@@ -79,27 +117,45 @@ func (r *DaoPermitUserImpl) DeleteAdminUser(ids []string) (err error) {
 		Error
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
-			"ids": ids,
+			"ids": userHIds,
 			"err": err,
 		}, "DaoPermitUserImplAdminUserDelete")
 	}
 	return
 }
-func (r *DaoPermitUserImpl) AdminUserAdd(arg *models.AdminUser) (err error) {
-	var data = base.BatchAddDataParameter{
-		DbName:    r.Context.DbName,
-		TableName: arg.TableName(),
-		Data: []base.ModelBase{
-			arg,
-		},
+
+func (r *DaoPermitUserImpl) AdminUserAdd(dataUser []base.ModelBase) (err error) {
+
+	logContent := map[string]interface{}{
+		"dataUser": dataUser,
 	}
-	if err = r.BatchAdd(&data); err == nil {
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitUserImplAdminUserAdd")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var (
+			dt   models.AdminUser
+			data = base.BatchAddDataParameter{
+				DbName:    r.Context.DbName,
+				TableName: dt.TableName(),
+				Data:      dataUser,
+			}
+		)
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			DbName:    data.DbName,
+			TableName: dt.TableName(),
+			Db:        data.Db,
+			Model:     &dt,
+		}
+		actErrorHandlerResult.Err = r.BatchAdd(&data)
 		return
-	}
-	r.Context.Error(map[string]interface{}{
-		"arg": arg,
-		"err": err,
-	}, "DaoPermitUserImplAdminUserAdd")
+	})
+
 	return
 
 }

@@ -26,8 +26,8 @@ var (
 
 type AdminUserGroup struct {
 	Id           int             `json:"id" gorm:"column:id;primary_key" `
-	GroupId      int64           `json:"group_id" gorm:"column:group_id;not null;default:0;comment:组ID"`
-	UserHid      string          `json:"user_hid"  gorm:"column:user_hid;not null;default:'';comment:用户ID"`
+	GroupId      int64           `json:"group_id" gorm:"column:group_id;not null;uniqueIndex:idx_gid_hid,priority:1;default:0;comment:组ID"`
+	UserHid      string          `json:"user_hid"  gorm:"column:user_hid;not null;default:'';uniqueIndex:idx_gid_hid,priority:2;comment:用户ID"`
 	IsSuperAdmin uint8           `json:"is_super_admin" gorm:"column:is_super_admin;not null;default:0;comment:是否是超级管理员 0-否,1-是"`
 	IsAdminGroup uint8           `json:"is_admin_group" gorm:"column:is_admin_group;not null;default:0;comment:是否是后台管理员组 0-否,1-是"`
 	CreatedAt    base.TimeNormal `json:"-" gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" `

@@ -21,6 +21,119 @@ type DaoPermitGroupImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitGroupImpl) GetGroupUserCount(groupIds ...int64) (groupIdUserCountMap map[int64]int, err error) {
+	var l = len(groupIds)
+	groupIdUserCountMap = make(map[int64]int, l)
+	if l == 0 {
+		return
+	}
+	type ResItem struct {
+		GroupId int64 `json:"group_id"`
+		Count   int   `json:"count"`
+	}
+	var res = make([]ResItem, 0, l)
+
+	logContent := map[string]interface{}{
+		"groupIds": groupIds,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImplGetGroupUserCount")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+			return
+		}
+
+		for _, item := range res {
+			groupIdUserCountMap[item.GroupId] = item.Count
+		}
+	}()
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var m models.AdminUserGroup
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Select("group_id,count(`id`) as count").
+			Where("group_id IN (?)", groupIds).
+			Group("group_id").
+			Find(&res).
+			Error
+		return
+	})
+
+	return
+}
+
+func (r *DaoPermitGroupImpl) GetGroupByIds(groupIds ...int64) (res []*models.AdminGroup, err error) {
+
+	logContent := map[string]interface{}{
+		"groupIds": groupIds,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImplGetGroupByIds")
+		}
+	}()
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var (
+			dt models.AdminGroup
+		)
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			DbName:    r.Context.DbName,
+			TableName: dt.TableName(),
+			Db:        r.Context.Db,
+			Model:     &dt,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("id IN (?)", groupIds).Find(&res).Error
+		return
+	})
+
+	return
+}
+
+func (r *DaoPermitGroupImpl) AdminUserGroupAdd(data []base.ModelBase) (err error) {
+	logContent := map[string]interface{}{
+		"base": data,
+	}
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "DaoPermitGroupImplAdminUserGroupAdd")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		var (
+			dt        models.AdminUserGroup
+			batchData = &base.BatchAddDataParameter{
+				Db:        r.Context.Db,
+				DbName:    r.Context.DbName,
+				TableName: dt.TableName(),
+				Data:      data,
+			}
+		)
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			DbName:    batchData.DbName,
+			TableName: dt.TableName(),
+			Db:        batchData.Db,
+			Model:     &dt,
+		}
+		actErrorHandlerResult.Err = r.BatchAdd(batchData)
+		return
+	})
+
+	return
+}
+
 func (r *DaoPermitGroupImpl) GetGroupAppPermitImport(groupId int64, appName string, refreshCache ...bool) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
 	// 如果不需要强制刷新缓存
 	if !r.RefreshCache(refreshCache...) {
@@ -304,6 +417,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...int64) (
 	pager := response.NewPager(response.PagerBaseQuery(&pageQuery))
 
 	for {
+
 		if list, err = r.GetGroupUserByGroupIds(pager, groupIds...); err != nil {
 			break
 		}
@@ -331,7 +445,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...int64) (
 
 func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, groupIds ...int64) (list []models.AdminUserGroup, err error) {
 	var m models.AdminUserGroup
-	db := r.Context.Db.Distinct("user_hid").
+	db := r.Context.Db.
 		Table(m.TableName()).
 		Scopes(base.ScopesDeletedAt()).
 		Where("group_id IN (?)", groupIds)
@@ -340,7 +454,7 @@ func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, group
 	}
 	if err = db.Limit(pager.PageSize).
 		Order("id ASC").
-		Find(list).Error; err != nil {
+		Find(&list).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"pager":    pager,
 			"groupIds": groupIds,
@@ -401,6 +515,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupPermit(menuId ...int64) (err error) 
 	}
 	return
 }
+
 func (r *DaoPermitGroupImpl) DeleteAdminGroupByIds(ids ...int64) (err error) {
 	if len(ids) == 0 {
 		return
@@ -418,6 +533,7 @@ func (r *DaoPermitGroupImpl) DeleteAdminGroupByIds(ids ...int64) (err error) {
 	}
 	return
 }
+
 func NewDaoPermitGroupImpl(ctx ...*base.Context) (res daos.DaoPermitGroup) {
 	p := &DaoPermitGroupImpl{}
 	p.SetContext(ctx...)

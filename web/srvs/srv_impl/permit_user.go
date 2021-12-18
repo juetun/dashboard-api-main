@@ -10,6 +10,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
@@ -24,12 +25,27 @@ type SrvPermitUserImpl struct {
 
 func (r *SrvPermitUserImpl) AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (res *wrapper_admin.ResultAdminUserUpdateWithColumn, err error) {
 	res = &wrapper_admin.ResultAdminUserUpdateWithColumn{}
-
-	if err = dao_impl.NewDaoPermitUser(r.Context).
-		UpdateDataByUserHIds(map[string]interface{}{arg.Column: arg.Value}, arg.UserHidVals...); err != nil {
+	dao := dao_impl.NewDaoPermitUser(r.Context)
+	switch arg.Column {
+	case "can_not_use":
+		if err = r.adminUserUpdateWithColumnCanNotUse(dao, arg); err != nil {
+			return
+		}
+	}
+	if err = dao.UpdateDataByUserHIds(map[string]interface{}{arg.Column: arg.Value}, arg.UserHidVals...); err != nil {
 		return
 	}
 	res.Result = true
+	return
+}
+
+func (r *SrvPermitUserImpl) adminUserUpdateWithColumnCanNotUse(dao daos.DaoPermitUser, arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (err error) {
+	switch arg.Value {
+	case fmt.Sprintf("%d", models.AdminUserCanNotUseYes): //
+		if err = dao.DeleteAdminUserGroup(arg.UserHidVals...); err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -69,7 +85,7 @@ func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wr
 			UpdatedAt: base.TimeNormal{Time: t},
 		}
 
-		if err = daoPermitUser.AdminUserAdd(adminUser); err != nil {
+		if err = daoPermitUser.AdminUserAdd([]base.ModelBase{adminUser}); err != nil {
 			return
 		}
 		res.Result = true
@@ -94,11 +110,12 @@ func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wr
 func (r *SrvPermitUserImpl) AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (res wrappers.ResultAdminUserDelete, err error) {
 	res = wrappers.ResultAdminUserDelete{}
 	dao := dao_impl.NewDaoPermitUser(r.Context)
-	if err = dao.DeleteAdminUser(arg.IdString); err != nil {
+	if err = dao.DeleteAdminUser(arg.IdString...); err != nil {
 		return
 	}
 
-	if err = dao_impl.NewDaoPermitGroupImpl(r.Context).DeleteUserGroupByUserId(arg.IdString...); err != nil {
+	if err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+		DeleteUserGroupByUserId(arg.IdString...); err != nil {
 		return
 	}
 	res.Result = true

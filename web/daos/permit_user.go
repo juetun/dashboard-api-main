@@ -2,6 +2,7 @@
 package daos
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -12,9 +13,11 @@ type DaoPermitUser interface {
 
 	UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error)
 
-	AdminUserAdd(arg *models.AdminUser) (err error)
+	AdminUserAdd(dataUser []base.ModelBase) (err error)
 
-	DeleteAdminUser(ids []string) (err error)
+	DeleteAdminUser(userHIds ...string) (err error)
+
+	DeleteAdminUserGroup(userHIds ...string) (err error)
 
 	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error)
 

@@ -6,6 +6,16 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
+const (
+	AdminUserCanNotUseYes = iota // 可用
+	AdminUserCanNotUseNo         // 不可用
+)
+
+var AdminUserCanNotUseMap = map[int8]string{
+	AdminUserCanNotUseYes: "可用",
+	AdminUserCanNotUseNo:  "不可用",
+}
+
 type AdminUser struct {
 	ID        uint             `gorm:"column:id;primary_key" json:"id"`
 	UserHid   string           `json:"user_hid" gorm:"column:user_hid;uniqueIndex:idx_user_hid,priority:1;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:用户id"`
@@ -20,6 +30,13 @@ type AdminUser struct {
 
 func (r *AdminUser) GetTableComment() (res string) {
 	res = "管理员表"
+	return
+}
+
+func (r *AdminUser) ParseCanNotUse() (res string) {
+	if tp, ok := AdminUserCanNotUseMap[int8(r.CanNotUse)]; ok {
+		res = tp
+	}
 	return
 }
 

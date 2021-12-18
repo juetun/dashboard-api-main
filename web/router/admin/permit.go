@@ -20,7 +20,7 @@ func init() {
 		h := r.Group(urlPrefix + "/permit")
 
 		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
-		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd)
+		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd) // 用户组添加管理员
 
 		h.POST("/admin_group", controller.AdminGroup) // 管理员用户组列表查询
 		h.POST("/admin_set_permit", controller.AdminSetPermit)

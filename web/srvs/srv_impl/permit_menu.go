@@ -425,7 +425,9 @@ func (r *SrvPermitMenuImpl) getUserGroupIds(arg *ArgGetUserGroupIds) (res []int6
 	}
 	res = make([]int64, 0, len(groups))
 	for _, group := range groups {
-		if group.AdminGroup.IsSuperAdmin > 0 { // 如果是超级管理员
+
+		if group.IsSuperAdmin == models.IsAdminGroupYes ||
+			group.SuperAdmin == models.IsSuperAdminYes { // 如果是超级管理员
 			superAdmin = true
 			return
 		}

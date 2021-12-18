@@ -39,9 +39,12 @@ func (r *ConAdminUser) AdminUserUpdateWithColumn(c *gin.Context) {
 }
 
 func (r *ConAdminUser) AdminUser(c *gin.Context) {
-	var arg wrappers.ArgAdminUser
-	err := c.Bind(&arg)
-	if err != nil {
+	var (
+		err error
+		arg wrappers.ArgAdminUser
+	)
+
+	if err = c.Bind(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
@@ -62,6 +65,7 @@ func (r *ConAdminUser) AdminUser(c *gin.Context) {
 }
 
 func (r *ConAdminUser) AdminUserEdit(c *gin.Context) {
+
 	var (
 		res wrappers.ResultAdminUserAdd
 		arg wrappers.ArgAdminUserAdd

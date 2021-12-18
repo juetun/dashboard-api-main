@@ -110,6 +110,7 @@ func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
 	p.SetContext(c...)
 	return p
 }
+
 func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *gorm.DB) {
 	var m models.AdminImport
 	dba = db
@@ -216,9 +217,7 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 		Joins(fmt.Sprintf(" AS a LEFT JOIN  %s as b ON a.menu_id=b.id", adminImport.TableName())).
 		Joins(fmt.Sprintf(" LEFT JOIN  %s as c ON c.import_id=b.id", adminMenuImport.TableName())).
 		Joins(fmt.Sprintf(" LEFT JOIN  %s as d ON c.menu_id=d.id", adminMenu.TableName())).
-		Where("a.path_type = ? AND a.group_id IN (?)",
-			models.PathTypeApi,
-			arg.GroupId).
+		Where("  a.group_id IN (?)", arg.GroupId).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -433,50 +432,50 @@ func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (
 	return
 }
 
-func (r *DaoPermitImpl) AdminUserGroupAdd(data []map[string]interface{}) (err error) {
-	field := make([]string, 0, 10)
-	dataMsg := make([]string, 0)
-	dataTmp := make([]interface{}, 0)
-	duplicate := make([]string, 0)
-	dataMsgA := make([]string, 0)
-	if len(data) == 0 {
-		err = fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
-		return
-	}
-
-	for key, value := range data {
-		if key == 0 {
-			for fieldString := range value {
-				field = append(field, fieldString)
-			}
-		}
-		for _, v := range field {
-			if key == 0 {
-				if v != "created_at" {
-					duplicate = append(duplicate, "`"+v+"`=VALUES(`"+v+"`)")
-				}
-				dataMsgA = append(dataMsgA, "?")
-			}
-			var v1 interface{}
-			if _, ok := value[v]; ok {
-				v1 = value[v]
-			}
-			dataTmp = append(dataTmp, v1)
-		}
-		dataMsg = append(dataMsg, "("+strings.Join(dataMsgA, ",")+")")
-	}
-	var m models.AdminUserGroup
-	sql := "INSERT INTO `" + m.TableName() + "`(`" + strings.Join(field, "`,`") +
-		"`) VALUES" + strings.Join(dataMsg, ",") + " ON DUPLICATE KEY UPDATE " + strings.Join(duplicate, ",")
-	err = r.Context.Db.Exec(sql, dataTmp...).Error
-	if err != nil {
-		r.Context.Error(map[string]interface{}{
-			"data": data,
-			"err":  err,
-		}, "daoPermitAdminUserGroupAdd")
-	}
-	return
-}
+// func (r *DaoPermitImpl) AdminUserGroupAdd(data []map[string]interface{}) (err error) {
+// 	field := make([]string, 0, 10)
+// 	dataMsg := make([]string, 0)
+// 	dataTmp := make([]interface{}, 0)
+// 	duplicate := make([]string, 0)
+// 	dataMsgA := make([]string, 0)
+// 	if len(data) == 0 {
+// 		err = fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
+// 		return
+// 	}
+//
+// 	for key, value := range data {
+// 		if key == 0 {
+// 			for fieldString := range value {
+// 				field = append(field, fieldString)
+// 			}
+// 		}
+// 		for _, v := range field {
+// 			if key == 0 {
+// 				if v != "created_at" {
+// 					duplicate = append(duplicate, "`"+v+"`=VALUES(`"+v+"`)")
+// 				}
+// 				dataMsgA = append(dataMsgA, "?")
+// 			}
+// 			var v1 interface{}
+// 			if _, ok := value[v]; ok {
+// 				v1 = value[v]
+// 			}
+// 			dataTmp = append(dataTmp, v1)
+// 		}
+// 		dataMsg = append(dataMsg, "("+strings.Join(dataMsgA, ",")+")")
+// 	}
+// 	var m models.AdminUserGroup
+// 	sql := "INSERT INTO `" + m.TableName() + "`(`" + strings.Join(field, "`,`") +
+// 		"`) VALUES" + strings.Join(dataMsg, ",") + " ON DUPLICATE KEY UPDATE " + strings.Join(duplicate, ",")
+// 	err = r.Context.Db.Exec(sql, dataTmp...).Error
+// 	if err != nil {
+// 		r.Context.Error(map[string]interface{}{
+// 			"data": data,
+// 			"err":  err,
+// 		}, "daoPermitAdminUserGroupAdd")
+// 	}
+// 	return
+// }
 func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
@@ -525,12 +524,17 @@ func (r *DaoPermitImpl) InsertAdminGroup(group *models.AdminGroup) (err error) {
 	}
 	return
 }
-func (r *DaoPermitImpl) UpdateAdminGroup(group *models.AdminGroup) (err error) {
-	if err = r.Context.Db.Model(group).Where("id=?", group.Id).
-		Updates(group).
+func (r *DaoPermitImpl) UpdateAdminGroup(data, where map[string]interface{}) (err error) {
+	var group *models.AdminGroup
+
+	if err = r.Context.Db.Table(group.TableName()).
+		Where(where).
+		Scopes(base.ScopesDeletedAt()).
+		Updates(data).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
-			"group": group,
+			"data":  data,
+			"where": where,
 			"err":   err,
 		}, "daoPermitUpdateAdminGroup")
 	}
@@ -818,7 +822,7 @@ func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGro
 	var a models.AdminUserGroup
 	var b models.AdminGroup
 	if err = r.Context.Db.
-		Select("a.*,b.*").
+		Select("a.group_id,a.user_hid,a.is_super_admin as super_admin,a.is_admin_group as admin_group,b.*").
 		Unscoped().
 		Table(a.TableName()).
 		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON  a.group_id=b.id ",
