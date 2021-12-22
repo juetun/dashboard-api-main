@@ -7,6 +7,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 )
 
 type ControllerPermit struct {
@@ -331,9 +332,9 @@ func (r *ControllerPermit) GetImportByMenuId(c *gin.Context) {
 
 func (r *ControllerPermit) MenuImport(c *gin.Context) {
 	var (
-		arg wrappers.ArgMenuImport
+		arg wrapper_admin.ArgMenuImport
 		err error
-		res *wrappers.ResultMenuImport
+		res *wrapper_admin.ResultMenuImport
 	)
 
 	if err = c.ShouldBind(&arg); err != nil {

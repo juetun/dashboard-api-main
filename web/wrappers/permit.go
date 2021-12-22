@@ -77,6 +77,8 @@ type (
 	ArgAdminSetPermit struct {
 		app_param.RequestUser
 		GroupId        int64   `json:"group_id" form:"group_id"`
+		MenuId         int64   `json:"menu_id" form:"menu_id"`
+		DefaultOpen    uint8   `json:"default_open" form:"default_open"`
 		Type           string  `json:"type" form:"type"`
 		PermitIdString string  `json:"permit_ids" form:"permit_ids"`
 		PermitIds      []int64 `json:"-" form:"-"`
@@ -273,19 +275,9 @@ type (
 		SortFormat string `json:"sort_format"` // 排序方式
 	}
 
-	ResultMenuImport struct {
-		*response.Pager
-	}
 	ResultMenuImportItem struct {
 		models.AdminImport
 		Checked bool `json:"checked,omitempty"` // 是否要查看选中权限情况
-	}
-	ArgMenuImport struct {
-		app_param.RequestUser
-		response.PageQuery
-		MenuId  int    `json:"menu_id" form:"menu_id"`
-		AppName string `json:"app_name" form:"app_name"`
-		UrlPath string `json:"url_path" form:"url_path"`
 	}
 
 	ArgMenuImportSet struct {
@@ -366,7 +358,7 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 	}
 	permitIds := strings.Split(r.PermitIdString, ",")
 	r.PermitIds = make([]int64, 0, len(permitIds))
-	if r.PermitIdString != "" {
+	if r.PermitIdString != "" && r.PermitIdString != "0" {
 		var id int64
 		for _, value := range permitIds {
 			if value == "" {
@@ -376,7 +368,7 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 				return
 			}
 			if id == 0 {
-				err = fmt.Errorf("参数异常,请联系管理员")
+				err = fmt.Errorf("参数异常,请刷新重试")
 				return
 			}
 			r.PermitIds = append(r.PermitIds, id)
@@ -456,10 +448,6 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
-	_ = c
-	return
-}
 func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return

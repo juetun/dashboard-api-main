@@ -20,6 +20,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"gorm.io/gorm"
 )
 
@@ -121,8 +122,8 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermit, data *model
 	return
 }
 
-func (r *PermitServiceImpl) MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error) {
-	res = &wrappers.ResultMenuImport{
+func (r *PermitServiceImpl) MenuImport(arg *wrapper_admin.ArgMenuImport) (res *wrapper_admin.ResultMenuImport, err error) {
+	res = &wrapper_admin.ResultMenuImport{
 		Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery)),
 	}
 	var (
@@ -451,7 +452,8 @@ func (r *PermitServiceImpl) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res
 			return
 		}
 	case models.PathTypeApi: // 设置API权限
-		if err = NewSrvPermitImport(r.Context).SetApiPermit(arg); err != nil {
+		if err = NewSrvPermitImport(r.Context).
+			SetApiPermit(arg); err != nil {
 			return
 		}
 	default:

@@ -10,13 +10,24 @@ type DaoPermitMenuImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitMenuImpl) GetMenuByMenuId(menuId int64) (res models.AdminMenu, err error) {
+	var li []models.AdminMenu
+	if li, err = r.GetMenu(menuId); err != nil {
+		return
+	}
+	if len(li) > 0 {
+		res = li[0]
+	}
+	return
+}
+
 func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []models.AdminMenu, err error) {
-	var m models.AdminMenu
 	l := len(menuId)
 	res = make([]models.AdminMenu, 0, l)
 	if l == 0 {
 		return
 	}
+	var m models.AdminMenu
 	if err = r.Context.Db.Table(m.TableName()).
 		Where("id IN (?)", menuId).
 		Limit(len(menuId)).
@@ -49,6 +60,7 @@ func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []mod
 	}
 	return
 }
+
 func NewDaoPermitMenu(ctx ...*base.Context) (res daos.DaoPermitMenu) {
 	p := &DaoPermitMenuImpl{}
 	p.SetContext(ctx...)

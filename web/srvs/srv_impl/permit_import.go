@@ -168,8 +168,13 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 			t            = time.Now()
 			list         []base.ModelBase
 			dt           *models.AdminUserGroupImport
+			menu         models.AdminMenu
 		)
 
+		if menu, err = dao_impl.NewDaoPermitMenu(r.Context).
+			GetMenuByMenuId(arg.MenuId); err != nil {
+			return
+		}
 		if permitImport, err = dao_impl.NewDaoPermitImport(r.Context).
 			GetImportFromDbByIds(arg.PermitIds...); err != nil {
 			return
@@ -177,12 +182,14 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 
 		for _, pid := range arg.PermitIds {
 			dt = &models.AdminUserGroupImport{
-				GroupId:   arg.GroupId,
-				MenuId:    pid,
-				AppName:   "",
-				CreatedAt: t,
-				UpdatedAt: t,
-				DeletedAt: nil,
+				GroupId:     arg.GroupId,
+				ImportId:    pid,
+				MenuId:      arg.MenuId,
+				Module:      menu.Module,
+				DefaultOpen: arg.DefaultOpen,
+				CreatedAt:   t,
+				UpdatedAt:   t,
+				DeletedAt:   nil,
 			}
 			if dtm, ok := permitImport[pid]; ok {
 				dt.AppName = dtm.AppName
@@ -445,7 +452,7 @@ func (r *SrvPermitImport) joinChecked(arg *wrappers.ArgGetImport, data []models.
 	}
 	var m = make(map[int64]int64, len(li))
 	for _, it := range li {
-		m[it.MenuId] = it.MenuId
+		m[it.ImportId] = it.ImportId
 	}
 	for _, value := range data {
 		dt = wrappers.AdminImport{

@@ -429,6 +429,10 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupPermitByGroupId(groupIds ...int64) (
 	if err = daoPermitGroupMenu.DeleteGroupMenuByGroupIds(groupIds...); err != nil {
 		return
 	}
+	if err = daoPermitGroupMenu.DeleteGroupImportByGroupIds(groupIds...); err != nil {
+		return
+	}
+
 	go func() {
 		_ = r.DeleteUserGroupCacheByGroupIds(groupIds...)
 	}()

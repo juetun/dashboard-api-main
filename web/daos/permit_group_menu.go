@@ -11,7 +11,11 @@ type DaoPermitGroupMenu interface {
 
 	DeleteGroupMenuByGroupIdAndIds(groupId int64, ids ...int64) (err error)
 
+	// DeleteGroupMenuByGroupIds 删除组对应的界面权限
 	DeleteGroupMenuByGroupIds(groupId ...int64) (err error)
+
+	// DeleteGroupImportByGroupIds 删除组对应的接口权限
+	DeleteGroupImportByGroupIds(groupId ...int64) (err error)
 
 	DeleteGroupPermitByMenuIds(groupId int64, module string, pageMenuId []int64) (err error)
 

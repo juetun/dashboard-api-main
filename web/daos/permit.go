@@ -12,6 +12,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"gorm.io/gorm"
 )
 
@@ -34,13 +35,13 @@ type DaoPermit interface {
 
 	GetImportId(id int) (res models.AdminImport, err error)
 
-	MenuImportCount(arg *wrappers.ArgMenuImport, count *int64) (db *gorm.DB, err error)
+	MenuImportCount(arg *wrapper_admin.ArgMenuImport, count *int64) (db *gorm.DB, err error)
 
 	GetImportCount(arg *wrappers.ArgGetImport, count *int64) (db *gorm.DB, err error)
 
 	GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (res []models.AdminImport, err error)
 
-	MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error)
+	MenuImportList(db *gorm.DB, arg *wrapper_admin.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error)
 
 	// AdminUserGroupAdd(data []map[string]interface{}) (err error)
 
@@ -75,6 +76,4 @@ type DaoPermit interface {
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
 
 	GetPermitMenuByIds(module []string, menuIds ...int64) (res []models.AdminMenu, err error)
-
-
 }

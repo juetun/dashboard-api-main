@@ -18,6 +18,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"gorm.io/gorm"
 )
 
@@ -25,22 +26,34 @@ type DaoPermitImpl struct {
 	base.ServiceDao
 }
 
-func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrappers.ArgMenuImport) (dba *gorm.DB) {
+func (r *DaoPermitImpl) getMenuImportCountDb(db *gorm.DB, arg *wrapper_admin.ArgMenuImport) (dba *gorm.DB) {
 	dba = db
 	if dba != nil {
 		return
 	}
 	var m models.AdminImport
-	dba = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
+	dba = r.Context.Db.Table(fmt.Sprintf("%s as a", m.TableName())).
+		Scopes(base.ScopesDeletedAt("a"))
 	if arg.AppName != "" {
-		dba = dba.Where("app_name = ?", arg.AppName)
+		dba = dba.Where("a.app_name = ?", arg.AppName)
+	}
+	if arg.MenuId != 0 {
+		var b models.AdminMenuImport
+		switch arg.HaveSelect {
+		case wrapper_admin.ArgMenuImportHaveSelectYes:
+			dba = dba.Joins(fmt.Sprintf(" RIGHT JOIN %s as b ON a.id= b.import_id",
+				b.TableName())).
+				Where("b.menu_id = ?", arg.MenuId).
+				Scopes(base.ScopesDeletedAt("b"))
+		}
 	}
 	if arg.UrlPath != "" {
-		dba = dba.Where("url_path LIKE ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
+		dba = dba.Where("a.url_path LIKE ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
 	}
 	return
 }
-func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int64) (db *gorm.DB, err error) {
+
+func (r *DaoPermitImpl) MenuImportCount(arg *wrapper_admin.ArgMenuImport, count *int64) (db *gorm.DB, err error) {
 	db = r.getMenuImportCountDb(db, arg)
 	if err = db.Count(count).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -52,10 +65,13 @@ func (r *DaoPermitImpl) MenuImportCount(arg *wrappers.ArgMenuImport, count *int6
 	return
 }
 
-func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrappers.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error) {
+func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrapper_admin.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error) {
 	var data []models.AdminImport
 	db = r.getMenuImportCountDb(db, arg)
-	if err = db.Offset(arg.GetOffset()).Limit(arg.PageSize).Find(&data).Error; err != nil {
+	if err = db.Select("a.*").
+		Offset(arg.GetOffset()).
+		Limit(arg.PageSize).
+		Find(&data).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),

@@ -10,6 +10,7 @@ package srvs
 
 import (
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 )
 
 type PermitService interface {
@@ -21,7 +22,7 @@ type PermitService interface {
 
 	MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappers.ResultMenuDelete, err error)
 
-	MenuImport(arg *wrappers.ArgMenuImport) (res *wrappers.ResultMenuImport, err error)
+	MenuImport(arg *wrapper_admin.ArgMenuImport) (res *wrapper_admin.ResultMenuImport, err error)
 
 	AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wrappers.ResAdminMenuSearch, err error)
 

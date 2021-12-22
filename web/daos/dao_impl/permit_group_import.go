@@ -57,7 +57,7 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupImportWithGroupIdAndImportIds(grou
 		db = db.Where("group_id =?", groupId)
 	}
 	if len(importIds) > 0 {
-		db = db.Where(" id IN(?)", importIds)
+		db = db.Where(" import_id IN(?)", importIds)
 	}
 	if err = db.Delete(&models.AdminImport{}).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -120,7 +120,7 @@ func (r *DaoPermitGroupImportImpl) GetSelectImportByImportId(groupId int64, impo
 	}
 	var m models.AdminUserGroupImport
 	if err = r.Context.Db.Table(m.TableName()).
-		Where("menu_id IN(?) AND path_type=? AND group_id=?", importId, models.PathTypeApi, groupId).
+		Where("import_id IN(?)  AND group_id=?", importId, groupId).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{
