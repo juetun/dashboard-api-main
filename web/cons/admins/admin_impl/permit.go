@@ -441,7 +441,7 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 		return
 	}
 
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
 		AdminMenuWithCheck(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -463,8 +463,8 @@ func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 	}
 
 	// 记录日志
-	srv := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c))
-	res, err := srv.AdminMenu(&arg)
+	res, err := srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
+		AdminMenu(&arg)
 
 	if err != nil {
 		r.ResponseError(c, err)
@@ -536,7 +536,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitMenuImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
 		Menu(&arg); err != nil {
 		r.ResponseError(c, err)
 		return

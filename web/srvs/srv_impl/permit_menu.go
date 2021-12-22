@@ -65,6 +65,167 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	return
 
 }
+func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error) {
+
+	res = wrappers.NewResultAdminMenu()
+
+	dao := dao_impl.NewDaoPermit(r.Context)
+
+	// 根据module获取当前操作的是哪个系统
+	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
+		return
+	}
+
+	var list, dt2 []models.AdminMenu
+
+	if list, err = dao.GetAdminMenuList(arg); err != nil {
+		return
+	}
+
+	if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
+		return
+	}
+
+	r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
+
+	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+	r.orgTree(list, arg.SystemId, &res.List, nil)
+	return
+}
+func (r *SrvPermitMenuImpl) getSystemIdByModule(dao daos.DaoPermit, module string, sysId int64) (systemId int64, err error) {
+	systemId = sysId
+	// 如果选择了系统模块则，直接初始化systemId
+	if module == "" {
+		return
+	}
+	var dt []models.AdminMenu
+	if dt, err = dao.GetMenuByPermitKey("", module); err != nil {
+		return
+	}
+	if len(dt) == 0 {
+		err = fmt.Errorf("您操作的系统信息不存在或已删除")
+		return
+	}
+	systemId = dt[0].Id
+
+	return
+}
+func (r *SrvPermitMenuImpl) permitTab(list []models.AdminMenu, menu *[]wrappers.ResultSystemAdminMenu, systemId int64, moduleSrc string) (sid int64, module string) {
+	module = moduleSrc
+	var data wrappers.ResultSystemAdminMenu
+	var ind int
+	for _, item := range list {
+		if item.ParentId != wrappers.DefaultPermitParentId {
+			continue
+		}
+		data = wrappers.ResultSystemAdminMenu{
+			Id:        item.Id,
+			PermitKey: item.PermitKey,
+			Label:     item.Label,
+			Icon:      item.Icon,
+			SortValue: item.SortValue,
+			Module:    item.Module,
+			Domain:    item.Domain,
+		}
+		if systemId == 0 && ind == 0 {
+			data.Active = true
+			systemId = item.Id
+			if moduleSrc == "" {
+				module = item.PermitKey
+			}
+		} else if systemId > 0 && item.Id == systemId {
+			data.Active = true
+			if moduleSrc == "" {
+				module = item.PermitKey
+			}
+		}
+		*menu = append(*menu, data)
+		ind++
+	}
+	sid = systemId
+
+	return
+}
+func (r *SrvPermitMenuImpl) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithCheck) (res *wrappers.ResultMenuWithCheck, err error) {
+	res = &wrappers.ResultMenuWithCheck{
+		List: make([]wrappers.AdminMenuObject, 0, 20),
+		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
+	}
+	dao := dao_impl.NewDaoPermit(r.Context)
+	var list []models.AdminMenu
+	if list, err = dao.GetAdminMenuList(&arg.ArgAdminMenu); err != nil {
+		return
+	}
+	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
+		return
+	}
+	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+	var mapPermitMenu map[int64]int64
+	if mapPermitMenu, err = r.getGroupPermitMenu(arg.Module, arg.GroupId); err != nil {
+		return
+	}
+
+	r.orgTree(list, arg.SystemId, &res.List, mapPermitMenu)
+
+	return
+}
+func (r *SrvPermitMenuImpl) getGroupPermitMenu(module string, groupId int64) (mapPermitMenu map[int64]int64, err error) {
+	var groupPermit []models.AdminUserGroupMenu
+	daoGroupMenu := dao_impl.NewDaoPermitGroupMenu(r.Context)
+	if groupPermit, err = daoGroupMenu.GetMenuIdsByPermitByGroupIds(module, []int64{groupId}...); err != nil {
+		return
+	} else {
+		mapPermitMenu = make(map[int64]int64, len(groupPermit))
+		for _, it := range groupPermit {
+			mapPermitMenu[it.MenuId] = it.MenuId
+		}
+	}
+	return
+}
+
+//
+func (r *SrvPermitMenuImpl) orgTree(list []models.AdminMenu, parentId int64, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int64]int64) {
+	var tmp wrappers.AdminMenuObject
+	for _, value := range list {
+		// 剔除默认数据那条
+		if value.Id == parentId || value.ParentId != parentId {
+			continue
+		}
+		tmp = r.orgAdminMenuObject(&value, mapPermitMenu)
+		r.orgTree(list, value.Id, &tmp.Children, mapPermitMenu)
+		*res = append(*res, tmp)
+	}
+}
+
+func (r *SrvPermitMenuImpl) orgAdminMenuObject(value *models.AdminMenu, mapPermitMenu map[int64]int64) (res wrappers.AdminMenuObject) {
+	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20)}
+	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
+		Id:                 value.Id,
+		ParentId:           value.ParentId,
+		Title:              value.Label,
+		Label:              value.Label,
+		Icon:               value.Icon,
+		HideInMenu:         value.HideInMenu,
+		UrlPath:            value.UrlPath,
+		SortValue:          value.SortValue,
+		Module:             value.Module,
+		PermitKey:          value.PermitKey,
+		Domain:             value.Domain,
+		ManageImportPermit: value.ManageImportPermit,
+	}
+	if value.OtherValue != "" {
+		_ = json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
+	} else {
+		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true}
+	}
+	if mapPermitMenu != nil {
+		if _, ok := mapPermitMenu[value.Id]; ok {
+			res.ResultAdminMenuSingle.Checked = true
+		}
+	}
+	return
+}
+
 
 func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error) {
 	_ = dao
@@ -466,7 +627,7 @@ func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error
 	return
 }
 
-func NewSrvPermitMenuImpl(ctx ...*base.Context) (res srvs.SrvPermitMenu) {
+func NewSrvPermitMenu(ctx ...*base.Context) (res srvs.SrvPermitMenu) {
 	p := &SrvPermitMenuImpl{}
 	p.SetContext(ctx...)
 	return p
