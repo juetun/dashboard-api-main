@@ -318,7 +318,7 @@ func (r *SrvPermitGroupImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAd
 		data    []base.ModelBase
 		dao     = dao_impl.NewDaoPermitGroupImpl(r.Context)
 		userMap map[string]app_param.ResultUserItem
-		t       = base.GetNowTimeNormal()
+		t       = time.Now()
 	)
 	if err = r.validateGroupIds(dao, arg.GroupIds...); err != nil {
 		return
@@ -428,7 +428,7 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 	}
 	dta = dt[0]
 	dta.Name = arg.Name
-	dta.UpdatedAt = base.TimeNormal{Time: time.Now()}
+	dta.UpdatedAt = time.Now()
 	dta.IsAdminGroup = arg.IsAdminGroup
 	dta.IsSuperAdmin = arg.IsSuperAdmin
 	if err = dao.UpdateAdminGroup(map[string]interface{}{

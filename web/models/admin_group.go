@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juetun/base-wrapper/lib/base"
 	"gorm.io/gorm"
 )
 
@@ -18,16 +17,16 @@ const (
 )
 
 type AdminGroup struct {
-	Id                 int64           `json:"id" gorm:"column:id;primary_key" `
-	Name               string          `json:"name" gorm:"column:name"`
-	ParentId           int64           `json:"parent_id"  gorm:"column:parent_id"`
-	GroupCode          string          `json:"group_code" gorm:"column:group_code"`
-	LastChildGroupCode string          `json:"last_child_group_code" gorm:"column:last_child_group_code"`
-	IsSuperAdmin       uint8           `json:"is_super_admin" gorm:"column:is_super_admin"`
-	IsAdminGroup       uint8           `json:"is_admin_group" gorm:"column:is_admin_group"`
-	CreatedAt          base.TimeNormal `json:"created_at" gorm:"column:created_at" `
-	UpdatedAt          base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
-	DeletedAt          *time.Time      `json:"-" gorm:"column:deleted_at" `
+	Id                 int64      `json:"id" gorm:"column:id;primary_key" `
+	Name               string     `json:"name" gorm:"column:name"`
+	ParentId           int64      `json:"parent_id"  gorm:"column:parent_id"`
+	GroupCode          string     `json:"group_code" gorm:"column:group_code"`
+	LastChildGroupCode string     `json:"last_child_group_code" gorm:"column:last_child_group_code"`
+	IsSuperAdmin       uint8      `json:"is_super_admin" gorm:"column:is_super_admin"`
+	IsAdminGroup       uint8      `json:"is_admin_group" gorm:"column:is_admin_group"`
+	CreatedAt          time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt          time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
 func (r *AdminGroup) GetTableComment() (res string) {

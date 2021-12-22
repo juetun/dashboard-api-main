@@ -495,14 +495,28 @@ func (r *PermitServiceImpl) isHomePage(permitIds []int64) (res bool, homePageId 
 	return
 }
 func (r *PermitServiceImpl) commonImport(module string) (res []int64, err error) {
+
 	res = make([]int64, 0, 2)
+	if module == "" {
+		return
+	}
 	var da []models.AdminMenu
 	daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
-
-	da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
+	if da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
+		"permit_key": module,
+		"module":     wrappers.DefaultPermitModule,
+	}); err != nil {
+		return
+	}
+	for _, value := range da {
+		res = append(res, value.Id)
+	}
+	if da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
 		"module": module,
 		"label":  models.CommonMenuDefaultLabel,
-	})
+	}); err != nil {
+		return
+	}
 	for _, value := range da {
 		res = append(res, value.Id)
 	}
@@ -577,10 +591,12 @@ func (r *PermitServiceImpl) setMenuPermit(dao daos.DaoPermit, arg *wrappers.ArgA
 	}
 	t := time.Now()
 
+	// 添加菜单权限数据
 	if err = r.addNewMenuPermit(newPermit, arg, t); err != nil {
 		return
 	}
 
+	// 添加接口权限数据
 	if err = r.addNewImportPermit(newPermit, arg, t); err != nil {
 		return
 	}
@@ -678,13 +694,15 @@ func (r *PermitServiceImpl) deleteNotApiPermitId(dao daos.DaoPermit, notPermitId
 	return
 }
 
-func (r *PermitServiceImpl) addNewImportPermit(newPermit []int64, arg *wrappers.ArgAdminSetPermit, t time.Time) (err error) {
+func (r *PermitServiceImpl) addNewImportPermit(menuIds []int64, arg *wrappers.ArgAdminSetPermit, t time.Time) (err error) {
 	var (
 		listImport []models.AdminImport
 		dt         models.AdminUserGroupImport
 	)
-	daoPermitImport := dao_impl.NewDaoPermitImport(r.Context)
-	if listImport, err = daoPermitImport.GetDefaultOpenImportByMenuIds(newPermit...); err != nil {
+
+	// 获取默认的可开通的接口列表
+	if listImport, err = dao_impl.NewDaoPermitImport(r.Context).
+		GetDefaultOpenImportByMenuIds(menuIds...); err != nil {
 		return
 	}
 
@@ -702,8 +720,8 @@ func (r *PermitServiceImpl) addNewImportPermit(newPermit []int64, arg *wrappers.
 		list = append(list, &dt)
 	}
 	var m models.AdminUserGroupImport
-	daoGImport := dao_impl.NewDaoPermitGroupImport(r.Context)
-	if err = daoGImport.BatchAddData(m.TableName(), list); err != nil {
+	if err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		BatchAddData(m.TableName(), list); err != nil {
 		err = fmt.Errorf("操作异常")
 		return
 	}

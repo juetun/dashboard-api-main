@@ -11,6 +11,10 @@ import (
 )
 
 const (
+	AdminMenuHideInMenuNo = iota
+	AdminMenuHideInMenuTrue
+)
+const (
 	// AdminMenuNameMaxLength 菜单名称最大长度
 	AdminMenuNameMaxLength = 6
 
@@ -30,9 +34,9 @@ type AdminMenu struct {
 	UrlPath            string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
 	SortValue          int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
 	OtherValue         string     `json:"other_value" gorm:"column:other_value" form:"other_value"`
-	CreatedAt          time.Time  `json:"-" gorm:"column:created_at"  form:"-"`
-	UpdatedAt          time.Time  `json:"-" gorm:"column:updated_at"  form:"-"`
-	DeletedAt          *time.Time `json:"-" gorm:"column:deleted_at"`
+	CreatedAt          time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt          time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
 func (r *AdminMenu) TableName() string {

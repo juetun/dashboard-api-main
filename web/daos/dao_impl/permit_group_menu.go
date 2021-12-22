@@ -101,7 +101,7 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIdAndIds(groupId int64, i
 		return
 	}
 
-	var m models.AdminUserGroupImport
+	var m models.AdminUserGroupMenu
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		actErrorHandlerResult = &base.ActErrorHandlerResult{
 			Db:        r.Context.Db,

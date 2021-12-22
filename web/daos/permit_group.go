@@ -33,4 +33,6 @@ type DaoPermitGroup interface {
 	GetGroupAppPermitImport(groupId int64, appName string, refreshCache ...bool) (res []wrapper_intranet.AdminUserGroupPermit, err error)
 
 	GetGroupByIds(groupIds ...int64) (res []*models.AdminGroup, err error)
+
+	GetGroupUserByIds(groupIds ...int64) (res []*models.AdminUserGroup,err error)
 }

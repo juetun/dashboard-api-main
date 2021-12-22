@@ -127,7 +127,8 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 		return
 	}
 	// 获取接口权限列表
-	if res.OpList, err = NewSrvPermitImport(r.Context).GetOpList(dao, arg); err != nil {
+	if res.OpList, err = NewSrvPermitImport(r.Context).
+		GetOpList(dao, arg); err != nil {
 		return
 	}
 
@@ -135,6 +136,7 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 	if menuIds, err = r.getPermitByGroupIds(arg.Module, arg.GroupId...); err != nil { // 普通管理员
 		return
 	}
+
 	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
 		return
 	}
@@ -179,8 +181,8 @@ func (r *SrvPermitMenuImpl) getGroupMenu(
 	if list, err = dao.GetPermitMenuByIds(current, menuIds...); err != nil {
 		return
 	}
-
-	if res.Menu, groupPermit, permitMap = r.groupPermit(list); len(res.Menu) <= 0 {
+	res.Menu, groupPermit, permitMap = r.groupPermit(list)
+	if len(res.Menu) <= 0 {
 		err = fmt.Errorf("您没有操作权限,请刷新或联系管理员(1)")
 		return
 	}
@@ -207,16 +209,14 @@ func (r *SrvPermitMenuImpl) getGroupMenu(
 	return
 }
 
-func (r *SrvPermitMenuImpl) groupPermit(list []models.AdminMenu) (
-	systemList []wrappers.ResultSystemMenu,
-	groupPermit map[int64][]wrappers.ResultPermitMenu,
-	permitMap map[int64]wrappers.ResultPermitMenu,
-) {
-	systemList = make([]wrappers.ResultSystemMenu, 0, 30)
-	groupPermit = map[int64][]wrappers.ResultPermitMenu{}
+func (r *SrvPermitMenuImpl) groupPermit(list []models.AdminMenu) (systemList []wrappers.ResultSystemMenu, groupPermit map[int64][]wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu) {
 	l := len(list)
+	systemList = make([]wrappers.ResultSystemMenu, 0, l)
+	groupPermit = make(map[int64][]wrappers.ResultPermitMenu, l)
 	permitMap = make(map[int64]wrappers.ResultPermitMenu, l)
+
 	var data wrappers.ResultPermitMenu
+
 	for _, item := range list {
 
 		if item.ParentId == wrappers.DefaultPermitParentId {
@@ -243,7 +243,7 @@ func (r *SrvPermitMenuImpl) groupPermit(list []models.AdminMenu) (
 
 func (r *SrvPermitMenuImpl) orgResultPermitMenu(item models.AdminMenu) (res wrappers.ResultPermitMenu) {
 	var f = false
-	if item.HideInMenu == 1 {
+	if item.HideInMenu == models.AdminMenuHideInMenuTrue {
 		f = true
 	}
 	res = wrappers.ResultPermitMenu{
@@ -251,6 +251,7 @@ func (r *SrvPermitMenuImpl) orgResultPermitMenu(item models.AdminMenu) (res wrap
 		Path:   item.UrlPath,
 		Name:   item.PermitKey,
 		Module: item.Module,
+		Label:  item.Label,
 		Meta: wrappers.PermitMeta{
 			Icon:       item.Icon,
 			Title:      item.Label,

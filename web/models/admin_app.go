@@ -1,10 +1,4 @@
-/**
-* @Author:changjiang
-* @Description:
-* @File:admin_app
-* @Version: 1.0.0
-* @Date 2021/5/22 11:23 下午
- */
+// Package models /**
 package models
 
 import (
@@ -12,21 +6,21 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"github.com/juetun/base-wrapper/lib/base"
 )
 
 type AdminApp struct {
-	Id         int               `json:"id" gorm:"column:id;primary_key" `
-	UniqueKey  string            `json:"unique_key" gorm:"column:unique_key"`
-	Hosts      string            `json:"-" gorm:"column:hosts""`
+	Id        int        `json:"id" gorm:"column:id;primary_key" `
+	UniqueKey string     `json:"unique_key" gorm:"column:unique_key"`
+	Hosts     string     `json:"-" gorm:"column:hosts"`
+	Port      int        `json:"port"  gorm:"column:port"`
+	Name      string     `json:"name" gorm:"column:name"`
+	Desc      string     `json:"desc" gorm:"column:desc"`
+	IsStop    int        `json:"is_stop" gorm:"column:is_stop"`
+	CreatedAt time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
+
 	HostConfig map[string]string `json:"hosts" gorm:"-"`
-	Port       int               `json:"port"  gorm:"column:port"`
-	Name       string            `json:"name" gorm:"column:name"`
-	Desc       string            `json:"desc" gorm:"column:desc"`
-	IsStop     int               `json:"is_stop" gorm:"column:is_stop"`
-	CreatedAt  base.TimeNormal   `json:"created_at" gorm:"column:created_at" `
-	UpdatedAt  base.TimeNormal   `json:"updated_at" gorm:"column:updated_at" `
-	DeletedAt  *time.Time        `json:"-" gorm:"column:deleted_at" `
 }
 
 func (r *AdminApp) UnmarshalHosts() (err error) {

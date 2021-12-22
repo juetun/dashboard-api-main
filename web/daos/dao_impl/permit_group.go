@@ -21,6 +21,39 @@ type DaoPermitGroupImpl struct {
 	base.ServiceDao
 }
 
+// GetGroupUserByIds 根据管理员组获取管理员ID的列表
+func (r *DaoPermitGroupImpl) GetGroupUserByIds(groupIds ...int64) (res []*models.AdminUserGroup, err error) {
+	var m models.AdminUserGroup
+
+	defer func() {
+		if err != nil {
+			r.Context.
+				Error(map[string]interface{}{
+					"groupIds": groupIds,
+					"err":      err.Error()},
+					"DaoPermitGroupImplGetGroupUserByIds")
+			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		}
+	}()
+
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+		actErrorHandlerResult = &base.ActErrorHandlerResult{
+			Db:        r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+			Model:     &m,
+		}
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("group_id IN (?)", groupIds).
+			Find(&res).
+			Error
+		return
+	})
+	return
+}
+
 func (r *DaoPermitGroupImpl) GetGroupUserCount(groupIds ...int64) (groupIdUserCountMap map[int64]int, err error) {
 	var l = len(groupIds)
 	groupIdUserCountMap = make(map[int64]int, l)

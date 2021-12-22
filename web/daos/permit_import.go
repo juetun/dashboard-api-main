@@ -15,7 +15,7 @@ import (
 
 type DaoPermitImport interface {
 
-	GetDefaultOpenImportByMenuIds(menuId ...int64) (res []models.AdminImport, err error)
+	GetDefaultOpenImportByMenuIds(menuIds ...int64) (res []models.AdminImport, err error)
 
 	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
 

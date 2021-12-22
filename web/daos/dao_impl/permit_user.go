@@ -51,22 +51,68 @@ func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...string) (err error)
 	return
 }
 
+func (r *DaoPermitUserImpl) GetUserHidByGroupIds(groupIds ...int64) (res []string, err error) {
+	res = []string{}
+	if len(groupIds) == 0 {
+		return
+	}
+
+	var (
+		list    []*models.AdminUserGroup
+		mapUser map[string]string
+		l       int
+	)
+
+	if list, err = NewDaoPermitGroupImpl(r.Context).
+		GetGroupUserByIds(groupIds...); err != nil {
+		return
+	}
+
+	l = len(list)
+	mapUser = make(map[string]string, l)
+	res = make([]string, 0, l)
+
+	for _, item := range list {
+		if _, ok := mapUser[item.UserHid]; ok {
+			continue
+		}
+		mapUser[item.UserHid] = item.UserHid
+		res = append(res, item.UserHid)
+	}
+
+	return
+}
 func (r *DaoPermitUserImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error) {
 	var m models.AdminUser
 	if db == nil {
 		db = r.Context.Db
 	}
+
+	if len(arg.GroupIds) > 0 {
+		var userHIds []string
+		if userHIds, err = r.GetUserHidByGroupIds(arg.GroupIds...); err != nil {
+			return
+		}
+		if len(userHIds) == 0 {
+			return
+		}
+		arg.UserHIdArray = append(arg.UserHIdArray, userHIds...)
+	}
+
 	dba = db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
 	if arg.Name != "" {
 		dba = dba.Where("real_name LIKE ?", "%"+arg.Name+"%")
 	}
-	if arg.UserHId != "" {
-		dba = dba.Where("user_hid=?", arg.UserHId)
+	if len(arg.UserHIdArray) > 0 {
+		dba = dba.Where("user_hid IN(?)", arg.UserHIdArray)
 	}
 	if arg.CannotUse >= 0 {
 		dba = dba.Where("can_not_use =?", arg.CannotUse)
 	}
 
+	if arg.Mobile != "" {
+		dba = dba.Where("mobile =?", arg.Mobile)
+	}
 	logContent := map[string]interface{}{"arg": arg}
 
 	defer func() {

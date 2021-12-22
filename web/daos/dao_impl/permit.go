@@ -840,17 +840,25 @@ func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGro
 	return
 }
 func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (res []models.AdminMenu, err error) {
+	res = []models.AdminMenu{}
 	var m models.AdminMenu
 	db := r.Context.Db.
 		Table(m.TableName())
+	var haveWhere bool
 	// 兼容超级管理员和普通管理员
 	if len(menuIds) != 0 {
 		db = db.Where("id IN(?)", menuIds)
+		haveWhere = true
 	}
 	if len(module) > 0 {
 		db = db.Where("module IN(?)", module)
+		haveWhere = true
 	}
-	if err = db.Order("sort_value desc").Limit(2000).Find(&res).Error; err != nil {
+	if !haveWhere {
+		return
+	}
+	if err = db.Order("sort_value desc").
+		Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"menuIds": menuIds,
 			"err":     err,

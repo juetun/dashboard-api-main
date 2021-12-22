@@ -28,7 +28,7 @@ type SrvServiceImpl struct {
 }
 
 func (r *SrvServiceImpl) add(dao daos.DaoService, arg *wrappers.ArgServiceEdit) (res bool, err error) {
-	t := base.TimeNormal{Time: time.Now()}
+	t := time.Now()
 	dt := &models.AdminApp{
 		UniqueKey:  arg.UniqueKey,
 		Port:       arg.Port,

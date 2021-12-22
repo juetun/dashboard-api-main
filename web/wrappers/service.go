@@ -9,8 +9,9 @@
 package wrappers
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -42,14 +43,14 @@ type (
 		*response.Pager
 	}
 	AdminApp struct {
-		Id        int             `json:"id" gorm:"column:id;primary_key" `
-		UniqueKey string          `json:"unique_key" gorm:"column:unique_key"`
-		Port      int             `json:"port"  gorm:"column:port"`
-		Name      string          `json:"name" gorm:"column:name"`
-		Desc      string          `json:"desc" gorm:"column:desc"`
-		IsStop    int             `json:"is_stop" gorm:"column:is_stop"`
-		CreatedAt base.TimeNormal `json:"created_at" gorm:"column:created_at" `
-		UpdatedAt base.TimeNormal `json:"updated_at" gorm:"column:updated_at" `
+		Id        int       `json:"id" gorm:"column:id;primary_key" `
+		UniqueKey string    `json:"unique_key" gorm:"column:unique_key"`
+		Port      int       `json:"port"  gorm:"column:port"`
+		Name      string    `json:"name" gorm:"column:name"`
+		Desc      string    `json:"desc" gorm:"column:desc"`
+		IsStop    int       `json:"is_stop" gorm:"column:is_stop"`
+		CreatedAt time.Time `json:"created_at" gorm:"column:created_at" `
+		UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at" `
 	}
 	// ArgServiceEdit {"id":1,"unique_key":"app-user","port":80,"name":"用户","desc":"","is_stop":1}
 	ArgServiceEdit struct {

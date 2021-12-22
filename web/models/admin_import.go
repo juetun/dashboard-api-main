@@ -31,9 +31,9 @@ type AdminImport struct {
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	NeedLogin     uint8      `json:"need_login" gorm:"column:need_login" form:"need_login"`
 	NeedSign      uint8      `json:"need_sign" gorm:"column:need_sign" form:"need_sign"`
-	CreatedAt     time.Time  `json:"-" gorm:"column:created_at" `
-	UpdatedAt     time.Time  `json:"-" gorm:"column:updated_at" `
-	DeletedAt     *time.Time `json:"-" gorm:"column:deleted_at"`
+	CreatedAt          time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt          time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
 func (r *AdminImport) GetTableComment() (res string) {

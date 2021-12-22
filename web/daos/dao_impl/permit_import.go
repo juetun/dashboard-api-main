@@ -401,7 +401,9 @@ func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (re
 		Unscoped().
 		Select(`b.*`).
 		Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
-		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ", menuId, models.DefaultOpen).
+		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ",
+			menuId,
+			models.DefaultOpen).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{

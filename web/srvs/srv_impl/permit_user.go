@@ -81,8 +81,8 @@ func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wr
 			UserHid:   arg.UserHid,
 			RealName:  arg.RealName,
 			Mobile:    arg.Mobile,
-			CreatedAt: base.TimeNormal{Time: t},
-			UpdatedAt: base.TimeNormal{Time: t},
+			CreatedAt: t,
+			UpdatedAt: t,
 		}
 
 		if err = daoPermitUser.AdminUserAdd([]base.ModelBase{adminUser}); err != nil {
@@ -104,6 +104,7 @@ func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wr
 	if err = daoPermitUser.UpdateDataByUserHIds(data, arg.UserHid); err != nil {
 		return
 	}
+	res.Result = true
 	return
 }
 
@@ -206,7 +207,6 @@ func (r *SrvPermitUserImpl) leftAdminUser(list []models.AdminUser) (res []wrappe
 		}
 		if _, ok := mapGroupPermit[item.UserHid]; ok {
 			tmp.Group = mapGroupPermit[item.UserHid]
-
 		}
 		res = append(res, tmp)
 	}

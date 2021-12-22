@@ -601,6 +601,10 @@ func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
 		err = fmt.Errorf("组名长度不能超过%d个字符", models.MAXGroupNameLength)
 		return
 	}
+	if r.Name == "" {
+		err = fmt.Errorf("请输入管理组名称")
+		return
+	}
 	return
 }
 
@@ -788,16 +792,42 @@ type ResultSystemAdminMenu struct {
 type ArgAdminUser struct {
 	app_param.RequestUser
 	response.PageQuery
-	Name      string `json:"name" form:"name"`
-	UserHId   string `json:"user_hid" form:"user_hid"`
-	CannotUse int8   `json:"can_not_use" form:"can_not_use"`
+	Name         string   `json:"name" form:"name"`
+	UserHIds     string   `json:"user_ids" form:"user_ids"`
+	Mobile       string   `json:"mobile" form:"mobile"`
+	GroupId      string   `json:"group_id" form:"group_id"`
+	GroupIds     []int64  `json:"-" form:"-"`
+	UserHIdArray []string `json:"-" form:"-"`
+	CannotUse    int8     `json:"can_not_use" form:"can_not_use"`
 }
 
 func (r *ArgAdminUser) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
+	r.UserHIdArray = []string{}
 
+	if r.UserHIds != "" {
+		tmp := strings.Split(r.UserHIds, ",")
+		for _, item := range tmp {
+			if item == "" {
+				continue
+			}
+			r.UserHIdArray = append(r.UserHIdArray, item)
+		}
+	}
+	r.GroupIds = []int64{}
+	var idN int64
+	if r.GroupId != "" {
+		gIds := strings.Split(r.GroupId, ",")
+		for _, id := range gIds {
+			if idN, err = strconv.ParseInt(id, 10, 64); err != nil {
+				err = fmt.Errorf("group_id格式不正确")
+				return
+			}
+			r.GroupIds = append(r.GroupIds, idN)
+		}
+	}
 	if r.CannotUse > 0 {
 		if _, ok := models.AdminUserCanNotUseMap[r.CannotUse]; !ok {
 			err = fmt.Errorf("can_not_use数据格式错误")
