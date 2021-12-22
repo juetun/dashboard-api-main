@@ -14,7 +14,8 @@ import (
 )
 
 type SrvPermitMenu interface {
-	//
+
+	// Menu 菜单
 	Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error)
 
 	AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers.ResultAdminMenu, err error)
@@ -22,5 +23,4 @@ type SrvPermitMenu interface {
 	GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error)
 
 	AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithCheck) (res *wrappers.ResultMenuWithCheck, err error)
-
 }
