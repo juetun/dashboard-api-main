@@ -57,15 +57,7 @@ type DaoPermit interface {
 
 	GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error)
 
-	UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error)
-
-	Save(id int64, data map[string]interface{}) (err error)
-
 	DeleteMenuByIds(ids ...string) (err error)
-
-	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error)
-
-	Add(data *models.AdminMenu) (err error)
 
 	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)
 
@@ -75,5 +67,5 @@ type DaoPermit interface {
 
 	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
 
-	GetPermitMenuByIds(module []string, menuIds ...int64) (res []models.AdminMenu, err error)
+	GetPermitMenuByIds(module []string, menuIds ...int64) (res []*models.AdminMenu, err error)
 }

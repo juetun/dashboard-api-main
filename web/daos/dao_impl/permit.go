@@ -448,50 +448,7 @@ func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (
 	return
 }
 
-// func (r *DaoPermitImpl) AdminUserGroupAdd(data []map[string]interface{}) (err error) {
-// 	field := make([]string, 0, 10)
-// 	dataMsg := make([]string, 0)
-// 	dataTmp := make([]interface{}, 0)
-// 	duplicate := make([]string, 0)
-// 	dataMsgA := make([]string, 0)
-// 	if len(data) == 0 {
-// 		err = fmt.Errorf("您没有为模板配置参数,请至少配置一个参数")
-// 		return
-// 	}
-//
-// 	for key, value := range data {
-// 		if key == 0 {
-// 			for fieldString := range value {
-// 				field = append(field, fieldString)
-// 			}
-// 		}
-// 		for _, v := range field {
-// 			if key == 0 {
-// 				if v != "created_at" {
-// 					duplicate = append(duplicate, "`"+v+"`=VALUES(`"+v+"`)")
-// 				}
-// 				dataMsgA = append(dataMsgA, "?")
-// 			}
-// 			var v1 interface{}
-// 			if _, ok := value[v]; ok {
-// 				v1 = value[v]
-// 			}
-// 			dataTmp = append(dataTmp, v1)
-// 		}
-// 		dataMsg = append(dataMsg, "("+strings.Join(dataMsgA, ",")+")")
-// 	}
-// 	var m models.AdminUserGroup
-// 	sql := "INSERT INTO `" + m.TableName() + "`(`" + strings.Join(field, "`,`") +
-// 		"`) VALUES" + strings.Join(dataMsg, ",") + " ON DUPLICATE KEY UPDATE " + strings.Join(duplicate, ",")
-// 	err = r.Context.Db.Exec(sql, dataTmp...).Error
-// 	if err != nil {
-// 		r.Context.Error(map[string]interface{}{
-// 			"data": data,
-// 			"err":  err,
-// 		}, "daoPermitAdminUserGroupAdd")
-// 	}
-// 	return
-// }
+
 func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
@@ -605,39 +562,7 @@ func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...string) (res []models.AdminUs
 	})
 	return
 }
-func (r *DaoPermitImpl) UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error) {
-	var m models.AdminMenu
-	if err = r.Context.Db.
-		Table(m.TableName()).
-		Where(condition).
-		Updates(data).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"data":      data,
-			"err":       err,
-		}, "daoPermitUpdateMenuByCondition")
-		return
-	}
-	return
-}
-func (r *DaoPermitImpl) Save(id int64, data map[string]interface{}) (err error) {
-	if id == 0 {
-		return
-	}
-	if err = r.Context.Db.
-		Model(&models.AdminMenu{}).
-		Where("id = ?", id).
-		Updates(data).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"id":   id,
-			"data": data,
-			"err":  err,
-		}, "daoPermitSave")
-	}
-	return
-}
+
 func (r *DaoPermitImpl) DeleteMenuByIds(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
@@ -656,45 +581,7 @@ func (r *DaoPermitImpl) DeleteMenuByIds(ids ...string) (err error) {
 	return
 }
 
-func (r *DaoPermitImpl) GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []models.AdminMenu, err error) {
-	if len(condition) == 0 {
-		return
-	}
-	var m models.AdminMenu
-	db := r.Context.Db.
-		Table(m.TableName()).
-		Where(condition)
-	var orderString string
-	for _, item := range orderBy {
-		orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
-	}
-	if orderString != "" {
-		db = db.Order(orderString)
-	}
-	if limit > 0 {
-		db = db.Limit(limit)
-	}
-	if err = db.
-		Find(&res).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err,
-		}, "daoPermitGetByCondition")
-		return
-	}
-	return
-}
-func (r *DaoPermitImpl) Add(data *models.AdminMenu) (err error) {
 
-	if err = r.Context.Db.Create(data).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"data": data,
-			"err":  err,
-		}, "daoPermitAdd")
-	}
-	return
-}
 
 func (r *DaoPermitImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
 
@@ -855,8 +742,9 @@ func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGro
 	}, "daoPermitGetGroupByUserId")
 	return
 }
-func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (res []models.AdminMenu, err error) {
-	res = []models.AdminMenu{}
+
+func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (res []*models.AdminMenu, err error) {
+	res = []*models.AdminMenu{}
 	var m models.AdminMenu
 	db := r.Context.Db.
 		Table(m.TableName())
@@ -884,23 +772,3 @@ func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (r
 	return
 }
 
-// func (r *DaoPermitImpl) GetMenuIdsByPermitByGroupIds(module string, pathType []string, groupIds ...int64) (res []models.AdminUserGroupPermit, err error) {
-// 	if len(groupIds) == 0 {
-// 		return
-// 	}
-// 	var m models.AdminUserGroupPermit
-// 	if err = r.Context.Db.
-// 		Table(m.TableName()).
-// 		Select("distinct `menu_id`,`group_id`,`id`").
-// 		Where("module = ? AND path_type IN(?)  AND `group_id` in(?) ", module, pathType, groupIds).
-// 		Find(&res).
-// 		Error; err != nil {
-// 		r.Context.Error(map[string]interface{}{
-// 			"groupIds": groupIds,
-// 			"pathType": pathType,
-// 			"err":      err,
-// 		}, "daoPermitGetPermitMenuByIds")
-// 		return
-// 	}
-// 	return
-// }

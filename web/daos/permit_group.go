@@ -34,5 +34,8 @@ type DaoPermitGroup interface {
 
 	GetGroupByIds(groupIds ...int64) (res []*models.AdminGroup, err error)
 
-	GetGroupUserByIds(groupIds ...int64) (res []*models.AdminUserGroup,err error)
+	GetGroupUserByIds(groupIds ...int64) (res []*models.AdminUserGroup, err error)
+
+	// GetGroupSystemByGroupId 获取用户组能够使用的系统列表
+	GetGroupSystemByGroupId(module string, groupId ...int64) (res []*models.AdminMenu, err error)
 }

@@ -1,13 +1,102 @@
 package dao_impl
 
 import (
+	"fmt"
+
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 )
 
 type DaoPermitMenuImpl struct {
 	base.ServiceDao
+}
+
+func (r *DaoPermitMenuImpl) GetAllSystemList() (res []*models.AdminMenu, err error) {
+	res, err = r.GetByCondition(map[string]interface{}{"module": wrappers.DefaultPermitModule}, []wrappers.DaoOrderBy{
+		{
+			Column:     "sort_value",
+			SortFormat: "asc",
+		},
+	}, 0)
+	return
+}
+
+func (r *DaoPermitMenuImpl) Add(data *models.AdminMenu) (err error) {
+
+	if err = r.Context.Db.Create(data).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"data": data,
+			"err":  err,
+		}, "DaoPermitMenuImplAdd")
+	}
+	return
+}
+
+func (r *DaoPermitMenuImpl) UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error) {
+	var m models.AdminMenu
+	if err = r.Context.Db.
+		Table(m.TableName()).
+		Where(condition).
+		Updates(data).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err,
+		}, "daoPermitUpdateMenuByCondition")
+		return
+	}
+	return
+}
+
+func (r *DaoPermitMenuImpl) Save(id int64, data map[string]interface{}) (err error) {
+	if id == 0 {
+		return
+	}
+	if err = r.Context.Db.
+		Model(&models.AdminMenu{}).
+		Where("id = ?", id).
+		Updates(data).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"id":   id,
+			"data": data,
+			"err":  err,
+		}, "DaoPermitMenuImplSave")
+	}
+	return
+}
+func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []*models.AdminMenu, err error) {
+
+	if len(condition) == 0 {
+		return
+	}
+	var m models.AdminMenu
+	db := r.Context.Db.
+		Table(m.TableName()).
+		Where(condition)
+	var orderString string
+	for _, item := range orderBy {
+		orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+	}
+	if orderString != "" {
+		db = db.Order(orderString)
+	}
+	if limit > 0 {
+		db = db.Limit(limit)
+	}
+	if err = db.
+		Find(&res).
+		Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err,
+		}, "daoPermitGetByCondition")
+		return
+	}
+	return
 }
 
 func (r *DaoPermitMenuImpl) GetMenuByMenuId(menuId int64) (res models.AdminMenu, err error) {

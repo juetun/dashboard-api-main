@@ -61,9 +61,9 @@ func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wra
 
 func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultMenuAdd, err error) {
 	res = &wrappers.ResultMenuAdd{}
-	dao := dao_impl.NewDaoPermit(r.Context)
+	dao := dao_impl.NewDaoPermitMenu(r.Context)
 	t := time.Now()
-	var list []models.AdminMenu
+	var list []*models.AdminMenu
 	if list, err = dao.GetByCondition(map[string]interface{}{
 		"label":     arg.Label,
 		"module":    arg.Module,
@@ -104,7 +104,7 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 	res.Result = true
 	return
 }
-func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermit, data *models.AdminMenu) (err error) {
+func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermitMenu, data *models.AdminMenu) (err error) {
 	var adminMenu models.AdminMenu
 
 	listData := adminMenu.InitDefaultSystemMenu(&models.DefaultSystemMenuNeedParams{
@@ -175,9 +175,9 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 
 func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.ResultMenuSave, err error) {
 	res = &wrappers.ResultMenuSave{}
-	dao := dao_impl.NewDaoPermit(r.Context)
+	dao := dao_impl.NewDaoPermitMenu(r.Context)
 
-	var list []models.AdminMenu
+	var list []*models.AdminMenu
 	if list, err = dao.GetByCondition(map[string]interface{}{
 		"label":     arg.Label,
 		"module":    arg.Module,
@@ -251,7 +251,7 @@ func (r *PermitServiceImpl) getChildIds(dao daos.DaoPermitMenu, parentId []strin
 	}
 	return
 }
-func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermit, parentId int64, module string) (err error) {
+func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermitMenu, parentId int64, module string) (err error) {
 
 	ids := make([]string, 0, 20)
 	pidString := fmt.Sprintf("%d", parentId)

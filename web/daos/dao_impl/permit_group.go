@@ -21,6 +21,71 @@ type DaoPermitGroupImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitGroupImpl) GetGroupSystemByGroupId(module string, groupId ...int64) (res []*models.AdminMenu, err error) {
+	res = []*models.AdminMenu{}
+	if module == "" || len(groupId) == 0 {
+		return
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.
+			Error(map[string]interface{}{
+				"module":  module,
+				"groupId": groupId,
+				"err":     err.Error()},
+				"DaoPermitGetGroupSystemByGroupId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+
+	}()
+
+	var (
+		l          int
+		systemMenu []*models.AdminMenu
+	)
+	if systemMenu, err = NewDaoPermitMenu(r.Context).
+		GetAllSystemList(); err != nil {
+		return
+	}
+
+	if l = len(systemMenu); l == 0 {
+		return
+	}
+
+	var (
+		m       models.AdminUserGroupMenu
+		mapMenu = make(map[int64]*models.AdminMenu, l)
+		menuId  = make([]int64, 0, l)
+	)
+
+	for _, menu := range systemMenu {
+		mapMenu[menu.Id] = menu
+		menuId = append(menuId, menu.Id)
+	}
+
+	var list []*models.AdminUserGroupMenu
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("menu_id IN(?) AND group_id IN(?)", menuId,
+			groupId).
+		Find(&list).Error; err != nil {
+		return
+	}
+
+	var (
+		ok bool
+		dt *models.AdminMenu
+	)
+
+	for _, menu := range list {
+		if dt, ok = mapMenu[menu.MenuId]; ok {
+			res = append(res, dt)
+		}
+
+	}
+	return
+}
+
 // GetGroupUserByIds 根据管理员组获取管理员ID的列表
 func (r *DaoPermitGroupImpl) GetGroupUserByIds(groupIds ...int64) (res []*models.AdminUserGroup, err error) {
 	var m models.AdminUserGroup
