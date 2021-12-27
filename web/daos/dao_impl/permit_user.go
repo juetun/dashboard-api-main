@@ -2,6 +2,7 @@
 package dao_impl
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -63,7 +64,7 @@ func (r *DaoPermitUserImpl) GetUserHidByGroupIds(groupIds ...int64) (res []strin
 		l       int
 	)
 
-	if list, err = NewDaoPermitGroupImpl(r.Context).
+	if list, err = NewDaoPermitGroup(r.Context).
 		GetGroupUserByIds(groupIds...); err != nil {
 		return
 	}
@@ -205,6 +206,33 @@ func (r *DaoPermitUserImpl) AdminUserAdd(dataUser []base.ModelBase) (err error) 
 	return
 
 }
+
+func (r *DaoPermitUserImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error) {
+	if userId == "" {
+		res = []wrappers.AdminGroupUserStruct{}
+		return
+	}
+	var a models.AdminUserGroup
+	var b models.AdminGroup
+	if err = r.Context.Db.
+		Select("a.group_id,a.user_hid,a.is_super_admin as super_admin,a.is_admin_group as admin_group,b.*").
+		Unscoped().
+		Table(a.TableName()).
+		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON  a.group_id=b.id ",
+			b.TableName())).
+		Where(fmt.Sprintf("a.user_hid = ? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"),
+			userId).
+		Find(&res).
+		Error; err == nil {
+		return
+	}
+	r.Context.Error(map[string]interface{}{
+		"userId": userId,
+		"err":    err,
+	}, "DaoPermitUserImplGetGroupByUserId")
+	return
+}
+
 
 func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error) {
 

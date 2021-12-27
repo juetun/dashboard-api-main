@@ -539,7 +539,8 @@ func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []model
 		}
 	}
 
-	if dta, err = dao.GetMenuByPermitKey("", modules...); err != nil {
+	if dta, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetMenuByPermitKey("", modules...); err != nil {
 		return
 	}
 

@@ -10,7 +10,6 @@ import (
 )
 
 type DaoPermitUser interface {
-
 	UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error)
 
 	AdminUserAdd(dataUser []base.ModelBase) (err error)
@@ -23,4 +22,5 @@ type DaoPermitUser interface {
 
 	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
 
+	GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error)
 }

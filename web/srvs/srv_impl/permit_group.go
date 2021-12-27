@@ -25,7 +25,7 @@ type SrvPermitGroupImpl struct {
 
 func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete) (res wrappers.ResultAdminGroupDelete, err error) {
 	res = wrappers.ResultAdminGroupDelete{}
-	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	daoGroup := dao_impl.NewDaoPermitGroup(r.Context)
 	if err = daoGroup.DeleteAdminGroupByIds(arg.IdString...); err != nil {
 		return
 	}
@@ -58,6 +58,7 @@ func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrapp
 	}
 	return
 }
+
 func (r *SrvPermitGroupImpl) getParentGroupMap(dao daos.DaoPermit, list []models.AdminGroup) (parentGroupMap map[int64]models.AdminGroup, ids []int64, err error) {
 	l := len(list)
 	parentGroupMap = make(map[int64]models.AdminGroup, l)
@@ -75,6 +76,7 @@ func (r *SrvPermitGroupImpl) getParentGroupMap(dao daos.DaoPermit, list []models
 	}
 	return
 }
+
 func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.AdminGroup) (res []wrappers.AdminGroup, err error) {
 	res = make([]wrappers.AdminGroup, 0, len(list))
 
@@ -86,7 +88,7 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 	if getParentGroupMap, ids, err = r.getParentGroupMap(dao, list); err != nil {
 		return
 	}
-	daoGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	daoGroup := dao_impl.NewDaoPermitGroup(r.Context)
 	if mapGroupUserCount, err = daoGroup.GetGroupUserCount(ids...); err != nil {
 		return
 	}
@@ -107,6 +109,8 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 
 	return
 }
+
+
 func (r *SrvPermitGroupImpl) getMapImport(importIds ...int64) (mapImport map[int64]models.AdminImport, err error) {
 	mapImport = map[int64]models.AdminImport{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -133,6 +137,7 @@ func (r *SrvPermitGroupImpl) getMenuNameWithMenuId(menuId int64) (menuName strin
 	}
 	return
 }
+
 func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
 		m   models.AdminMenuImport
@@ -220,6 +225,8 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 
 	return
 }
+
+
 func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
 		m   models.AdminMenuImport
@@ -316,7 +323,7 @@ func (r *SrvPermitGroupImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAd
 
 	var (
 		data    []base.ModelBase
-		dao     = dao_impl.NewDaoPermitGroupImpl(r.Context)
+		dao     = dao_impl.NewDaoPermitGroup(r.Context)
 		userMap map[string]app_param.ResultUserItem
 		t       = time.Now()
 	)
@@ -388,6 +395,7 @@ func (r *SrvPermitGroupImpl) AdminUserGroupRelease(arg *wrappers.ArgAdminUserGro
 	res.Result = true
 	return
 }
+
 func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (res *wrappers.ResultAdminGroupEdit, err error) {
 	res = &wrappers.ResultAdminGroupEdit{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -441,7 +449,7 @@ func (r *SrvPermitGroupImpl) AdminGroupEdit(arg *wrappers.ArgAdminGroupEdit) (re
 	}); err != nil {
 		return
 	}
-	daoUserGroup := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	daoUserGroup := dao_impl.NewDaoPermitGroup(r.Context)
 	if err = daoUserGroup.UpdateDaoPermitUserGroupByGroupId(arg.Id, map[string]interface{}{
 		"is_super_admin": dta.IsSuperAdmin,
 		"is_admin_group": dta.IsAdminGroup,
@@ -476,7 +484,7 @@ func (r *SrvPermitGroupImpl) GetUserGroup(userHid string) (isAdmin, isSuperAdmin
 
 	var uGroup []models.AdminUserGroup
 
-	if uGroup, err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+	if uGroup, err = dao_impl.NewDaoPermitGroup(r.Context).
 		GetPermitGroupByUid(userHid); err != nil {
 		return
 	}

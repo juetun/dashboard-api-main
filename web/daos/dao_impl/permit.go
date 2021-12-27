@@ -448,7 +448,6 @@ func (r *DaoPermitImpl) GetImportList(db *gorm.DB, arg *wrappers.ArgGetImport) (
 	return
 }
 
-
 func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
@@ -581,39 +580,6 @@ func (r *DaoPermitImpl) DeleteMenuByIds(ids ...string) (err error) {
 	return
 }
 
-
-
-func (r *DaoPermitImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
-
-	var m models.AdminMenu
-
-	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
-	lPk := len(permitKey)
-	var f bool
-	if lPk != 0 {
-		f = true
-		db = db.Where("permit_key IN(?)", permitKey)
-	}
-	if module != "" {
-		f = true
-		db = db.Where("module = ?", module)
-	}
-	if !f {
-		return
-	}
-
-	if err = db.Limit(len(permitKey)).
-		Order("sort_value desc").
-		Find(&res).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"permitKey": permitKey,
-			"err":       err.Error(),
-		}, "daoPermitGetMenuByPermitKey")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-		return
-	}
-	return
-}
 func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
 	var m models.AdminMenu
@@ -717,31 +683,6 @@ func (r *DaoPermitImpl) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGro
 	}
 	return
 }
-func (r *DaoPermitImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error) {
-	if userId == "" {
-		res = []wrappers.AdminGroupUserStruct{}
-		return
-	}
-	var a models.AdminUserGroup
-	var b models.AdminGroup
-	if err = r.Context.Db.
-		Select("a.group_id,a.user_hid,a.is_super_admin as super_admin,a.is_admin_group as admin_group,b.*").
-		Unscoped().
-		Table(a.TableName()).
-		Joins(fmt.Sprintf("as a LEFT JOIN %s as b  ON  a.group_id=b.id ",
-			b.TableName())).
-		Where(fmt.Sprintf("a.user_hid = ? AND a.deleted_at  IS NULL AND  b.deleted_at IS NULL"),
-			userId).
-		Find(&res).
-		Error; err == nil {
-		return
-	}
-	r.Context.Error(map[string]interface{}{
-		"userId": userId,
-		"err":    err,
-	}, "daoPermitGetGroupByUserId")
-	return
-}
 
 func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (res []*models.AdminMenu, err error) {
 	res = []*models.AdminMenu{}
@@ -771,4 +712,3 @@ func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (r
 	}
 	return
 }
-

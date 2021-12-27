@@ -22,4 +22,9 @@ type DaoPermitMenu interface {
 	GetAllSystemList() (res []*models.AdminMenu, err error)
 
 	Add(data *models.AdminMenu) (err error)
+
+
+	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)
+
+	GetAdminMenuByModule(module string)(res models.AdminMenu,err error)
 }

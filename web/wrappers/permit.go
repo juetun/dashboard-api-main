@@ -61,7 +61,9 @@ type (
 
 	ArgAdminMenuWithCheck struct {
 		ArgAdminMenu
-		GroupId int64 `json:"group_id" form:"group_id"`
+		GroupId              int64   `json:"group_id" form:"group_id"`
+		OperatorGroupId      []int64 `json:"-" form:"-"` // 当前操作用户所属的组
+		OperatorIsSuperAdmin bool    `json:"-" form:"-"` // 当前操作用户是否为超级管理员
 	}
 
 	ResultMenuWithCheck struct {
@@ -323,6 +325,25 @@ type (
 		IsAdminGroup uint8  `json:"is_admin_group" form:"is_admin_group"`
 	}
 )
+
+func (r *ResultMenuWithCheck) SetSystemList(list []*models.AdminMenu, systemId int64) {
+	var data ResultSystemAdminMenu
+	for _, item := range list {
+		data = ResultSystemAdminMenu{
+			Id:        item.Id,
+			PermitKey: item.PermitKey,
+			Label:     item.Label,
+			Icon:      item.Icon,
+			SortValue: item.SortValue,
+			Module:    item.Module,
+			Domain:    item.Domain,
+		}
+		if item.Id == systemId {
+			data.Active = true
+		}
+	}
+	return
+}
 
 func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
 	_ = c
@@ -712,6 +733,9 @@ type ArgAdminMenu struct {
 	IsDel      int    `json:"is_del" form:"is_del"`
 	Module     string `json:"module" form:"module"`
 	SystemId   int64  `json:"system_id" form:"system_id"`
+
+	OperatorGroupId      []int64 `json:"-" form:"-"` // 当前操作用户所属的组
+	OperatorIsSuperAdmin bool    `json:"-" form:"-"` // 当前操作用户是否为超级管理员
 }
 
 func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {

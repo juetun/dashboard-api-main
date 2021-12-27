@@ -76,7 +76,7 @@ func (r *SrvGatewayImportImpl) GetUserGroupAppPermit(groupIds []int64, apps ...s
 
 	var (
 		dtm []wrapper_intranet.AdminUserGroupPermit
-		dao = dao_impl.NewDaoPermitGroupImpl(r.Context)
+		dao = dao_impl.NewDaoPermitGroup(r.Context)
 	)
 
 	for _, groupId := range groupIds {

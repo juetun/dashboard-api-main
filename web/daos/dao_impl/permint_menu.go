@@ -13,6 +13,18 @@ type DaoPermitMenuImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitMenuImpl) GetAdminMenuByModule(module string) (res models.AdminMenu, err error) {
+	var list []models.AdminMenu
+	if list, err = r.GetMenuByPermitKey("", module); err != nil {
+		return
+	}
+	if len(list) > 0 {
+		res = list[0]
+	}
+
+	return
+}
+
 func (r *DaoPermitMenuImpl) GetAllSystemList() (res []*models.AdminMenu, err error) {
 	res, err = r.GetByCondition(map[string]interface{}{"module": wrappers.DefaultPermitModule}, []wrappers.DaoOrderBy{
 		{
@@ -20,6 +32,38 @@ func (r *DaoPermitMenuImpl) GetAllSystemList() (res []*models.AdminMenu, err err
 			SortFormat: "asc",
 		},
 	}, 0)
+	return
+}
+
+func (r *DaoPermitMenuImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
+
+	var m models.AdminMenu
+
+	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
+	lPk := len(permitKey)
+	var f bool
+	if lPk != 0 {
+		f = true
+		db = db.Where("permit_key IN(?)", permitKey)
+	}
+	if module != "" {
+		f = true
+		db = db.Where("module = ?", module)
+	}
+	if !f {
+		return
+	}
+
+	if err = db.Limit(len(permitKey)).
+		Order("sort_value desc").
+		Find(&res).Error; err != nil {
+		r.Context.Error(map[string]interface{}{
+			"permitKey": permitKey,
+			"err":       err.Error(),
+		}, "daoPermitGetMenuByPermitKey")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	}
 	return
 }
 

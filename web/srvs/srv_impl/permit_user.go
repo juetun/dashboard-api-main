@@ -23,6 +23,28 @@ type SrvPermitUserImpl struct {
 	base.ServiceDao
 }
 
+// GetUserAdminGroupIdByUserHid 获取用户的用户组或判断用户是否为超级管理员
+func (r *SrvPermitUserImpl) GetUserAdminGroupIdByUserHid(userHid string) (groupId []int64, superAdmin bool, err error) {
+	groupId = []int64{}
+
+	var groups []wrappers.AdminGroupUserStruct
+	if groups, err = dao_impl.NewDaoPermitUser(r.Context).
+		GetGroupByUserId(userHid); err != nil {
+		return
+	}
+	groupId = make([]int64, 0, len(groups))
+	for _, group := range groups {
+
+		if group.IsSuperAdmin == models.IsAdminGroupYes ||
+			group.SuperAdmin == models.IsSuperAdminYes { // 如果是超级管理员
+			superAdmin = true
+			return
+		}
+		groupId = append(groupId, group.GroupId)
+	}
+	return
+}
+
 func (r *SrvPermitUserImpl) AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (res *wrapper_admin.ResultAdminUserUpdateWithColumn, err error) {
 	res = &wrapper_admin.ResultAdminUserUpdateWithColumn{}
 	dao := dao_impl.NewDaoPermitUser(r.Context)
@@ -115,7 +137,7 @@ func (r *SrvPermitUserImpl) AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (r
 		return
 	}
 
-	if err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+	if err = dao_impl.NewDaoPermitGroup(r.Context).
 		DeleteUserGroupByUserId(arg.IdString...); err != nil {
 		return
 	}

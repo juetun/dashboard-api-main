@@ -7,7 +7,6 @@ import (
 )
 
 type SrvPermitUser interface {
-
 	AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error)
 
 	AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers.ResultAdminUser, err1 error)
@@ -16,4 +15,6 @@ type SrvPermitUser interface {
 
 	AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (res *wrapper_admin.ResultAdminUserUpdateWithColumn, err error)
 
+	// GetUserAdminGroupIdByUserHid 获取用户的后台权限组
+	GetUserAdminGroupIdByUserHid(uid string) (groupId []int64, isSuperAdmin bool, err error)
 }

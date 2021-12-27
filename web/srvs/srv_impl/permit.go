@@ -153,7 +153,7 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 		return
 	}
 
-	if err = dao_impl.NewDaoPermitGroupImpl(r.Context).
+	if err = dao_impl.NewDaoPermitGroup(r.Context).
 		DeleteUserGroupPermit(arg.IdValueNumber...); err != nil {
 		return
 	}

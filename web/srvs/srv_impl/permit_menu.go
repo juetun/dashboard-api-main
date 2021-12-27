@@ -36,7 +36,8 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	}
 
 	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
-	if arg.GroupId, arg.IsSuperAdmin, err = r.getUserGroupIds(&ArgGetUserGroupIds{Dao: dao, UserId: arg.UserHid}); err != nil {
+	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
 		return
 	}
 
@@ -76,7 +77,7 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 根据module获取当前操作的是哪个系统
-	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
+	if _, arg.SystemId, arg.Module, err = r.GetSystemIdByModule(arg.Module, arg.OperatorGroupId, arg.OperatorIsSuperAdmin, false); err != nil {
 		return
 	}
 
@@ -92,27 +93,8 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 
 	r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
 
-	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+	r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	r.orgTree(list, arg.SystemId, &res.List, nil)
-	return
-}
-
-func (r *SrvPermitMenuImpl) getSystemIdByModule(dao daos.DaoPermit, module string, sysId int64) (systemId int64, err error) {
-	systemId = sysId
-	// 如果选择了系统模块则，直接初始化systemId
-	if module == "" {
-		return
-	}
-	var dt []models.AdminMenu
-	if dt, err = dao.GetMenuByPermitKey("", module); err != nil {
-		return
-	}
-	if len(dt) == 0 {
-		err = fmt.Errorf("您操作的系统信息不存在或已删除")
-		return
-	}
-	systemId = dt[0].Id
-
 	return
 }
 
@@ -153,26 +135,196 @@ func (r *SrvPermitMenuImpl) permitTab(list []models.AdminMenu, menu *[]wrappers.
 	return
 }
 
+// GetSystemIdByModule 获取当前系统权限和默认选中系统
+// module 系统模块的key
+// OperatorGroupId 权限组ID
+// isSuperAdmin是否是超级管理员
+// needHaveSystemData 是否需要获取系统组列表
+func (r *SrvPermitMenuImpl) GetSystemIdByModule(module string, OperatorGroupId []int64, isSuperAdmin, needHaveSystemData bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
+
+	defer func() {
+		if err == nil && systemId == 0 {
+			err = fmt.Errorf("您操作的系统信息不存在或已删除")
+			return
+		}
+	}()
+	// 根据Module获取参数SystemId的值
+	if module != "" {
+		havePermitSystemList, systemId, moduleResult, err = r.getAdminMenuByUserModule(module, OperatorGroupId, isSuperAdmin, needHaveSystemData)
+		return
+	}
+	havePermitSystemList, systemId, moduleResult, err = r.getDefaultSelectModule(OperatorGroupId, isSuperAdmin)
+	return
+}
+
+// 如果是超级管理员
+func (r *SrvPermitMenuImpl) getAdminMenuByUserModuleSupperAdmin(module string, needHaveSystemData bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
+	var dt models.AdminMenu
+	if !needHaveSystemData {
+		if dt, err = dao_impl.NewDaoPermitMenu(r.Context).
+			GetAdminMenuByModule(module); err != nil {
+			return
+		}
+		systemId = dt.Id
+		return
+	}
+
+	dao := dao_impl.NewDaoPermitMenu(r.Context)
+	if havePermitSystemList, err = dao.GetAllSystemList(); err != nil {
+		return
+	}
+
+	for _, menu := range havePermitSystemList {
+		if menu.Module != module {
+			continue
+		} // 默认第一个做为默认选项
+		systemId = menu.Id
+		moduleResult = menu.PermitKey
+	}
+	return
+
+}
+
+func (r *SrvPermitMenuImpl) getAdminMenuByUserModuleGeneral(module string, OperatorGroupId []int64, needHaveSystemData bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
+	if !needHaveSystemData {
+		if havePermitSystemList, err = dao_impl.NewDaoPermitGroup(r.Context).
+			GetGroupAdminMenuByGroupIds(module, OperatorGroupId...); err != nil {
+			return
+		}
+		for _, item := range havePermitSystemList {
+			if item.Module != module {
+				continue
+			}
+			systemId = item.Id
+			moduleResult = item.Module
+		}
+	}
+	var data []*models.AdminMenu
+	if data, err = dao_impl.NewDaoPermitGroup(r.Context).
+		GetGroupAdminMenuByGroupIds(module); err != nil {
+		return
+	}
+
+	systemId = data[0].Id
+	moduleResult = data[0].Module
+	return
+}
+
+func (r *SrvPermitMenuImpl) getAdminMenuByUserModule(module string, OperatorGroupId []int64, isSuperAdmin, needHaveSystemData bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
+	if isSuperAdmin { // 如果是超级管理员
+		havePermitSystemList, systemId, moduleResult, err = r.getAdminMenuByUserModuleSupperAdmin(module, needHaveSystemData)
+		return
+	}
+	havePermitSystemList, systemId, moduleResult, err = r.getAdminMenuByUserModuleGeneral(module, OperatorGroupId, needHaveSystemData)
+	return
+}
+
+// 菜单数据参数准备
+// 1、 判断是否为超级管理员
+// 2、 判断选中模块（如果未指定，则默认选中一个）
+func (r *SrvPermitMenuImpl) adminMenuWithCheckReadyParameterArg(arg *wrappers.ArgAdminMenuWithCheck) (havePermitSystemList []*models.AdminMenu, err error) {
+
+	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
+	if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
+		return
+	}
+
+	if arg.SystemId == 0 {
+		// 当前应该渲染的系统ID
+		if havePermitSystemList, arg.SystemId, arg.Module, err = r.GetSystemIdByModule(arg.Module, arg.OperatorGroupId, arg.OperatorIsSuperAdmin, false); err != nil {
+			return
+		}
+	}
+	if arg.SystemId == 0 {
+		err = fmt.Errorf("您要操作的系统可能不存在、已删除或没有权限")
+	}
+
+	return
+}
+
 func (r *SrvPermitMenuImpl) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithCheck) (res *wrappers.ResultMenuWithCheck, err error) {
 	res = &wrappers.ResultMenuWithCheck{
 		List: make([]wrappers.AdminMenuObject, 0, 20),
 		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
 	}
 	dao := dao_impl.NewDaoPermit(r.Context)
-	var list []models.AdminMenu
+
+	var (
+		havePermitSystemList []*models.AdminMenu
+		list                 []models.AdminMenu
+	)
+	if havePermitSystemList, err = r.adminMenuWithCheckReadyParameterArg(arg); err != nil {
+		return
+	}
+
 	if list, err = dao.GetAdminMenuList(&arg.ArgAdminMenu); err != nil {
 		return
 	}
-	if arg.SystemId, err = r.getSystemIdByModule(dao, arg.Module, arg.SystemId); err != nil {
-		return
-	}
-	arg.SystemId, arg.Module = r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+
+	r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+
+	res.SetSystemList(havePermitSystemList, arg.SystemId)
+
+	// 获取当前已有的权限菜单
 	var mapPermitMenu map[int64]int64
 	if mapPermitMenu, err = r.getGroupPermitMenu(arg.Module, arg.GroupId); err != nil {
 		return
 	}
 
 	r.orgTree(list, arg.SystemId, &res.List, mapPermitMenu)
+
+	return
+}
+
+//
+func (r *SrvPermitMenuImpl) orgTree(list []models.AdminMenu, parentId int64, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int64]int64) {
+	var (
+		tmp wrappers.AdminMenuObject
+	)
+
+	for _, value := range list {
+		// 剔除默认数据那条
+		if value.Id == parentId || value.ParentId != parentId {
+			continue
+		}
+		tmp = r.orgAdminMenuObject(&value)
+
+		// 组织子菜单数据
+		r.orgTree(list, value.Id, &tmp.Children, mapPermitMenu)
+
+		// 判断当前菜单是否被勾选
+		if _, ok := mapPermitMenu[value.Id]; len(tmp.Children) == 0 && ok {
+			// 只有树的叶子节点才标记成选中
+			tmp.ResultAdminMenuSingle.Checked = true
+		}
+		*res = append(*res, tmp)
+	}
+}
+
+func (r *SrvPermitMenuImpl) orgAdminMenuObject(value *models.AdminMenu) (res wrappers.AdminMenuObject) {
+	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20)}
+
+	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
+		Id:                 value.Id,
+		ParentId:           value.ParentId,
+		Title:              value.Label,
+		Label:              value.Label,
+		Icon:               value.Icon,
+		HideInMenu:         value.HideInMenu,
+		UrlPath:            value.UrlPath,
+		SortValue:          value.SortValue,
+		Module:             value.Module,
+		PermitKey:          value.PermitKey,
+		Domain:             value.Domain,
+		ManageImportPermit: value.ManageImportPermit,
+	}
+
+	if value.OtherValue != "" {
+		_ = json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
+	} else {
+		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true}
+	}
 
 	return
 }
@@ -191,49 +343,6 @@ func (r *SrvPermitMenuImpl) getGroupPermitMenu(module string, groupId int64) (ma
 	return
 }
 
-//
-func (r *SrvPermitMenuImpl) orgTree(list []models.AdminMenu, parentId int64, res *[]wrappers.AdminMenuObject, mapPermitMenu map[int64]int64) {
-	var tmp wrappers.AdminMenuObject
-	for _, value := range list {
-		// 剔除默认数据那条
-		if value.Id == parentId || value.ParentId != parentId {
-			continue
-		}
-		tmp = r.orgAdminMenuObject(&value, mapPermitMenu)
-		r.orgTree(list, value.Id, &tmp.Children, mapPermitMenu)
-		*res = append(*res, tmp)
-	}
-}
-
-func (r *SrvPermitMenuImpl) orgAdminMenuObject(value *models.AdminMenu, mapPermitMenu map[int64]int64) (res wrappers.AdminMenuObject) {
-	res = wrappers.AdminMenuObject{Children: make([]wrappers.AdminMenuObject, 0, 20)}
-	res.ResultAdminMenuSingle = wrappers.ResultAdminMenuSingle{
-		Id:                 value.Id,
-		ParentId:           value.ParentId,
-		Title:              value.Label,
-		Label:              value.Label,
-		Icon:               value.Icon,
-		HideInMenu:         value.HideInMenu,
-		UrlPath:            value.UrlPath,
-		SortValue:          value.SortValue,
-		Module:             value.Module,
-		PermitKey:          value.PermitKey,
-		Domain:             value.Domain,
-		ManageImportPermit: value.ManageImportPermit,
-	}
-	if value.OtherValue != "" {
-		_ = json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
-	} else {
-		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true}
-	}
-	if mapPermitMenu != nil {
-		if _, ok := mapPermitMenu[value.Id]; ok {
-			res.ResultAdminMenuSingle.Checked = true
-		}
-	}
-	return
-}
-
 func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error) {
 	_ = dao
 	divString := "/"
@@ -247,7 +356,7 @@ func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByM
 	arg.NowModule = pathSlice[0]
 	arg.NowPermitKey = strings.Join(pathSlice[1:], divString)
 	var adminMenu []models.AdminMenu
-	if adminMenu, err = dao_impl.NewDaoPermit(r.Context).
+	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
 		GetMenuByPermitKey(arg.NowModule, arg.NowPermitKey); err != nil {
 		return
 	}
@@ -376,15 +485,17 @@ func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *
 	)
 
 	// 获取当前选中的系统
-	var current []string
+	var (
+		current []string
+	)
 
-	if arg.Module != "" {
-		current = []string{arg.Module}
-	} else {
-		if current, err = r.getDefaultSelectModule(); err != nil {
+	if arg.Module == "" {
+		if _, _, arg.Module, err = r.getDefaultSelectModule([]int64{}, true); err != nil {
 			return
 		}
 	}
+
+	current = []string{arg.Module}
 
 	if list, err = dao.GetPermitMenuByIds(current); err != nil {
 		return
@@ -549,21 +660,25 @@ func (r *SrvPermitMenuImpl) orgPermit(group map[int64][]wrappers.ResultPermitMen
 }
 
 // 获取默认打开的系统
-func (r *SrvPermitMenuImpl) getDefaultSelectModule() (res []string, err error) {
-	res = make([]string, 0, 2)
-	res = append(res)
+func (r *SrvPermitMenuImpl) getDefaultSelectModule(groupId []int64, isSupperAdmin bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
+	if isSupperAdmin { // 如果是超级管理员
+		dao := dao_impl.NewDaoPermitMenu(r.Context)
+		if havePermitSystemList, err = dao.GetAllSystemList(); err != nil {
+			return
+		}
+		for k, menu := range havePermitSystemList {
+			if k == 0 { // 默认第一个做为默认选项
+				systemId = menu.Id
+				moduleResult = menu.PermitKey
 
-	dao := dao_impl.NewDaoPermitMenu(r.Context)
-	var list []*models.AdminMenu
-	if list, err = dao.GetAllSystemList(); err != nil {
-		return
-	}
-	if len(list) == 0 {
-		err = fmt.Errorf("您的账号当前没有权限访问本系统")
-		return
-	}
+			}
 
-	res = append(res, list[0].PermitKey)
+		}
+		if systemId == 0 {
+			err = fmt.Errorf("")
+			return
+		}
+	}
 	return
 }
 func (r *SrvPermitMenuImpl) getMessageCount(userHid string) (count int, err error) {
@@ -665,26 +780,6 @@ func (r *SrvPermitMenuImpl) getParentId(mapIdToParent map[int64]int64, nodeId, p
 	return
 }
 
-func (r *SrvPermitMenuImpl) getUserGroupIds(arg *ArgGetUserGroupIds) (res []int64, superAdmin bool, err error) {
-	res = []int64{}
-
-	var groups []wrappers.AdminGroupUserStruct
-	if groups, err = arg.Dao.GetGroupByUserId(arg.UserId); err != nil {
-		return
-	}
-	res = make([]int64, 0, len(groups))
-	for _, group := range groups {
-
-		if group.IsSuperAdmin == models.IsAdminGroupYes ||
-			group.SuperAdmin == models.IsSuperAdminYes { // 如果是超级管理员
-			superAdmin = true
-			return
-		}
-		res = append(res, group.GroupId)
-	}
-	return
-}
-
 func (r *SrvPermitMenuImpl) syncOperate(handlers []MenuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
 	var syncG sync.WaitGroup
 	syncG.Add(len(handlers))
@@ -717,7 +812,7 @@ func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error
 
 // 获取当前用户组能够使用的系统列表
 func (r *SrvPermitMenuImpl) getUserCanUseSystemWithGroupIds(groupIds []int64) (res []*models.AdminMenu, err error) {
-	dao := dao_impl.NewDaoPermitGroupImpl(r.Context)
+	dao := dao_impl.NewDaoPermitGroup(r.Context)
 
 	res, err = dao.GetGroupSystemByGroupId(wrappers.DefaultPermitModule, groupIds...)
 	return

@@ -21,6 +21,41 @@ type DaoPermitGroupImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitGroupImpl) GetGroupAdminMenuByGroupIds(module string, groupIds ...int64) (res []*models.AdminMenu, err error) {
+	var (
+		m          models.AdminUserGroupMenu
+		mam        models.AdminMenu
+		logContent = map[string]interface{}{
+			"module":   module,
+			"groupIds": groupIds,
+		}
+		data []*models.AdminMenu
+	)
+
+	defer func() {
+		if err != nil {
+			r.Context.Error(logContent, "DaoPermitGroupImplGetGroupAdminMenuByGroupIds")
+		}
+	}()
+
+	if err = r.Context.Db.Select("b.*").Table(fmt.Sprintf("%s as a", m.TableName())).
+		Joins(fmt.Sprintf("%s as b ON a.menu_id=b.id", mam.TableName())).
+		Where("b.module=?", module).
+		Where("a.group_id IN (?)", groupIds).
+		Find(&data).Error; err != nil {
+		return
+	}
+
+	var mapMenu = make(map[int64]int64, len(data))
+	for _, item := range data {
+		if _, ok := mapMenu[item.Id]; !ok {
+			mapMenu[item.Id] = item.Id
+			res = append(res, item)
+		}
+	}
+	return
+}
+
 func (r *DaoPermitGroupImpl) GetGroupSystemByGroupId(module string, groupId ...int64) (res []*models.AdminMenu, err error) {
 	res = []*models.AdminMenu{}
 	if module == "" || len(groupId) == 0 {
@@ -280,14 +315,15 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromDb(groupId int64, appNam
 
 	return
 }
-func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, appName string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
+
+func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, module string) (res []wrapper_intranet.AdminUserGroupPermit, err error) {
 	var m models.AdminUserGroupMenu
 
 	defer func() {
 		if err != nil {
 			r.Context.Error(map[string]interface{}{
 				"groupId": groupId,
-				"appName": appName,
+				"module":  module,
 			}, "DaoPermitGroupImplGetGroupAppPermitMenuFromDb")
 			err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 		}
@@ -298,9 +334,10 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, appName 
 	var mm models.AdminImport
 	db = db.Joins(fmt.Sprintf(" AS a LEFT JOIN  %s AS b ON a.menu_id= b.id",
 		mm.TableName()))
-	if appName != "" {
-		db = db.Where("a.module = ?", appName)
+	if module != "" {
+		db = db.Where("a.module = ?", module)
 	}
+
 	err = db.
 		Where("a.group_id = ?", groupId).
 		Scopes(base.ScopesDeletedAt("a")).
@@ -636,7 +673,7 @@ func (r *DaoPermitGroupImpl) DeleteAdminGroupByIds(ids ...int64) (err error) {
 	return
 }
 
-func NewDaoPermitGroupImpl(ctx ...*base.Context) (res daos.DaoPermitGroup) {
+func NewDaoPermitGroup(ctx ...*base.Context) (res daos.DaoPermitGroup) {
 	p := &DaoPermitGroupImpl{}
 	p.SetContext(ctx...)
 	return p
