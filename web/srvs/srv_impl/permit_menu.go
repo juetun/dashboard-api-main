@@ -76,6 +76,12 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 
 	dao := dao_impl.NewDaoPermit(r.Context)
 
+	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
+	if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
+		return
+	}
+
 	// 根据module获取当前操作的是哪个系统
 	if _, arg.SystemId, arg.Module, err = r.GetSystemIdByModule(arg.Module, arg.OperatorGroupId, arg.OperatorIsSuperAdmin, false); err != nil {
 		return
@@ -215,6 +221,8 @@ func (r *SrvPermitMenuImpl) getAdminMenuByUserModule(module string, OperatorGrou
 		havePermitSystemList, systemId, moduleResult, err = r.getAdminMenuByUserModuleSupperAdmin(module, needHaveSystemData)
 		return
 	}
+
+	// 如果不是超级管理员
 	havePermitSystemList, systemId, moduleResult, err = r.getAdminMenuByUserModuleGeneral(module, OperatorGroupId, needHaveSystemData)
 	return
 }

@@ -37,12 +37,13 @@ func (r *DaoPermitGroupImpl) GetGroupAdminMenuByGroupIds(module string, groupIds
 			r.Context.Error(logContent, "DaoPermitGroupImplGetGroupAdminMenuByGroupIds")
 		}
 	}()
-
-	if err = r.Context.Db.Select("b.*").Table(fmt.Sprintf("%s as a", m.TableName())).
-		Joins(fmt.Sprintf("%s as b ON a.menu_id=b.id", mam.TableName())).
-		Where("b.module=?", module).
-		Where("a.group_id IN (?)", groupIds).
-		Find(&data).Error; err != nil {
+	db := r.Context.Db.Table(fmt.Sprintf("%s as a", m.TableName())).Select("b.*").
+		Joins(fmt.Sprintf("LEFT JOIN %s as b ON a.menu_id=b.id", mam.TableName())).
+		Where("b.module = ?", module)
+	if len(groupIds) > 0 {
+		db = db.Where("a.group_id IN (?)", groupIds)
+	}
+	if err = db.Find(&data).Error; err != nil {
 		return
 	}
 
