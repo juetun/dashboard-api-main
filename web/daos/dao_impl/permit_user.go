@@ -17,7 +17,7 @@ type DaoPermitUserImpl struct {
 	base.ServiceDao
 }
 
-func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...string) (err error) {
+func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...int64) (err error) {
 
 	if len(userHIds) == 0 {
 		return
@@ -52,15 +52,15 @@ func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...string) (err error)
 	return
 }
 
-func (r *DaoPermitUserImpl) GetUserHidByGroupIds(groupIds ...int64) (res []string, err error) {
-	res = []string{}
+func (r *DaoPermitUserImpl) GetUserHidByGroupIds(groupIds ...int64) (res []int64, err error) {
+	res = []int64{}
 	if len(groupIds) == 0 {
 		return
 	}
 
 	var (
 		list    []*models.AdminUserGroup
-		mapUser map[string]string
+		mapUser map[int64]int64
 		l       int
 	)
 
@@ -70,8 +70,8 @@ func (r *DaoPermitUserImpl) GetUserHidByGroupIds(groupIds ...int64) (res []strin
 	}
 
 	l = len(list)
-	mapUser = make(map[string]string, l)
-	res = make([]string, 0, l)
+	mapUser = make(map[int64]int64, l)
+	res = make([]int64, 0, l)
 
 	for _, item := range list {
 		if _, ok := mapUser[item.UserHid]; ok {
@@ -90,7 +90,7 @@ func (r *DaoPermitUserImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdmi
 	}
 
 	if len(arg.GroupIds) > 0 {
-		var userHIds []string
+		var userHIds []int64
 		if userHIds, err = r.GetUserHidByGroupIds(arg.GroupIds...); err != nil {
 			return
 		}
@@ -150,7 +150,7 @@ func (r *DaoPermitUserImpl) GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdmin
 	return
 }
 
-func (r *DaoPermitUserImpl) DeleteAdminUser(userHIds ...string) (err error) {
+func (r *DaoPermitUserImpl) DeleteAdminUser(userHIds ...int64) (err error) {
 	if len(userHIds) == 0 {
 		return
 	}
@@ -234,7 +234,7 @@ func (r *DaoPermitUserImpl) GetGroupByUserId(userId string) (res []wrappers.Admi
 }
 
 
-func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error) {
+func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, userHIds ...int64) (err error) {
 
 	defer func() {
 		if err != nil {

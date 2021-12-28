@@ -10,13 +10,13 @@ import (
 )
 
 type DaoPermitUser interface {
-	UpdateDataByUserHIds(data map[string]interface{}, userHIds ...string) (err error)
+	UpdateDataByUserHIds(data map[string]interface{}, userHIds ...int64) (err error)
 
 	AdminUserAdd(dataUser []base.ModelBase) (err error)
 
-	DeleteAdminUser(userHIds ...string) (err error)
+	DeleteAdminUser(userHIds ...int64) (err error)
 
-	DeleteAdminUserGroup(userHIds ...string) (err error)
+	DeleteAdminUserGroup(userHIds ...int64) (err error)
 
 	GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdminUser) (total int64, dba *gorm.DB, err error)
 

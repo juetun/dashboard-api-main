@@ -252,7 +252,7 @@ type (
 	}
 	ArgAdminUserAdd struct {
 		app_param.RequestUser
-		UserHid   string `json:"user_hid" form:"user_hid"`
+		UserHid   int64  `json:"user_hid" form:"user_hid"`
 		RealName  string `json:"real_name" form:"real_name"`
 		Mobile    string `json:"mobile" form:"mobile"`
 		Id        int64  `json:"id" form:"id"`
@@ -263,8 +263,8 @@ type (
 	}
 	ArgAdminUserDelete struct {
 		app_param.RequestUser
-		Ids      string   `json:"ids" form:"ids"`
-		IdString []string `json:"-" form:"-"`
+		Ids      string  `json:"ids" form:"ids"`
+		IdString []int64 `json:"-" form:"-"`
 	}
 
 	ArgMenuAdd struct {
@@ -511,7 +511,15 @@ func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
 		return
 	}
 	if r.Ids != "" {
-		r.IdString = strings.Split(r.Ids, ",")
+		IdString := strings.Split(r.Ids, ",")
+		var it int64
+		for _, i2 := range IdString {
+			if it, err = strconv.ParseInt(i2, 10, 64); err != nil {
+				return
+			}
+			r.IdString = append(r.IdString, it)
+		}
+
 	}
 	if len(r.IdString) == 0 {
 		err = fmt.Errorf("您没有选择要删除的用户")
@@ -533,11 +541,11 @@ func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
 type ArgAdminUserGroupAdd struct {
 	app_param.RequestUser
 	GroupId      int64  `json:"group_id" form:"group_id"`
-	UserHid      string `json:"user_hid" form:"user_hid"`
+	UserHid      int64  `json:"user_hid" form:"user_hid"`
 	GroupIdBatch string `json:"group_id_batch" form:"group_id_batch"`
 	UserHidBatch string `json:"user_hid_batch" form:"user_hid_batch"`
 	GroupIds     []int64
-	UserHIds     []string
+	UserHIds     []int64
 }
 
 func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
@@ -546,7 +554,7 @@ func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
 	}
 
 	r.GroupIds = []int64{}
-	r.UserHIds = []string{}
+	r.UserHIds = []int64{}
 
 	if r.GroupIdBatch != "" {
 		var gid int64
@@ -562,12 +570,23 @@ func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
 		}
 	}
 	if r.UserHidBatch != "" {
-		r.UserHIds = strings.Split(r.UserHidBatch, ",")
+		uidString := strings.Split(r.UserHidBatch, ",")
+		r.UserHIds = make([]int64, 0, len(uidString))
+		var uidNum int64
+		for _, s := range uidString {
+			if s == "" {
+				continue
+			}
+			if uidNum, err = strconv.ParseInt(s, 10, 64); err != nil {
+				return
+			}
+			r.UserHIds = append(r.UserHIds, uidNum)
+		}
 	}
 	if r.GroupId != 0 {
 		r.GroupIds = append(r.GroupIds, r.GroupId)
 	}
-	if r.UserHid != "" {
+	if r.UserHid != 0 {
 		r.UserHIds = append(r.UserHIds, r.UserHid)
 	}
 	return
@@ -804,28 +823,30 @@ type ResultSystemAdminMenu struct {
 type ArgAdminUser struct {
 	app_param.RequestUser
 	response.PageQuery
-	Name         string   `json:"name" form:"name"`
-	UserHIds     string   `json:"user_ids" form:"user_ids"`
-	Mobile       string   `json:"mobile" form:"mobile"`
-	GroupId      string   `json:"group_id" form:"group_id"`
-	GroupIds     []int64  `json:"-" form:"-"`
-	UserHIdArray []string `json:"-" form:"-"`
-	CannotUse    int8     `json:"can_not_use" form:"can_not_use"`
+	Name         string  `json:"name" form:"name"`
+	UserHIds     string  `json:"user_ids" form:"user_ids"`
+	Mobile       string  `json:"mobile" form:"mobile"`
+	GroupId      string  `json:"group_id" form:"group_id"`
+	GroupIds     []int64 `json:"-" form:"-"`
+	UserHIdArray []int64 `json:"-" form:"-"`
+	CannotUse    int8    `json:"can_not_use" form:"can_not_use"`
 }
 
 func (r *ArgAdminUser) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
-	r.UserHIdArray = []string{}
+	r.UserHIdArray = []int64{}
 
 	if r.UserHIds != "" {
+		var uid int64
 		tmp := strings.Split(r.UserHIds, ",")
 		for _, item := range tmp {
 			if item == "" {
 				continue
 			}
-			r.UserHIdArray = append(r.UserHIdArray, item)
+			uid, err = strconv.ParseInt(item, 10, 64)
+			r.UserHIdArray = append(r.UserHIdArray, uid)
 		}
 	}
 	r.GroupIds = []int64{}

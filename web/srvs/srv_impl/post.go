@@ -95,7 +95,7 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	if err != nil {
 		return
 	}
-	var mapUser map[string]app_param.ResultUserItem
+	var mapUser map[int64]app_param.ResultUserItem
 	mapUser, err = srvUser.GetUserMapByIds(userId)
 	if err != nil {
 		return
@@ -152,10 +152,10 @@ func (r *ConsolePostService) ConsolePostIndex(dba *gorm.DB, limit, offset int, i
 	}
 	return
 }
-func (r *ConsolePostService) uniquePostId(dt []models.ZPosts) (ids []string, userId []string) {
+func (r *ConsolePostService) uniquePostId(dt []models.ZPosts) (ids []string, userId []int64) {
 	ids = make([]string, 0, len(dt))
-	userId = make([]string, 0, len(dt))
-	mUid := make(map[string]string)
+	userId = make([]int64, 0, len(dt))
+	mUid := make(map[int64]int64)
 	mId := make(map[string]string)
 	for _, post := range dt {
 		if _, ok := mUid[post.UserHId]; !ok {
@@ -196,7 +196,7 @@ func (r *ConsolePostService) PostView(postId []string) (postV *map[string]models
 	return
 }
 
-func (r *ConsolePostService) PostStore(ps wrappers.PostStore, userId string) {
+func (r *ConsolePostService) PostStore(ps wrappers.PostStore, userId int64) {
 	postCreate := &models.ZPosts{
 		Title:    ps.Title,
 		UserHId:  userId,
@@ -563,7 +563,6 @@ func (r *ConsolePostService) PostUpdate(postId int, ps wrappers.PostStore) (err 
 
 	postUpdate := &models.ZPosts{
 		Title:    ps.Title,
-		UserHId:  "",
 		Summary:  ps.Summary,
 		Original: ps.Content,
 	}

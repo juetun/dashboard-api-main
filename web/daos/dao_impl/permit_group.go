@@ -448,7 +448,7 @@ func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, da
 	return
 }
 
-func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid string, refreshCache ...bool) (res []models.AdminUserGroup, err error) {
+func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid int64, refreshCache ...bool) (res []models.AdminUserGroup, err error) {
 
 	if !r.RefreshCache(refreshCache...) { // 如果不是需要重新刷新缓存
 		dataNil, _ := r.getCacheUserPermitGroup(userHid, &res)
@@ -473,7 +473,7 @@ func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid string, refreshCache ..
 	return
 }
 
-func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid string, data interface{}) (dataNil bool, err error) {
+func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid int64, data interface{}) (dataNil bool, err error) {
 	key, _ := r.getUserPermitGroupCacheKey(userHid)
 	var e error
 	if e = r.Context.CacheClient.Get(context.TODO(), key).Scan(data); e != nil {
@@ -491,13 +491,13 @@ func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid string, data interf
 }
 
 // 用户权限组缓存
-func (r *DaoPermitGroupImpl) getUserPermitGroupCacheKey(userHid string) (res string, duration time.Duration) {
+func (r *DaoPermitGroupImpl) getUserPermitGroupCacheKey(userHid int64) (res string, duration time.Duration) {
 	res = fmt.Sprintf(parameters.CacheKeyUserGroupWithAppKey, userHid)
 	duration = parameters.CacheKeyUserGroupWithAppKeyTime
 	return
 }
 
-func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid string) (err error) {
+func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid int64) (err error) {
 	key, _ := r.getUserPermitGroupCacheKey(userHid)
 	if err = r.Context.CacheClient.Del(context.TODO(), key).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -509,7 +509,7 @@ func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid string) (er
 	return
 }
 
-func (r *DaoPermitGroupImpl) setCacheUserPermitGroupCache(userHid string, res []models.AdminUserGroup) (err error) {
+func (r *DaoPermitGroupImpl) setCacheUserPermitGroupCache(userHid int64, res []models.AdminUserGroup) (err error) {
 	key, duration := r.getUserPermitGroupCacheKey(userHid)
 	if err = r.Context.CacheClient.Set(context.TODO(), key, res, duration).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -606,7 +606,7 @@ func (r *DaoPermitGroupImpl) GetGroupUserByGroupIds(pager *response.Pager, group
 	return
 }
 
-func (r *DaoPermitGroupImpl) DeleteUserGroupByUserId(userId ...string) (err error) {
+func (r *DaoPermitGroupImpl) DeleteUserGroupByUserId(userId ...int64) (err error) {
 	if len(userId) == 0 {
 		return
 	}

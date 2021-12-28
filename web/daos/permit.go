@@ -55,7 +55,7 @@ type DaoPermit interface {
 
 	GetAdminGroupByIds(gIds ...int64) (res []models.AdminGroup, err error)
 
-	GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error)
+	GetUserGroupByUIds(uIds ...int64) (res []models.AdminUserGroup, err error)
 
 	DeleteMenuByIds(ids ...string) (err error)
 

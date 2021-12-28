@@ -3,7 +3,6 @@ package srv_impl
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -73,16 +72,14 @@ func (r *SrvPermitUserImpl) adminUserUpdateWithColumnCanNotUse(dao daos.DaoPermi
 
 func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wrappers.ResultAdminUserAdd, err error) {
 	res = wrappers.ResultAdminUserAdd{}
-	if arg.UserHid == "" {
+	if arg.UserHid == 0 {
 		err = fmt.Errorf("您没有选择要编辑的用户")
 		return
 	}
 
-	userHid := strings.TrimSpace(arg.UserHid)
-
 	var user *app_param.ResultUserItem
 	if user, err = NewUserService(r.Context).
-		GetUserById(userHid); err != nil {
+		GetUserById(arg.UserHid); err != nil {
 		return
 	}
 	if user.UserHid == "" {
@@ -168,9 +165,9 @@ func (r *SrvPermitUserImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers
 	return
 }
 
-func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser) (res map[string][]wrappers.AdminUserGroupName, err error) {
-	res = map[string][]wrappers.AdminUserGroupName{}
-	uIds := make([]string, 0, len(list))
+func (r *SrvPermitUserImpl) getUserGroup(list []models.AdminUser) (res map[int64][]wrappers.AdminUserGroupName, err error) {
+	res = map[int64][]wrappers.AdminUserGroupName{}
+	uIds := make([]int64, 0, len(list))
 	for _, value := range list {
 		uIds = append(uIds, value.UserHid)
 	}

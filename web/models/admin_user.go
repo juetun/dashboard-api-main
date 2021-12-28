@@ -18,7 +18,7 @@ var AdminUserCanNotUseMap = map[int8]string{
 
 type AdminUser struct {
 	ID        uint   `gorm:"column:id;primary_key" json:"id"`
-	UserHid   string `json:"user_hid" gorm:"column:user_hid;uniqueIndex:idx_user_hid,priority:1;not null;type:varchar(60) COLLATE utf8mb4_bin;default:'';comment:用户id"`
+	UserHid   int64  `json:"user_hid" gorm:"column:user_hid;uniqueIndex:idx_user_hid,priority:1;not null;type:bigint(20);default:0;comment:用户id"`
 	RealName  string `json:"real_name" gorm:"column:real_name;not null;type:varchar(30);default:'';comment:姓名"`
 	Mobile    string `json:"mobile" gorm:"column:mobile;not null;type:varchar(40);default:'';comment:电话号"`
 	Email     string `json:"email" gorm:"column:email;not null;type:varchar(100);default:'';comment:邮箱"`

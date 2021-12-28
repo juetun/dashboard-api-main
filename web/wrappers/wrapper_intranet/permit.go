@@ -16,7 +16,7 @@ type (
 		models.AdminImport
 	}
 	ArgGetUerImportPermit struct {
-		UHid    string          `json:"u_hid" form:"u_hid"`
+		UHid    int64           `json:"u_hid" form:"u_hid"`
 		Uris    string          `json:"uris" form:"uris"`
 		UrlInfo []UerImportItem `json:"url_info" form:"url_info"`
 	}
@@ -64,7 +64,7 @@ func (r *UerImportItem) ToUk() (res string) {
 	return
 }
 func (r *ArgGetUerImportPermit) Default(c *gin.Context) (err error) {
-	if r.UHid == "" {
+	if r.UHid == 0 {
 		err = fmt.Errorf("请选择你要查看权限的用户")
 		return
 	}

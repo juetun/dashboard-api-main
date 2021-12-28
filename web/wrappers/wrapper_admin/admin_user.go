@@ -2,6 +2,7 @@ package wrapper_admin
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -9,10 +10,10 @@ import (
 
 type (
 	ArgAdminUserUpdateWithColumn struct {
-		UserHids    string   `json:"user_hids" form:"user_hids"`
-		UserHidVals []string `json:"-" form:"-"`
-		Column      string   `json:"column" form:"column"`
-		Value       string   `json:"value"  form:"value"`
+		UserHids    string  `json:"user_hids" form:"user_hids"`
+		UserHidVals []int64 `json:"-" form:"-"`
+		Column      string  `json:"column" form:"column"`
+		Value       string  `json:"value"  form:"value"`
 	}
 	ResultAdminUserUpdateWithColumn struct {
 		Result bool `json:"result"`
@@ -20,18 +21,22 @@ type (
 )
 
 func (r *ArgAdminUserUpdateWithColumn) Default(c *gin.Context) (err error) {
+	_ = c
 	if r.UserHids == "" {
 		err = fmt.Errorf("请选择要编辑的管理员")
 		return
 	}
-	r.UserHidVals = []string{}
+	r.UserHidVals = []int64{}
 	v := strings.Split(r.UserHids, ",")
-
+	var uid int64
 	for _, s := range v {
 		if s == "" {
 			continue
 		}
-		r.UserHidVals = append(r.UserHidVals, s)
+		if uid, err = strconv.ParseInt(s, 10, 64); err != nil {
+			return
+		}
+		r.UserHidVals = append(r.UserHidVals, uid)
 	}
 	if r.Column == "" {
 		err = fmt.Errorf("请选择要修改的数据字段")

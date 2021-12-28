@@ -23,7 +23,8 @@ func (r *SrvGatewayImportImpl) GetUerImportPermit(arg *wrapper_intranet.ArgGetUe
 		isSuperAdmin bool
 		groupIds     []int64
 	)
-	if isAdmin, isSuperAdmin, groupIds, err = NewSrvPermitGroupImpl(r.Context).GetUserGroup(arg.UHid); err != nil {
+	if isAdmin, isSuperAdmin, groupIds, err = NewSrvPermitGroupImpl(r.Context).
+		GetUserGroup(arg.UHid); err != nil {
 		return
 	}
 	if len(groupIds) == 0 {

@@ -15,7 +15,7 @@ type DaoPermitGroup interface {
 
 	AdminUserGroupAdd([]base.ModelBase) (err error)
 
-	DeleteUserGroupByUserId(userId ...string) (err error)
+	DeleteUserGroupByUserId(userId ...int64) (err error)
 
 	DeleteUserGroupPermitByGroupId(groupIds ...int64) (err error)
 
@@ -27,7 +27,7 @@ type DaoPermitGroup interface {
 	UpdateDaoPermitUserGroupByGroupId(groupId int64, data map[string]interface{}) (err error)
 
 	// GetPermitGroupByUid 根据用户ID获取用户所属管理员组
-	GetPermitGroupByUid(hid string, refreshCache ...bool) (res []models.AdminUserGroup, err error)
+	GetPermitGroupByUid(userHid int64, refreshCache ...bool) (res []models.AdminUserGroup, err error)
 
 	// GetGroupAppPermitImport 从缓存中获取指定组的app权限列表
 	GetGroupAppPermitImport(groupId int64, appName string, refreshCache ...bool) (res []wrapper_intranet.AdminUserGroupPermit, err error)

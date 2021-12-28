@@ -110,7 +110,6 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 	return
 }
 
-
 func (r *SrvPermitGroupImpl) getMapImport(importIds ...int64) (mapImport map[int64]models.AdminImport, err error) {
 	mapImport = map[int64]models.AdminImport{}
 	dao := dao_impl.NewDaoPermit(r.Context)
@@ -226,7 +225,6 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 	return
 }
 
-
 func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
 		m   models.AdminMenuImport
@@ -297,8 +295,9 @@ func (r *SrvPermitGroupImpl) MenuImportSet(arg *wrappers.ArgMenuImportSet) (res 
 	return
 }
 
-func (r *SrvPermitGroupImpl) validateUserHid(userHid ...string) (userMap map[string]app_param.ResultUserItem, err error) {
-	if userMap, err = NewUserService(r.Context).GetUserByIds(userHid); err != nil {
+func (r *SrvPermitGroupImpl) validateUserHid(userHid ...int64) (userMap map[int64]app_param.ResultUserItem, err error) {
+	if userMap, err = NewUserService(r.Context).
+		GetUserByIds(userHid); err != nil {
 		return
 	}
 	if len(userMap) != len(userHid) {
@@ -324,7 +323,7 @@ func (r *SrvPermitGroupImpl) AdminUserGroupAdd(arg *wrappers.ArgAdminUserGroupAd
 	var (
 		data    []base.ModelBase
 		dao     = dao_impl.NewDaoPermitGroup(r.Context)
-		userMap map[string]app_param.ResultUserItem
+		userMap map[int64]app_param.ResultUserItem
 		t       = time.Now()
 	)
 	if err = r.validateGroupIds(dao, arg.GroupIds...); err != nil {
@@ -475,10 +474,10 @@ func (r *SrvPermitGroupImpl) getGroupIdWithAdminUserGroup(uGroup []models.AdminU
 }
 
 // GetUserGroup 获取管理员所在的用户组ID
-func (r *SrvPermitGroupImpl) GetUserGroup(userHid string) (isAdmin, isSuperAdmin bool, groupIds []int64, err error) {
+func (r *SrvPermitGroupImpl) GetUserGroup(userHid int64) (isAdmin, isSuperAdmin bool, groupIds []int64, err error) {
 	groupIds = []int64{}
 
-	if userHid == "" {
+	if userHid == 0 {
 		return
 	}
 

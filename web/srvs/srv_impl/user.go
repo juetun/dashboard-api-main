@@ -8,6 +8,7 @@
 package srv_impl
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -30,13 +31,13 @@ func NewUserService(context ...*base.Context) (p *UserService) {
 }
 
 // GetUserById 根据用户HID获取用户信息
-func (r *UserService) GetUserById(userId string) (user *app_param.ResultUserItem, err error) {
+func (r *UserService) GetUserById(userId int64) (user *app_param.ResultUserItem, err error) {
 	user = &app_param.ResultUserItem{}
-	if userId == "" {
+	if userId == 0 {
 		return
 	}
 
-	users, err := r.GetUserByIds([]string{userId})
+	users, err := r.GetUserByIds([]int64{userId})
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
 			"message": "service.GetUserById",
@@ -52,14 +53,14 @@ func (r *UserService) GetUserById(userId string) (user *app_param.ResultUserItem
 	return
 }
 
-func (r *UserService) GetUserByIds(userId []string) (users map[string]app_param.ResultUserItem, err error) {
+func (r *UserService) GetUserByIds(userId []int64) (users map[int64]app_param.ResultUserItem, err error) {
 	if len(userId) == 0 {
 		return
 	}
 	type ResultUserHttpRpc struct {
 		Code int `json:"code"`
 		Data struct {
-			MapList map[string]app_param.ResultUserItem `json:"list"`
+			MapList map[int64]app_param.ResultUserItem `json:"list"`
 		}
 		Message string `json:"message"`
 	}
@@ -75,7 +76,11 @@ func (r *UserService) GetUserByIds(userId []string) (users map[string]app_param.
 		URI:     "/in/user/get_by_uid",
 		Value:   url.Values{},
 	}
-	request.Value.Set("user_hid", strings.Join(userId, ","))
+	var userIdString = make([]string, 0, len(userId))
+	for _, i2 := range userId {
+		userIdString = append(userIdString, fmt.Sprintf("%d", i2))
+	}
+	request.Value.Set("user_hid", strings.Join(userIdString, ","))
 	request.Value.Set("data_type", strings.Join([]string{app_param.UserDataTypeMain, app_param.UserDataTypeInfo}, ","))
 	var body string
 
@@ -99,8 +104,8 @@ func (r *UserService) GetUserByIds(userId []string) (users map[string]app_param.
 	return
 }
 
-func (r *UserService) GetUserMapByIds(userId []string) (user map[string]app_param.ResultUserItem, err error) {
-	user = map[string]app_param.ResultUserItem{}
+func (r *UserService) GetUserMapByIds(userId []int64) (user map[int64]app_param.ResultUserItem, err error) {
+	user = map[int64]app_param.ResultUserItem{}
 	if user, err = r.GetUserByIds(userId); err != nil {
 		return
 	}

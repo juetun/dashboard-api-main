@@ -531,7 +531,7 @@ func (r *DaoPermitImpl) GetAdminGroupByIds(gIds ...int64) (res []models.AdminGro
 	return
 }
 
-func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...string) (res []models.AdminUserGroup, err error) {
+func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...int64) (res []models.AdminUserGroup, err error) {
 	if len(uIds) == 0 {
 		return
 	}
