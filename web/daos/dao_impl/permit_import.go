@@ -29,12 +29,7 @@ func (r *DaoPermitImportImpl) GetMenuImportByMenuIdAndImportIds(menuId int64, im
 
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminMenuImport
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Db:        r.Context.Db,
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.
 			Db.
 			Table(actErrorHandlerResult.TableName).
@@ -67,12 +62,8 @@ func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		actErrorHandlerResult.Err = r.Context.Db.Table(m.TableName()).
 			Where("id IN (?)", ids).
 			Scopes(base.ScopesDeletedAt()).
@@ -175,10 +166,12 @@ func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []*models.A
 		dtList = append(dtList, menuImport)
 	}
 	var batchData = base.BatchAddDataParameter{
-		DbName:    r.Context.DbName,
-		Db:        r.Context.Db,
-		TableName: tableName,
-		Data:      dtList,
+		CommonDb: base.CommonDb{
+			DbName:    r.Context.DbName,
+			Db:        r.Context.Db,
+			TableName: tableName,
+		},
+		Data: dtList,
 	}
 	if err = r.BatchAdd(&batchData); err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -314,16 +307,21 @@ func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string
 }
 
 func (r *DaoPermitImportImpl) BatchAddData(list []models.AdminImport) (err error) {
-	var m models.AdminImport
-	data := &base.BatchAddDataParameter{
-		DbName:    r.Context.DbName,
-		Db:        r.Context.Db,
-		TableName: m.TableName(),
-	}
+
+	var (
+		m        models.AdminImport
+		data     *base.BatchAddDataParameter
+		dataList []base.ModelBase
+		e        error
+	)
+
 	for _, adminImport := range list {
-		data.Data = append(data.Data, &adminImport)
+		dataList = append(dataList, &adminImport)
 	}
-	var e error
+	if data, err = r.GetDefaultBatchAddDataParameter(dataList...); err != nil {
+		return
+	}
+
 	if e = r.BatchAdd(data); e == nil {
 		return
 	}

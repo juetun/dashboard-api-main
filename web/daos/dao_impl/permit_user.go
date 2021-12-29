@@ -37,12 +37,7 @@ func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...int64) (err error) 
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminUserGroup
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).
 			Where("user_hid IN (?)", userHIds).
@@ -125,13 +120,8 @@ func (r *DaoPermitUserImpl) GetAdminUserCount(db *gorm.DB, arg *wrappers.ArgAdmi
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-			Err:       dba.Count(&total).Error,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+		actErrorHandlerResult.Err = dba.Count(&total).Error
 		return
 	})
 
@@ -188,16 +178,20 @@ func (r *DaoPermitUserImpl) AdminUserAdd(dataUser []base.ModelBase) (err error) 
 		var (
 			dt   models.AdminUser
 			data = base.BatchAddDataParameter{
-				DbName:    r.Context.DbName,
-				TableName: dt.TableName(),
-				Data:      dataUser,
+				CommonDb: base.CommonDb{
+					DbName:    r.Context.DbName,
+					TableName: dt.TableName(),
+				},
+				Data: dataUser,
 			}
 		)
 		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			DbName:    data.DbName,
-			TableName: dt.TableName(),
-			Db:        data.Db,
-			Model:     &dt,
+			CommonDb: base.CommonDb{
+				DbName:    data.DbName,
+				TableName: dt.TableName(),
+				Db:        data.Db,
+			},
+			Model: &dt,
 		}
 		actErrorHandlerResult.Err = r.BatchAdd(&data)
 		return
@@ -207,8 +201,8 @@ func (r *DaoPermitUserImpl) AdminUserAdd(dataUser []base.ModelBase) (err error) 
 
 }
 
-func (r *DaoPermitUserImpl) GetGroupByUserId(userId string) (res []wrappers.AdminGroupUserStruct, err error) {
-	if userId == "" {
+func (r *DaoPermitUserImpl) GetGroupByUserId(userId int64) (res []wrappers.AdminGroupUserStruct, err error) {
+	if userId == 0 {
 		res = []wrappers.AdminGroupUserStruct{}
 		return
 	}
@@ -233,7 +227,6 @@ func (r *DaoPermitUserImpl) GetGroupByUserId(userId string) (res []wrappers.Admi
 	return
 }
 
-
 func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, userHIds ...int64) (err error) {
 
 	defer func() {
@@ -248,12 +241,7 @@ func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, us
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminUser
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).Scopes(base.ScopesDeletedAt()).
 			Where("user_hid IN (?)", userHIds).

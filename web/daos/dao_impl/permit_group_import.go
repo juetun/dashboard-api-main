@@ -30,12 +30,8 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupMenuPermitByGroupIdAndMenuIds(grou
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			Model:     &m1,
-			TableName: m1.TableName(),
-		}
+		actErrorHandlerResult =r.GetDefaultActErrorHandlerResult(&m1)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).
@@ -99,14 +95,16 @@ func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.Mo
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var data = base.BatchAddDataParameter{
+			CommonDb:base.CommonDb{
+				TableName: tableName,
+				DbName:    r.Context.DbName,
+				Db:        r.Context.Db,
+			},
 			Data:      list,
-			TableName: tableName,
-			DbName:    r.Context.DbName,
-			Db:        r.Context.Db,
 		}
 		logContent["data"] = data
 		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db: data.Db,
+			CommonDb: data.CommonDb,
 		}
 		actErrorHandlerResult.Err = r.BatchAdd(&data)
 		return

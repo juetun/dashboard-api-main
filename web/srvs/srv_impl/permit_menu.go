@@ -689,7 +689,7 @@ func (r *SrvPermitMenuImpl) getDefaultSelectModule(groupId []int64, isSupperAdmi
 	}
 	return
 }
-func (r *SrvPermitMenuImpl) getMessageCount(userHid string) (count int, err error) {
+func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error) {
 	var httpHeader = http.Header{}
 	logContent := map[string]interface{}{
 		"userHid": userHid,
@@ -712,7 +712,7 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid string) (count int, err erro
 		URI:     "/in/user/has_not_msg",
 		Value:   url.Values{},
 	}
-	request.Value.Set("user_hid", userHid)
+	request.Value.Set("user_hid", fmt.Sprintf("%d",userHid))
 	logContent["request"] = request
 	var body string
 	action := rpc.NewHttpRpc(request).Send().GetBody()

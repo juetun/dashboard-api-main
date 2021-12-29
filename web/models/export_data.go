@@ -26,7 +26,7 @@ type ZExportData struct {
 	DownloadLink  string `gorm:"column:download_link;" json:"download_link"`
 	Domain        string `gorm:"column:domain;" json:"domain"`
 	FilePath      string `gorm:"column:file_path;" json:"file_path"`
-	CreateUserHid string `gorm:"column:create_user_hid;" json:"create_user_hid"`
+	CreateUserHid int64 `gorm:"column:create_user_hid;" json:"create_user_hid"`
 }
 
 func (r *ZExportData) TableName() string {

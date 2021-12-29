@@ -89,7 +89,7 @@ type ConsoleCate struct {
 }
 
 type ConsoleUser struct {
-	UserHid string `json:"id"`
+	UserHid int64 `json:"id"`
 	Name    string `json:"name"`
 	Email   string `json:"email"`
 	Status  int    `json:"status"`

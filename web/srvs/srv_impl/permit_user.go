@@ -23,7 +23,7 @@ type SrvPermitUserImpl struct {
 }
 
 // GetUserAdminGroupIdByUserHid 获取用户的用户组或判断用户是否为超级管理员
-func (r *SrvPermitUserImpl) GetUserAdminGroupIdByUserHid(userHid string) (groupId []int64, superAdmin bool, err error) {
+func (r *SrvPermitUserImpl) GetUserAdminGroupIdByUserHid(userHid int64) (groupId []int64, superAdmin bool, err error) {
 	groupId = []int64{}
 
 	var groups []wrappers.AdminGroupUserStruct
@@ -82,7 +82,7 @@ func (r *SrvPermitUserImpl) AdminUserEdit(arg *wrappers.ArgAdminUserAdd) (res wr
 		GetUserById(arg.UserHid); err != nil {
 		return
 	}
-	if user.UserHid == "" {
+	if user.UserHid == 0 {
 		err = fmt.Errorf("您要编辑的用户信息不存在")
 		return
 	}

@@ -26,12 +26,8 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupImportByGroupIds(groupId ...int64) (
 		}
 	}()
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
 			Where("group_id IN (?)", groupId).Delete(&m).Error
 		return
@@ -56,12 +52,8 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIds(groupId ...int64) (er
 		}
 	}()
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
 			Where("group_id IN (?)", groupId).Delete(&m).Error
 		return
@@ -100,12 +92,8 @@ func (r *DaoPermitGroupMenuImpl) GetMenuIdsByPermitByGroupIds(module string, gro
 	}
 	var m models.AdminUserGroupMenu
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			Model:     &m,
-			TableName: m.TableName(),
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		if actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Select("distinct `menu_id`,`group_id`,`id`").
@@ -133,12 +121,8 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIdAndIds(groupId int64, m
 
 	var m models.AdminUserGroupMenu
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			Model:     &m,
-			TableName: m.TableName(),
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
 			Where("group_id = ? ", groupId)
 		if len(menuIds) > 0 {
@@ -164,10 +148,12 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIdAndIds(groupId int64, m
 
 func (r *DaoPermitGroupMenuImpl) BatchAddData(tableName string, list []base.ModelBase) (err error) {
 	var data = base.BatchAddDataParameter{
-		Data:      list,
-		TableName: tableName,
-		DbName:    r.Context.DbName,
-		Db:        r.Context.Db,
+		Data: list,
+		CommonDb: base.CommonDb{
+			TableName: tableName,
+			DbName:    r.Context.DbName,
+			Db:        r.Context.Db,
+		},
 	}
 	if err = r.BatchAdd(&data); err != nil {
 		r.Context.Error(map[string]interface{}{

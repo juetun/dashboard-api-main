@@ -117,7 +117,7 @@ func (r DaoExportImpl) Progress(args *wrappers.ArgumentsExportProgress) (res *[]
 	}
 	return
 }
-func (r DaoExportImpl) GetListByUser(userHid string, limit int) (res *[]models.ZExportData, err error) {
+func (r DaoExportImpl) GetListByUser(userHid int64, limit int) (res *[]models.ZExportData, err error) {
 	if limit == 0 {
 		limit = 12
 	}

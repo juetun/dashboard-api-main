@@ -138,12 +138,7 @@ func (r *DaoPermitGroupImpl) GetGroupUserByIds(groupIds ...int64) (res []*models
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).
@@ -184,12 +179,8 @@ func (r *DaoPermitGroupImpl) GetGroupUserCount(groupIds ...int64) (groupIdUserCo
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminUserGroup
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Select("group_id,count(`id`) as count").
 			Where("group_id IN (?)", groupIds).
@@ -217,12 +208,8 @@ func (r *DaoPermitGroupImpl) GetGroupByIds(groupIds ...int64) (res []*models.Adm
 		var (
 			dt models.AdminGroup
 		)
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			DbName:    r.Context.DbName,
-			TableName: dt.TableName(),
-			Db:        r.Context.Db,
-			Model:     &dt,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&dt)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).
@@ -249,17 +236,21 @@ func (r *DaoPermitGroupImpl) AdminUserGroupAdd(data []base.ModelBase) (err error
 		var (
 			dt        models.AdminUserGroup
 			batchData = &base.BatchAddDataParameter{
-				Db:        r.Context.Db,
-				DbName:    r.Context.DbName,
-				TableName: dt.TableName(),
-				Data:      data,
+				CommonDb: base.CommonDb{
+					Db:        r.Context.Db,
+					DbName:    r.Context.DbName,
+					TableName: dt.TableName(),
+				},
+				Data: data,
 			}
 		)
 		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			DbName:    batchData.DbName,
-			TableName: dt.TableName(),
-			Db:        batchData.Db,
-			Model:     &dt,
+			CommonDb: base.CommonDb{
+				DbName:    batchData.DbName,
+				TableName: dt.TableName(),
+				Db:        batchData.Db,
+			},
+			Model: &dt,
 		}
 		actErrorHandlerResult.Err = r.BatchAdd(batchData)
 		return
@@ -428,12 +419,7 @@ func (r *DaoPermitGroupImpl) UpdateDaoPermitUserGroupByGroupId(groupId int64, da
 		}
 	}()
 	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).

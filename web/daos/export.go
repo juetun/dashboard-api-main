@@ -14,5 +14,5 @@ type DaoExport interface {
 	UpdateByHIds(data map[string]interface{}, hIds *[]string) (err error)
 	Create(model *models.ZExportData) (res bool, err error)
 	Progress(args *wrappers.ArgumentsExportProgress) (res *[]models.ZExportData, err error)
-	GetListByUser(userHid string, limit int) (res *[]models.ZExportData, err error)
+	GetListByUser(userHid int64, limit int) (res *[]models.ZExportData, err error)
 }

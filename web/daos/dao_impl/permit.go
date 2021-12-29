@@ -545,12 +545,8 @@ func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...int64) (res []models.AdminUse
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminUserGroup
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			Db:        r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-			Model:     &m,
-		}
+		actErrorHandlerResult =r.GetDefaultActErrorHandlerResult(&m)
+
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
 			Scopes(base.ScopesDeletedAt()).

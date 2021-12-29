@@ -16,5 +16,5 @@ type SrvPermitUser interface {
 	AdminUserUpdateWithColumn(arg *wrapper_admin.ArgAdminUserUpdateWithColumn) (res *wrapper_admin.ResultAdminUserUpdateWithColumn, err error)
 
 	// GetUserAdminGroupIdByUserHid 获取用户的后台权限组
-	GetUserAdminGroupIdByUserHid(uid string) (groupId []int64, isSuperAdmin bool, err error)
+	GetUserAdminGroupIdByUserHid(uid int64) (groupId []int64, isSuperAdmin bool, err error)
 }
