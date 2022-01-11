@@ -18,6 +18,9 @@ func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
 		controller := admin_impl.NewControllerPermit()
 		h := r.Group(urlPrefix + "/permit")
+		// 权限菜单列表
+		h.GET("/menu", controller.Menu)
+
 
 		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
 		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd) // 用户组添加管理员
@@ -43,8 +46,7 @@ func init() {
 		h.POST("/update_import_value", controller.UpdateImportValue)
 		h.DELETE("/delete_import/:id", controller.DeleteImport)
 
-		// 权限菜单列表
-		h.GET("/menu", controller.Menu)
+
 
 		// 根据菜单号 获取页面的接口ID
 		h.GET("/get_import_by_menu_id", controller.GetImportByMenuId)

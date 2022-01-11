@@ -224,6 +224,7 @@ func (r *SrvPermitUserImpl) leftAdminUser(list []models.AdminUser) (res []wrappe
 		tmp = wrappers.ResultAdminUserList{
 			AdminUser: item,
 		}
+		tmp.CreatedAtString = tmp.CreatedAt.Format("2006.01.02 15:04")
 		if _, ok := mapGroupPermit[item.UserHid]; ok {
 			tmp.Group = mapGroupPermit[item.UserHid]
 		}

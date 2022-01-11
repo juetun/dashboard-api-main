@@ -65,8 +65,7 @@ func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) 
 	if err = NewSrvPermitMenu(r.Context).
 		GetMenuPermitKeyByPath(
 			&arg.ArgGetImportByMenuIdSingle,
-			dao_impl.NewDaoPermit(r.Context),
-		); err != nil {
+ 		); err != nil {
 		return
 	}
 

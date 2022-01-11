@@ -43,8 +43,8 @@ type (
 		ArgGetImportByMenuIdSingle
 	}
 	ResultGetImportByMenuId struct {
-		ImportIds []int64 `json:"import_ids"`
-		MenuIds   []int64 `json:"menu_ids"`
+		ImportIds []int64 `json:"import_ids,omitempty"` //当前界面能够访问的接口列表
+		MenuIds   []int64 `json:"menu_ids,omitempty"`   //当前界面内能够跳转的界面ID列表
 	}
 	ArgGetAppConfig struct {
 		app_param.RequestUser
@@ -55,8 +55,9 @@ type (
 
 	AdminGroup struct {
 		models.AdminGroup
-		ParentName string `json:"parent_name"`
-		UserCount  int    `json:"user_count"`
+		ParentName      string `json:"parent_name"`
+		UserCount       int    `json:"user_count"`
+		UpdatedAtString string `json:"updated_at"`
 	}
 
 	ArgAdminMenuWithCheck struct {
@@ -881,18 +882,19 @@ type AdminUserGroupName struct {
 }
 type ResultAdminUserList struct {
 	models.AdminUser
-	Group []AdminUserGroupName `json:"group"`
+	CreatedAtString string               `json:"created_at"`
+	Group           []AdminUserGroupName `json:"group"`
 }
 
 type ArgPermitMenu struct {
 	app_param.RequestUser
-	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
-	ParentId                   int64    `json:"parent_id"` // 上级菜单ID
-	PathType                   string   `json:"path_type" form:"path_type"`
-	PathTypes                  []string `json:"-" form:"-"`
-	Module                     string   `json:"module" form:"module"` // 系统ID
-	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
-	GroupId                    []int64  `json:"-" form:"-"`
+	ArgGetImportByMenuIdSingle               // 通用参数逻辑处理 用于获取当前菜单下的接口列表
+	ParentId     int64    `json:"parent_id"` // 上级菜单ID
+	PathType     string   `json:"path_type" form:"path_type"`
+	PathTypes    []string `json:"-" form:"-"`
+	Module       string   `json:"module" form:"module"` // 系统ID
+	IsSuperAdmin bool     `json:"-" form:"-"`           // 是否为超级管理员
+	GroupId      []int64  `json:"-" form:"-"`
 }
 
 // Default 初始化默认值
@@ -922,12 +924,16 @@ type PermitMeta struct {
 	HideInMenu bool   `json:"hideInMenu"`
 }
 type ResultPermitMenuReturn struct {
-	ResultPermitMenu                         // 当前选中的权限
-	RoutParentMap    map[string][]string     `json:"routParentMap"`      // 当前菜单列表
-	Menu             []ResultSystemMenu      `json:"menu"`               // 一级系统权限列表 用户从当前系统跳转到其他管理系统
-	OpList           map[string][]OpOne      `json:"op_list"`            // 获取接口权限列表
-	NotReadMsgCount  int                     `json:"not_read_msg_count"` // 未读消息数量
-	NowImportAndMenu ResultGetImportByMenuId `json:"import_and_menu"`    // 当前菜单下有的菜单和接口列表
+	ResultPermitMenu
+	IsSuperAdmin    bool   `json:"is_super_admin,omitempty"` //是否超级管理员
+	GoTo301         string `json:"goto301,omitempty"`
+	NotReadMsgCount int    `json:"not_read_msg_count"` // 未读消息数量
+
+	// 当前选中的权限
+	RoutParentMap map[string][]string `json:"routParentMap"`  // 当前菜单列表
+	Menu          []ResultSystemMenu  `json:"menu,omitempty"` // 一级系统权限列表 用户从当前系统跳转到其他管理系统
+	//OpList           map[string][]OpOne      `json:"-"`         // 获取接口权限列表
+	NowImportAndMenu ResultGetImportByMenuId `json:"import_and_menu"` // 当前菜单下有的菜单和接口列表
 }
 
 func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
@@ -935,9 +941,9 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 		ResultPermitMenu: ResultPermitMenu{
 			Children: []ResultPermitMenu{},
 		},
-		RoutParentMap:   map[string][]string{},
-		Menu:            []ResultSystemMenu{},
-		OpList:          map[string][]OpOne{},
+		RoutParentMap: map[string][]string{},
+		Menu:          []ResultSystemMenu{},
+		//OpList:          map[string][]OpOne{},
 		NotReadMsgCount: 0,
 		NowImportAndMenu: ResultGetImportByMenuId{
 			ImportIds: []int64{},

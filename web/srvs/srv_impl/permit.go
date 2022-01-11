@@ -404,6 +404,7 @@ func (r *PermitServiceImpl) deleteGroupMenuPermitByGroupId(arg *wrappers.ArgAdmi
 
 	return
 }
+
 func (r *PermitServiceImpl) setMenuPermit(dao daos.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
 	var (
 		newPermit   []int64
@@ -620,10 +621,7 @@ func (r *PermitServiceImpl) addNewApiPermit(newPermit []int64, groupId int64) (e
 	return
 }
 
-type MenuHandler struct {
-	Name    string `json:"name"`
-	handler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error)
-}
+type MenuHandler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error)
 
 type ArgGetUserGroupIds struct {
 	UserId string `json:"user_id"`

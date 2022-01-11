@@ -98,6 +98,7 @@ func (r *SrvPermitGroupImpl) orgGroupList(dao daos.DaoPermit, list []models.Admi
 		dt = wrappers.AdminGroup{
 			AdminGroup: it,
 		}
+		dt.UpdatedAtString = dt.UpdatedAt.Format("2006.01.02 15:04")
 		if tp, ok := mapGroupUserCount[it.Id]; ok {
 			dt.UserCount = tp
 		}

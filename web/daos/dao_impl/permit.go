@@ -216,10 +216,24 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 		adminImport          models.AdminImport
 		adminMenu            models.AdminMenu
 		adminMenuImport      models.AdminMenuImport
+		desc                 string
 	)
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"arg":  arg,
+			"desc": desc,
+			"err":  err.Error(),
+		}, "DaoPermitImplGetPermitImportByModule")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
 
 	if arg.IsSuperAdmin { // 如果是超级管理员
 		res, err = r.getPermitImportByModuleWithSuperAdmin(arg)
+		desc = "getPermitImportByModuleWithSuperAdmin"
 		return
 	}
 
@@ -236,11 +250,7 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 		Where("  a.group_id IN (?)", arg.GroupId).
 		Find(&res).
 		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg": arg,
-			"err": err.Error(),
-		}, "DaoPermitImplGetPermitImportByModule")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		desc = "get_general_group_permit"
 		return
 	}
 
@@ -545,7 +555,7 @@ func (r *DaoPermitImpl) GetUserGroupByUIds(uIds ...int64) (res []models.AdminUse
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminUserGroup
-		actErrorHandlerResult =r.GetDefaultActErrorHandlerResult(&m)
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
 
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).

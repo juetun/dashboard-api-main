@@ -24,43 +24,46 @@ type SrvPermitMenuImpl struct {
 	base.ServiceBase
 }
 
-// Menu 每个界面调用获取菜单列表
-func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
+func (r *SrvPermitMenuImpl) readyMenu(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
 
-	res = wrappers.NewResultPermitMenuReturn()
-	dao := dao_impl.NewDaoPermit(r.Context)
-
-	// 判断参数是否正常
-	if err = r.initParentId(arg); err != nil {
-		return
-	}
-
-	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
+	// 判断当前用户是否是超级管理员,
+	// 如果不是超级管理员 返回当前用户所属用户组
 	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
 		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
 		return
 	}
+	res.IsSuperAdmin = arg.IsSuperAdmin
 
-	// 获取当前界面的界面信息
-	if err = r.GetMenuPermitKeyByPath(&arg.ArgGetImportByMenuIdSingle, dao); err != nil {
+	// 判断参数是否正常
+	// 组织并判断当前访问的是哪个系统（如果参数没有则指定默认值）
+	if err = r.initParentId(arg); err != nil {
 		return
 	}
 
-	handlers := []MenuHandler{
-		{
-			Name:    "getNotReadMessage",
-			handler: r.getNotReadMessage, // 获取用户未读消息数)
-		},
-		{
-			Name:    "getPermitMenuList",
-			handler: r.getPermitMenuList, // 获取当前菜单的树形结构
-		},
+	// 获取当前界面的界面基本信息
+	if err = r.GetMenuPermitKeyByPath(&arg.ArgGetImportByMenuIdSingle); err != nil {
+		return
 	}
+	return
+}
+
+// Menu 每个界面调用获取菜单列表
+func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
+
+	res = wrappers.NewResultPermitMenuReturn()
+
+	//准备参数数据(1、是否是超级管管理员)
+	if err = r.readyMenu(arg, res); err != nil {
+		return
+	}
+
+	handlers := map[string]MenuHandler{
+		"getNotReadMessage": r.getNotReadMessage, // 获取用户未读消息数),
+		"getPermitMenuList": r.getPermitMenuList, // 获取当前菜单的树形结构
+	}
+
 	if arg.NowMenuId != 0 {
-		handlers = append(handlers, MenuHandler{
-			Name:    "getNowMenuImports",
-			handler: r.getNowMenuImports, // 获取指定菜单下的接口ID列表
-		})
+		handlers["getNowMenuImports"] = r.getNowMenuImports // 获取指定菜单下的接口ID列表
 	}
 
 	// 并行执行逻辑
@@ -351,8 +354,7 @@ func (r *SrvPermitMenuImpl) getGroupPermitMenu(module string, groupId int64) (ma
 	return
 }
 
-func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle, dao daos.DaoPermit) (err error) {
-	_ = dao
+func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle) (err error) {
 	divString := "/"
 	pathSlice := strings.Split(strings.TrimLeft(arg.NowRoutePath, "/"), divString)
 	switch len(pathSlice) {
@@ -363,6 +365,7 @@ func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByM
 	}
 	arg.NowModule = pathSlice[0]
 	arg.NowPermitKey = strings.Join(pathSlice[1:], divString)
+
 	var adminMenu []models.AdminMenu
 	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
 		GetMenuByPermitKey(arg.NowModule, arg.NowPermitKey); err != nil {
@@ -379,9 +382,7 @@ func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByM
 // 获取当前菜单的信息
 func (r *SrvPermitMenuImpl) getNowMenuImports(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
 
-	param := &wrappers.ArgGetImportByMenuId{
-		ArgGetImportByMenuIdSingle: arg.ArgGetImportByMenuIdSingle,
-	}
+	param := &wrappers.ArgGetImportByMenuId{ArgGetImportByMenuIdSingle: arg.ArgGetImportByMenuIdSingle,}
 	param.SuperAdminFlag = arg.IsSuperAdmin
 
 	logContent := map[string]interface{}{
@@ -395,6 +396,18 @@ func (r *SrvPermitMenuImpl) getNowMenuImports(arg *wrappers.ArgPermitMenu, res *
 		}
 	}()
 
+	//如果是超级管理员
+	if param.SuperAdminFlag {
+		err = r.orgNowSuperAdminMenu(arg, res, logContent, param)
+	} else {
+
+	}
+
+	return
+}
+
+//获取当前菜单下超级管理员具备的
+func (r *SrvPermitMenuImpl) orgNowSuperAdminMenu(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn, logContent map[string]interface{}, param *wrappers.ArgGetImportByMenuId) (err error) {
 	srvImport := NewSrvPermitImport(r.Context)
 	if res.NowImportAndMenu.MenuIds, err = srvImport.GetChildMenu(param.NowMenuId); err != nil {
 		logContent["err1"] = err.Error()
@@ -405,7 +418,6 @@ func (r *SrvPermitMenuImpl) getNowMenuImports(arg *wrappers.ArgPermitMenu, res *
 		logContent["err2"] = err.Error()
 		return
 	}
-
 	return
 }
 
@@ -414,10 +426,10 @@ func (r *SrvPermitMenuImpl) getPermitMenuListGeneralUser(arg *wrappers.ArgPermit
 	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 获取接口权限列表
-	if res.OpList, err = NewSrvPermitImport(r.Context).
-		GetOpList(dao, arg); err != nil {
-		return
-	}
+	//if res.OpList, err = NewSrvPermitImport(r.Context).
+	//	GetOpList(dao, arg); err != nil {
+	//	return
+	//}
 
 	var menuIds []int64
 	if menuIds, err = r.getPermitByGroupIds(arg.Module, arg.GroupId...); err != nil { // 普通管理员
@@ -445,11 +457,14 @@ func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *
 }
 
 func (r *SrvPermitMenuImpl) getPermitByGroupIds(module string, groupIds ...int64) (menuIds []int64, err error) {
+
 	res, err := dao_impl.NewDaoPermitGroupMenu(r.Context).
 		GetMenuIdsByPermitByGroupIds(module, groupIds...)
+
 	if err != nil {
 		return
 	}
+
 	menuIds = make([]int64, 0, len(res))
 	for _, value := range res {
 		menuIds = append(menuIds, value.MenuId)
@@ -712,7 +727,7 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 		URI:     "/in/user/has_not_msg",
 		Value:   url.Values{},
 	}
-	request.Value.Set("user_hid", fmt.Sprintf("%d",userHid))
+	request.Value.Set("user_hid", fmt.Sprintf("%d", userHid))
 	logContent["request"] = request
 	var body string
 	action := rpc.NewHttpRpc(request).Send().GetBody()
@@ -788,14 +803,14 @@ func (r *SrvPermitMenuImpl) getParentId(mapIdToParent map[int64]int64, nodeId, p
 	return
 }
 
-func (r *SrvPermitMenuImpl) syncOperate(handlers []MenuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
+func (r *SrvPermitMenuImpl) syncOperate(handlers map[string]MenuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) {
 	var syncG sync.WaitGroup
 	syncG.Add(len(handlers))
-	for _, handler := range handlers {
+	for _, funcHandler := range handlers {
 		go func(h MenuHandler) {
 			defer syncG.Done()
-			_ = h.handler(arg, res)
-		}(handler)
+			_ = h(arg, res)
+		}(funcHandler)
 	}
 	syncG.Wait()
 }
@@ -815,6 +830,12 @@ func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error
 		return
 	}
 	arg.ParentId = dt[0].Id
+	if arg.Module == "" {
+		arg.Module = dt[0].PermitKey
+	}
+	if arg.ArgGetImportByMenuIdSingle.NowModule == "" {
+		arg.ArgGetImportByMenuIdSingle.NowModule = dt[0].PermitKey
+	}
 	return
 }
 
