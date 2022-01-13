@@ -925,9 +925,9 @@ type PermitMeta struct {
 }
 type ResultPermitMenuReturn struct {
 	ResultPermitMenu
-	IsSuperAdmin    bool   `json:"is_super_admin,omitempty"` //是否超级管理员
-	GoTo301         string `json:"goto301,omitempty"`
-	NotReadMsgCount int    `json:"not_read_msg_count"` // 未读消息数量
+	IsSuperAdmin    bool   `json:"is_super_admin,omitempty"`     //是否超级管理员
+	GoTo301         string `json:"goto301,omitempty"`            //登录成功后，如果当前没有指定访问界面，默认跳转的界面
+	NotReadMsgCount int    `json:"not_read_msg_count,omitempty"` // 未读消息数
 
 	// 当前选中的权限
 	RoutParentMap map[string][]string `json:"routParentMap"`  // 当前菜单列表

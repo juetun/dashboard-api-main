@@ -10,15 +10,29 @@ import (
 	"gorm.io/gorm"
 )
 
+//是否显示或隐藏菜单
 const (
-	AdminMenuHideInMenuNo = iota
-	AdminMenuHideInMenuTrue
+	AdminMenuHideInMenuTrue = iota + 1
+	AdminMenuHideInMenuNo
 )
+
+const (
+	AdminMenuIsHomePageYes = iota + 1 //首页
+	AdminMenuIsHomePageNo //不是首页
+)
+
+//是否显示或隐藏菜单
+const (
+	AdminMenuManageImportPermitTrue = iota + 1 //管理
+	AdminMenuManageImportPermitNo              //不管理
+)
+
 const (
 	// AdminMenuNameMaxLength 菜单名称最大长度
 	AdminMenuNameMaxLength = 6
 
-	CommonMenuDefaultLabel = "公共接口" // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
+	CommonMenuDefaultHomePage = "首页"
+	CommonMenuDefaultLabel    = "公共接口" // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
 )
 
 type AdminMenu struct {
@@ -28,8 +42,9 @@ type AdminMenu struct {
 	Module             string     `json:"module" gorm:"column:module" form:"module"`
 	Label              string     `json:"label" gorm:"column:label" form:"label"`
 	Icon               string     `json:"icon" gorm:"column:icon" form:"icon"`
-	HideInMenu         uint8      `json:"hide_in_menu" gorm:"column:hide_in_menu" form:"hide_in_menu"`
-	ManageImportPermit uint8      `json:"manage_import_permit" gorm:"column:manage_import_permit" form:"manage_import_permit"`
+	IsHomePage         uint8      `gorm:"column:is_home_page;default:0;not null;type:tinyint(2);default:2;comment:是否为首页1-不是,2-是" json:"is_home_page" form:"is_home_page"`
+	HideInMenu         uint8      `gorm:"column:hide_in_menu;default:0;not null;type:tinyint(2);default:1;comment:菜单是否显示 1-显示,2-不显示" json:"hide_in_menu" form:"hide_in_menu"`
+ 	ManageImportPermit uint8      `gorm:"column:manage_import_permit;default:1;not null;type:tinyint(2);default:0;comment:是否有管理接口的权限1-管理,2-不管理" json:"manage_import_permit" form:"manage_import_permit"`
 	Domain             string     `json:"domain" gorm:"column:domain" form:"domain"`
 	UrlPath            string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
 	SortValue          int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
@@ -112,10 +127,11 @@ func (r *AdminMenu) InitDefaultSystemMenu(data *DefaultSystemMenuNeedParams) (re
 		{
 			Module:             data.Module,
 			ParentId:           data.ParentSystemId,
-			Label:              "首页",
+			Label:              CommonMenuDefaultHomePage,
 			Icon:               "md-home",
-			ManageImportPermit: 1,
-			HideInMenu:         0,
+			ManageImportPermit: AdminMenuManageImportPermitTrue,
+			HideInMenu:         AdminMenuHideInMenuNo,
+			IsHomePage:         AdminMenuIsHomePageYes,
 			UrlPath:            "",
 			SortValue:          90000001,
 			OtherValue:         "",

@@ -44,6 +44,10 @@ func (r *SrvPermitMenuImpl) readyMenu(arg *wrappers.ArgPermitMenu, res *wrappers
 	if err = r.GetMenuPermitKeyByPath(&arg.ArgGetImportByMenuIdSingle); err != nil {
 		return
 	}
+
+	if arg.NowMenuId == 0 {
+		arg.NowMenuId, err = r.getDefaultAccessPage(arg.GroupId, arg.IsSuperAdmin, &arg.Module)
+	}
 	return
 }
 
@@ -371,11 +375,53 @@ func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByM
 		GetMenuByPermitKey(arg.NowModule, arg.NowPermitKey); err != nil {
 		return
 	}
+
 	if len(adminMenu) == 0 {
 		return
 	}
 	arg.NowMenuId = adminMenu[0].Id
 
+	return
+}
+
+func (r *SrvPermitMenuImpl) getDefaultAccessPageSuperAdmin(module *string) (res int64, err error) {
+	var adminMenu []*models.AdminMenu
+	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetByCondition(map[string]interface{}{
+			"label": models.CommonMenuDefaultHomePage,
+		}, nil, 0); err != nil {
+		return
+	}
+	if *module != "" {
+		res, err = r.getDefaultAccessPageSuperAdminModuleNull(adminMenu, module)
+		return
+	}else{
+
+	}
+	return
+}
+
+func (r *SrvPermitMenuImpl) getDefaultAccessPageSuperAdminModuleNull(adminMenu []*models.AdminMenu, module *string) (res int64, err error) {
+	var f bool
+	for _, item := range adminMenu {
+		if item.Module == *module {
+			f = true
+			res = item.Id
+			return
+		}
+	}
+	if !f {
+		*module = adminMenu[0].Module
+		res = adminMenu[0].Id
+	}
+	return
+}
+
+func (r *SrvPermitMenuImpl) getDefaultAccessPage(adminGroupId []int64, isSuperAdmin bool, module *string) (res int64, err error) {
+	if isSuperAdmin {
+		res, err = r.getDefaultAccessPageSuperAdmin(module)
+		return
+	}
 	return
 }
 
@@ -830,9 +876,7 @@ func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error
 		return
 	}
 	arg.ParentId = dt[0].Id
-	if arg.Module == "" {
-		arg.Module = dt[0].PermitKey
-	}
+
 	if arg.ArgGetImportByMenuIdSingle.NowModule == "" {
 		arg.ArgGetImportByMenuIdSingle.NowModule = dt[0].PermitKey
 	}

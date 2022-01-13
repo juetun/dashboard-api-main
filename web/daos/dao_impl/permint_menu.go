@@ -121,13 +121,17 @@ func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, ord
 	db := r.Context.Db.
 		Table(m.TableName()).
 		Where(condition)
-	var orderString string
-	for _, item := range orderBy {
-		orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+
+	if len(orderBy) > 0 {
+		var orderString string
+		for _, item := range orderBy {
+			orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+		}
+		if orderString != "" {
+			db = db.Order(orderString)
+		}
 	}
-	if orderString != "" {
-		db = db.Order(orderString)
-	}
+
 	if limit > 0 {
 		db = db.Limit(limit)
 	}

@@ -83,6 +83,7 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 		Icon:               arg.Icon,
 		ManageImportPermit: arg.ManageImportPermit,
 		HideInMenu:         arg.HideInMenu,
+		IsHomePage:         models.AdminMenuIsHomePageNo,
 		UrlPath:            arg.UrlPath,
 		SortValue:          arg.SortValue,
 		OtherValue:         arg.OtherValue,
@@ -220,6 +221,7 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		Icon:               arg.Icon,
 		HideInMenu:         arg.HideInMenu,
 		Domain:             arg.Domain,
+		IsHomePage:         arg.IsHomePage,
 		ManageImportPermit: arg.ManageImportPermit,
 		UrlPath:            arg.UrlPath,
 		SortValue:          arg.SortValue,
@@ -323,7 +325,7 @@ func (r *PermitServiceImpl) isHomePage(permitIds []int64) (res bool, homePageId 
 		if module == "" {
 			module = it.Module
 		}
-		if it.Label == "首页" {
+		if it.Label == models.CommonMenuDefaultHomePage {
 			res = true
 			module = it.Module
 			homePageId = it.Id
