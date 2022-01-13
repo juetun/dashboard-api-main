@@ -90,7 +90,6 @@ func (r *DaoPermitGroupImpl) GetGroupSystemByGroupId(module string, groupId ...i
 	}
 
 	var (
-		m       models.AdminUserGroupMenu
 		mapMenu = make(map[int64]*models.AdminMenu, l)
 		menuId  = make([]int64, 0, l)
 	)
@@ -100,24 +99,29 @@ func (r *DaoPermitGroupImpl) GetGroupSystemByGroupId(module string, groupId ...i
 		menuId = append(menuId, menu.Id)
 	}
 
-	var list []*models.AdminUserGroupMenu
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("menu_id IN(?) AND group_id IN(?)", menuId,
-			groupId).
-		Find(&list).Error; err != nil {
+	var (
+		ok   bool
+		dt   *models.AdminMenu
+		list []*models.AdminUserGroupMenu
+	)
+	if list, err = r.GetAdminMenuByGidAndMenuIds(menuId, groupId); err != nil {
 		return
 	}
-
-	var (
-		ok bool
-		dt *models.AdminMenu
-	)
-
 	for _, menu := range list {
 		if dt, ok = mapMenu[menu.MenuId]; ok {
 			res = append(res, dt)
 		}
 
+	}
+	return
+}
+func (r *DaoPermitGroupImpl) GetAdminMenuByGroupIdAndMenuIds(menuId, groupId []int64) (list []*models.AdminUserGroupMenu, err error) {
+	var m models.AdminUserGroupMenu
+	if err = r.Context.Db.Table(m.TableName()).
+		Where("menu_id IN(?) AND group_id IN(?)", menuId,
+			groupId).
+		Find(&list).Error; err != nil {
+		return
 	}
 	return
 }

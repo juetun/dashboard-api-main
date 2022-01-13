@@ -384,20 +384,15 @@ func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByM
 	return
 }
 
-func (r *SrvPermitMenuImpl) getDefaultAccessPageSuperAdmin(module *string) (res int64, err error) {
-	var adminMenu []*models.AdminMenu
-	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
-		GetByCondition(map[string]interface{}{
-			"label": models.CommonMenuDefaultHomePage,
-		}, nil, 0); err != nil {
-		return
-	}
+//超级管理员获取默认访问地址
+func (r *SrvPermitMenuImpl) getDefaultAccessPageSuperAdmin(adminMenu []*models.AdminMenu, module *string) (res int64, err error) {
+
 	if *module != "" {
 		res, err = r.getDefaultAccessPageSuperAdminModuleNull(adminMenu, module)
 		return
-	}else{
-
 	}
+	res = adminMenu[0].Id
+
 	return
 }
 
@@ -418,9 +413,63 @@ func (r *SrvPermitMenuImpl) getDefaultAccessPageSuperAdminModuleNull(adminMenu [
 }
 
 func (r *SrvPermitMenuImpl) getDefaultAccessPage(adminGroupId []int64, isSuperAdmin bool, module *string) (res int64, err error) {
-	if isSuperAdmin {
-		res, err = r.getDefaultAccessPageSuperAdmin(module)
+	var adminMenu []*models.AdminMenu
+	logContent := map[string]interface{}{
+		"adminGroupId": adminGroupId,
+		"isSuperAdmin": isSuperAdmin,
+		"module":       module,
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "SrvPermitMenuImplGetDefaultAccessPage")
+	}()
+
+	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetByCondition(map[string]interface{}{
+			"label":        models.CommonMenuDefaultHomePage,
+			"is_home_page": models.AdminMenuIsHomePageYes,
+		}, nil, 0); err != nil {
+		logContent["desc"] = "GetByCondition"
 		return
+	}
+	if len(adminMenu) == 0 {
+		logContent["desc"] = "adminMenu is null"
+		err = fmt.Errorf("当前没有可使用的系统")
+		return
+	}
+	if isSuperAdmin { //超级管理员
+		res, err = r.getDefaultAccessPageSuperAdmin(adminMenu, module)
+		if err != nil {
+			logContent["err"] = "getDefaultAccessPageSuperAdmin"
+		}
+		return
+	}
+	menuIds, _ := r.pickMenuIds(adminMenu)
+	var listGroupMenu []*models.AdminUserGroupMenu
+	if listGroupMenu, err = dao_impl.NewDaoPermitGroup(r.Context).
+		GetAdminMenuByGroupIdAndMenuIds(menuIds, adminGroupId); err != nil {
+		logContent["err"] = "GetAdminMenuByGroupIdAndMenuIds"
+		return
+	}
+	if len(listGroupMenu) == 0 {
+		err = fmt.Errorf("您没有系统访问权限")
+		logContent["err"] = "listGroupMenu is null"
+		return
+	}
+
+	res = listGroupMenu[0].MenuId
+	return
+}
+func (r *SrvPermitMenuImpl) pickMenuIds(adminMenu []*models.AdminMenu) (menuIds []int64, mapMenu map[int64]*models.AdminMenu) {
+	l := len(adminMenu)
+	menuIds = make([]int64, 0, l)
+	mapMenu = make(map[int64]*models.AdminMenu, l)
+	for _, value := range adminMenu {
+		menuIds = append(menuIds, value.Id)
+		mapMenu[value.Id] = value
 	}
 	return
 }
