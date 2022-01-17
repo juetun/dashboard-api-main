@@ -84,7 +84,10 @@ type (
 		ResultAdminMenuSingle
 		Children []AdminMenuObject `json:"children"`
 	}
-
+	AdminImportWithMenu struct {
+		models.AdminImport
+		MenuId int64 `json:"menu_id"`
+	}
 	ArgAdminSetPermit struct {
 		app_param.RequestUser
 		GroupId        int64   `json:"group_id" form:"group_id"`

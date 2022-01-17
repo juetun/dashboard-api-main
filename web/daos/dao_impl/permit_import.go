@@ -10,6 +10,7 @@ package dao_impl
 
 import (
 	"fmt"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -388,8 +389,8 @@ func (r *DaoPermitImportImpl) GetImportByCondition(condition map[string]interfac
 	return
 }
 
-func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (res []models.AdminImport, err error) {
-	res = []models.AdminImport{}
+func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (res []wrappers.AdminImportWithMenu, err error) {
+	res = []wrappers.AdminImportWithMenu{}
 	if len(menuId) == 0 {
 		return
 	}
@@ -397,7 +398,7 @@ func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (re
 	var ami models.AdminMenuImport
 	if err = r.Context.Db.Table(ami.TableName()).
 		Unscoped().
-		Select(`b.*`).
+		Select(`b.*,a.menu_id`).
 		Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
 		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ",
 			menuId,

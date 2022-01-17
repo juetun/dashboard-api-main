@@ -92,7 +92,10 @@ func (r *SrvPermitImport) GetChildImport(nowMenuId int64) (importIds []wrappers.
 	}
 	importIds = make([]wrappers.ImportSingle, 0, len(importList))
 	for _, value := range importList {
-		importIds = append(importIds, wrappers.ImportSingle{ImportId: value.ImportId})
+		importIds = append(importIds, wrappers.ImportSingle{
+			ImportId:  value.ImportId,
+			PermitKey: value.ImportPermitKey,
+		})
 	}
 	return
 }
@@ -129,7 +132,8 @@ func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []wrappers.Menu
 	}
 	for _, item := range res {
 		menuIds = append(menuIds, wrappers.MenuSingle{
-			MenuId: item.Id,
+			MenuId:    item.Id,
+			PermitKey: item.PermitKey,
 		})
 	}
 	return

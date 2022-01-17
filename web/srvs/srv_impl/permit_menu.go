@@ -582,7 +582,8 @@ func (r *SrvPermitMenuImpl) orgNowGeneralAdminMenu(arg *wrappers.ArgPermitMenu, 
 	}
 	for _, item := range childMenus {
 		res.NowImportAndMenu.MenuIds = append(res.NowImportAndMenu.MenuIds, wrappers.MenuSingle{
-			MenuId: item.MenuId,
+			MenuId:    item.MenuId,
+			PermitKey: item.MenuPermitKey,
 		})
 	}
 	var imports []*models.AdminUserGroupImport
@@ -592,7 +593,8 @@ func (r *SrvPermitMenuImpl) orgNowGeneralAdminMenu(arg *wrappers.ArgPermitMenu, 
 	}
 	for _, item := range imports {
 		res.NowImportAndMenu.ImportIds = append(res.NowImportAndMenu.ImportIds, wrappers.ImportSingle{
-			ImportId: item.ImportId,
+			ImportId:  item.ImportId,
+			PermitKey: item.ImportPermitKey,
 		}, )
 	}
 	return
