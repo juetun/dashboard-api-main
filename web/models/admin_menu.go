@@ -18,7 +18,7 @@ const (
 
 const (
 	AdminMenuIsHomePageYes = iota + 1 //首页
-	AdminMenuIsHomePageNo //不是首页
+	AdminMenuIsHomePageNo             //不是首页
 )
 
 //是否显示或隐藏菜单
@@ -37,21 +37,25 @@ const (
 
 type AdminMenu struct {
 	Id                 int64      `gorm:"column:id;primary_key" json:"id" form:"id"`
-	PermitKey          string     `json:"permit_key" gorm:"column:permit_key" form:"permit_key"`
-	ParentId           int64      `json:"parent_id" gorm:"column:parent_id" form:"parent_id"`
-	Module             string     `json:"module" gorm:"column:module" form:"module"`
-	Label              string     `json:"label" gorm:"column:label" form:"label"`
-	Icon               string     `json:"icon" gorm:"column:icon" form:"icon"`
-	IsHomePage         uint8      `gorm:"column:is_home_page;default:0;not null;type:tinyint(2);default:2;comment:是否为首页1-不是,2-是" json:"is_home_page" form:"is_home_page"`
-	HideInMenu         uint8      `gorm:"column:hide_in_menu;default:0;not null;type:tinyint(2);default:1;comment:菜单是否显示 1-显示,2-不显示" json:"hide_in_menu" form:"hide_in_menu"`
- 	ManageImportPermit uint8      `gorm:"column:manage_import_permit;default:1;not null;type:tinyint(2);default:0;comment:是否有管理接口的权限1-管理,2-不管理" json:"manage_import_permit" form:"manage_import_permit"`
-	Domain             string     `json:"domain" gorm:"column:domain" form:"domain"`
-	UrlPath            string     `json:"url_path" gorm:"column:url_path" form:"url_path"`
-	SortValue          int        `json:"sort_value" gorm:"column:sort_value" form:"sort_value"`
-	OtherValue         string     `json:"other_value" gorm:"column:other_value" form:"other_value"`
+	PermitKey          string     `json:"permit_key" gorm:"column:permit_key;default:'';not null;type:varchar(100);comment:唯一KEy" form:"permit_key"`
+	ParentId           int64      `json:"parent_id" gorm:"column:parent_id;default:0;not null;type:bigint(20);comment:上级菜单" form:"parent_id"`
+	Module             string     `json:"module" gorm:"column:module;default:'';not null;type:varchar(100);comment:所属模块" form:"module"`
+	Label              string     `json:"label" gorm:"column:label;default:'';not null;type:varchar(20);comment:名称" form:"label"`
+	Icon               string     `json:"icon" gorm:"column:icon;default:'';not null;type:varchar(50);comment:icon图标" form:"icon"`
+	IsHomePage         uint8      `gorm:"column:is_home_page;not null;type:tinyint(2);default:2;comment:是否为首页1-不是,2-是" json:"is_home_page" form:"is_home_page"`
+	HideInMenu         uint8      `gorm:"column:hide_in_menu;not null;type:tinyint(2);default:1;comment:菜单是否显示 1-显示,2-不显示" json:"hide_in_menu" form:"hide_in_menu"`
+	ManageImportPermit uint8      `gorm:"column:manage_import_permit;default:1;not null;type:tinyint(2);comment:是否有管理接口的权限1-管理,2-不管理" json:"manage_import_permit" form:"manage_import_permit"`
+	Domain             string     `json:"domain" gorm:"column:domain;default:'';not null;type:varchar(150);comment:链接域名" form:"domain"`
+	UrlPath            string     `json:"url_path" gorm:"column:url_path;default:'';not null;type:varchar(255);comment:地址" form:"url_path"`
+	SortValue          int        `json:"sort_value" gorm:"column:sort_value;default:0;not null;type:int(10);comment:排序值" form:"sort_value"`
+	OtherValue         string     `json:"other_value" gorm:"column:other_value;default:'';not null;type:varchar(1000);comment:其他属性存储" form:"other_value"`
 	CreatedAt          time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	UpdatedAt          time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
+}
+
+func (r *AdminMenu) GetTableComment() (res string) {
+	return "菜单表"
 }
 
 func (r *AdminMenu) TableName() string {

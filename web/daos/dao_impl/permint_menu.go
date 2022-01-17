@@ -117,6 +117,16 @@ func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, ord
 	if len(condition) == 0 {
 		return
 	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "daoPermitGetByCondition")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
 	var m models.AdminMenu
 	db := r.Context.Db.
 		Table(m.TableName()).
@@ -138,10 +148,7 @@ func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, ord
 	if err = db.
 		Find(&res).
 		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err,
-		}, "daoPermitGetByCondition")
+
 		return
 	}
 	return
@@ -164,18 +171,26 @@ func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []models.AdminMenu, er
 	if l == 0 {
 		return
 	}
-	var m models.AdminMenu
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("id IN (?)", menuId).
-		Limit(len(menuId)).
-		Find(&res).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"menuId": menuId,
-			"err":    err,
+			"err":    err.Error(),
 		}, "daoPermitGetMenu")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("id IN (?)", menuId).
+			Limit(len(menuId)).
+			Find(&res).
+			Error
 		return
-	}
+	})
 	return
 }
 func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error) {
