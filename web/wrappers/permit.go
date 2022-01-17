@@ -51,8 +51,10 @@ type (
 		PermitKey string `json:"permit_key"`
 	}
 	ImportSingle struct {
-		ImportId int64 `json:"id"`
-		PermitKey string `json:"permit_key"`
+		ImportId      int64  `json:"id"`
+		MenuId        int64  `json:"-"`
+		MenuPermitKey string `json:"-"`
+		PermitKey     string `json:"permit_key"`
 	}
 	ArgGetAppConfig struct {
 		app_param.RequestUser

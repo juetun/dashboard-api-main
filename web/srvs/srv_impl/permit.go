@@ -281,6 +281,35 @@ func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermitMenu, parentId i
 	return
 }
 
+func (r *PermitServiceImpl) getGroupHaveImportPermit(arg *wrappers.ArgAdminSetPermit) (newPermit []wrappers.ImportSingle, notPermitId []int64, err error) {
+	newPermit = []wrappers.ImportSingle{}
+	listSelectMenu, err := dao_impl.NewDaoPermitGroupMenu(r.Context).
+		GetMenuIdsByPermitByGroupIds(arg.Module, arg.GroupId)
+	if err != nil {
+		return
+	}
+
+
+	commonPermit := make([]int64, 0, len(listSelectMenu))           // 当前已经选中的菜单
+	notPermitId = make([]int64, 0, len(listSelectMenu))             // 当前取消权限的菜单
+	newPermit = make([]wrappers.ImportSingle, 0, len(listSelectMenu)) // 新增的菜单
+	for _, item := range listSelectMenu {
+		if r.inSlice(item.MenuId, arg.PermitIds) {
+			commonPermit = append(commonPermit, item.MenuId)
+		} else {
+			notPermitId = append(notPermitId, item.MenuId)
+		}
+	}
+	for _, it := range arg.PermitIds {
+		if !r.inSlice(it, commonPermit) {
+			newPermit = append(newPermit, wrappers.ImportSingle{
+				MenuId:    it,
+				PermitKey: "",
+			})
+		}
+	}
+	return
+}
 func (r *PermitServiceImpl) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit) (newPermit []wrappers.MenuSingle, notPermitId []int64, err error) {
 	newPermit = []wrappers.MenuSingle{}
 	listSelectMenu, err := dao_impl.NewDaoPermitGroupMenu(r.Context).
@@ -289,7 +318,6 @@ func (r *PermitServiceImpl) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit) 
 		return
 	}
 
-	newPermit = make([]wrappers.MenuSingle, 0, len(listSelectMenu))
 
 	commonPermit := make([]int64, 0, len(listSelectMenu))           // 当前已经选中的菜单
 	notPermitId = make([]int64, 0, len(listSelectMenu))             // 当前取消权限的菜单
@@ -475,10 +503,10 @@ func (r *PermitServiceImpl) AdminSetPermit(arg *wrappers.ArgAdminSetPermit) (res
 
 func (r *PermitServiceImpl) setApiPermitOld(dao daos.DaoPermit, arg *wrappers.ArgAdminSetPermit) (err error) {
 	var (
-		newPermit   []wrappers.MenuSingle
+		newPermit   []wrappers.ImportSingle
 		notPermitId []int64
 	)
-	if newPermit, notPermitId, err = r.getGroupHavePermit(arg); err != nil {
+	if newPermit, notPermitId, err = r.getGroupHaveImportPermit(arg); err != nil {
 		return
 	}
 	if err = r.deleteNotApiPermitId(dao, notPermitId, arg); err != nil {
@@ -617,7 +645,7 @@ func (r *PermitServiceImpl) addNewMenuPermit(newPermit []wrappers.MenuSingle, ar
 	return
 }
 
-func (r *PermitServiceImpl) addNewApiPermit(newPermit []wrappers.MenuSingle, groupId int64) (err error) {
+func (r *PermitServiceImpl) addNewApiPermit(newPermit []wrappers.ImportSingle, groupId int64) (err error) {
 	if len(newPermit) == 0 {
 		return
 	}
@@ -626,10 +654,13 @@ func (r *PermitServiceImpl) addNewApiPermit(newPermit []wrappers.MenuSingle, gro
 	var t = time.Now()
 	for _, item := range newPermit {
 		dt = &models.AdminUserGroupImport{
-			GroupId:   groupId,
-			MenuId:    item.MenuId,
-			CreatedAt: t,
-			UpdatedAt: t,
+			GroupId:         groupId,
+			MenuId:          item.MenuId,
+			MenuPermitKey:   item.MenuPermitKey,
+			ImportPermitKey: item.PermitKey,
+			ImportId:        item.ImportId,
+			CreatedAt:       t,
+			UpdatedAt:       t,
 		}
 		list = append(list, dt)
 	}

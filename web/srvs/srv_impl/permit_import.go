@@ -187,17 +187,19 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 
 		for _, pid := range arg.PermitIds {
 			dt = &models.AdminUserGroupImport{
-				GroupId:     arg.GroupId,
-				ImportId:    pid,
-				MenuId:      arg.MenuId,
-				Module:      menu.Module,
-				DefaultOpen: arg.DefaultOpen,
-				CreatedAt:   t,
-				UpdatedAt:   t,
-				DeletedAt:   nil,
+				GroupId:       arg.GroupId,
+				ImportId:      pid,
+				MenuId:        arg.MenuId,
+				Module:        menu.Module,
+				MenuPermitKey: menu.PermitKey,
+				DefaultOpen:   arg.DefaultOpen,
+				CreatedAt:     t,
+				UpdatedAt:     t,
+				DeletedAt:     nil,
 			}
 			if dtm, ok := permitImport[pid]; ok {
 				dt.AppName = dtm.AppName
+				dt.ImportPermitKey = dtm.PermitKey
 			}
 			list = append(list, dt)
 		}
