@@ -23,7 +23,7 @@ type SrvPermitImport interface {
 
 	DeleteImport(arg *wrappers.ArgDeleteImport) (res *wrappers.ResultDeleteImport, err error)
 
-	GetChildMenu(nowMenuId int64) (menuIds []int64, err error)
+	GetChildMenu(nowMenuId int64) (menuIds []wrappers.MenuSingle, err error)
 
-	GetChildImport(nowMenuId int64) (importIds []int64, err error)
+	GetChildImport(nowMenuId int64) (importIds []wrappers.ImportSingle, err error)
 }

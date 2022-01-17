@@ -115,7 +115,8 @@ func (r *DaoPermitGroupImpl) GetGroupSystemByGroupId(module string, groupId ...i
 	}
 	return
 }
-func (r *DaoPermitGroupImpl) GetAdminMenuByGroupIdAndMenuIds(menuId, groupId []int64) (list []*models.AdminUserGroupMenu, err error) {
+
+func (r *DaoPermitGroupImpl) GetAdminMenuByGidAndMenuIds(menuId, groupId []int64) (list []*models.AdminUserGroupMenu, err error) {
 	var m models.AdminUserGroupMenu
 	if err = r.Context.Db.Table(m.TableName()).
 		Where("menu_id IN(?) AND group_id IN(?)", menuId,

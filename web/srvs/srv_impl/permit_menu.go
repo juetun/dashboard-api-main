@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -24,15 +23,7 @@ type SrvPermitMenuImpl struct {
 	base.ServiceBase
 }
 
-func (r *SrvPermitMenuImpl) readyMenu(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-
-	// 判断当前用户是否是超级管理员,
-	// 如果不是超级管理员 返回当前用户所属用户组
-	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
-		return
-	}
-	res.IsSuperAdmin = arg.IsSuperAdmin
+func (r *SrvPermitMenuImpl) readySuperAdminMenu(arg *wrappers.ArgPermitMenu) (err error) {
 
 	// 判断参数是否正常
 	// 组织并判断当前访问的是哪个系统（如果参数没有则指定默认值）
@@ -51,24 +42,128 @@ func (r *SrvPermitMenuImpl) readyMenu(arg *wrappers.ArgPermitMenu, res *wrappers
 	return
 }
 
+func (r *SrvPermitMenuImpl) readyGeneralMenu(arg *wrappers.ArgPermitMenu) (err error) {
+
+	// 判断参数是否正常
+	// 组织并判断当前访问的是哪个系统（如果参数没有则指定默认值）
+	if err = r.initParentId(arg); err != nil {
+		return
+	}
+
+	// 获取当前界面的界面基本信息
+	if err = r.GetMenuPermitKeyByPath(&arg.ArgGetImportByMenuIdSingle); err != nil {
+		return
+	}
+
+	if arg.NowMenuId == 0 {
+		arg.NowMenuId, err = r.getDefaultAccessPage(arg.GroupId, arg.IsSuperAdmin, &arg.Module)
+	}
+	return
+}
+
+func (r *SrvPermitMenuImpl) superAdminMenu(arg *wrappers.ArgPermitMenu, handlers map[string]MenuHandler) (err error) {
+
+	//准备参数数据(1、是否是超级管管理员)
+	if err = r.readySuperAdminMenu(arg); err != nil {
+		return
+	}
+	handlers["getPermitMenuList"] = r.getGroupMenuAdmin // 获取当前菜单的树形结构
+	if arg.NowMenuId != 0 {
+		handlers["getNowMenuImports"] = r.getSuperAdminNowMenuImports // 获取指定菜单下的接口ID列表
+	}
+
+	return
+}
+
+func (r *SrvPermitMenuImpl) generalAdminMenu(arg *wrappers.ArgPermitMenu, handlers map[string]MenuHandler) (err error) {
+
+	//准备参数数据(1、是否是超级管管理员)
+	if err = r.readyGeneralMenu(arg); err != nil {
+		return
+	}
+
+	handlers["getPermitMenuList"] = r.getGeneralPermitMenuListUser // 获取当前菜单的树形结构
+
+	if arg.NowMenuId != 0 {
+		handlers["getNowMenuImports"] = r.getGeneralNowMenuImports // 获取指定菜单下的接口ID列表
+	}
+
+	return
+}
+
+// 超级管理员
+// 获取当前菜单的信息
+func (r *SrvPermitMenuImpl) getSuperAdminNowMenuImports(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+
+	param := &wrappers.ArgGetImportByMenuId{ArgGetImportByMenuIdSingle: arg.ArgGetImportByMenuIdSingle,}
+	param.SuperAdminFlag = arg.IsSuperAdmin
+
+	logContent := map[string]interface{}{
+		"arg": arg,
+	}
+
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent,
+				"SrvPermitMenuImplGetSuperAdminNowMenuImports")
+		}
+	}()
+
+	err = r.orgNowSuperAdminMenu(arg, res, logContent, param)
+
+	return
+}
+
+func (r *SrvPermitMenuImpl) getGeneralNowMenuImports(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+
+	param := &wrappers.ArgGetImportByMenuId{ArgGetImportByMenuIdSingle: arg.ArgGetImportByMenuIdSingle,}
+	logContent := map[string]interface{}{
+		"arg": arg,
+	}
+
+	defer func() {
+		if err != nil {
+			logContent["err"] = err.Error()
+			r.Context.Error(logContent, "SrvPermitMenuImplGetGeneralNowMenuImports")
+		}
+	}()
+
+	err = r.orgNowGeneralAdminMenu(arg, res, logContent, param)
+
+	return
+}
+
 // Menu 每个界面调用获取菜单列表
 func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
 
 	res = wrappers.NewResultPermitMenuReturn()
 
-	//准备参数数据(1、是否是超级管管理员)
-	if err = r.readyMenu(arg, res); err != nil {
+	var handlers = map[string]MenuHandler{
+		"getNotReadMessage": r.getNotReadMessage, // 获取用户未读消息数),
+	}
+
+	// 判断当前用户是否是超级管理员,
+	// 如果不是超级管理员 返回当前用户所属用户组
+	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
 		return
 	}
 
-	handlers := map[string]MenuHandler{
-		"getNotReadMessage": r.getNotReadMessage, // 获取用户未读消息数),
-		"getPermitMenuList": r.getPermitMenuList, // 获取当前菜单的树形结构
+	res.IsSuperAdmin = arg.IsSuperAdmin
+	arg.SuperAdminFlag = arg.IsSuperAdmin
+
+	if !arg.IsSuperAdmin { //普通管理员
+
+		err = r.generalAdminMenu(arg, handlers)
+
+		// 并行执行逻辑
+		r.syncOperate(handlers, arg, res)
+		return
 	}
 
-	if arg.NowMenuId != 0 {
-		handlers["getNowMenuImports"] = r.getNowMenuImports // 获取指定菜单下的接口ID列表
-	}
+	//如果是超级管理员
+	err = r.superAdminMenu(arg, handlers)
 
 	// 并行执行逻辑
 	r.syncOperate(handlers, arg, res)
@@ -359,24 +454,25 @@ func (r *SrvPermitMenuImpl) getGroupPermitMenu(module string, groupId int64) (ma
 }
 
 func (r *SrvPermitMenuImpl) GetMenuPermitKeyByPath(arg *wrappers.ArgGetImportByMenuIdSingle) (err error) {
-	divString := "/"
-	pathSlice := strings.Split(strings.TrimLeft(arg.NowRoutePath, "/"), divString)
-	switch len(pathSlice) {
-	case 0:
-		pathSlice = append(pathSlice, []string{"", ""}...)
-	case 1:
-		pathSlice = append(pathSlice, "")
-	}
-	arg.NowModule = pathSlice[0]
-	arg.NowPermitKey = strings.Join(pathSlice[1:], divString)
 
 	var adminMenu []models.AdminMenu
-	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+	if arg.NowModule != "" && arg.NowPermitKey == "" {
+		if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+			GetMenuByCondition(map[string]interface{}{
+				"module": arg.NowModule,
+				"label":  models.CommonMenuDefaultHomePage,
+			}); err != nil {
+			return
+		}
+	} else if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
 		GetMenuByPermitKey(arg.NowModule, arg.NowPermitKey); err != nil {
 		return
 	}
 
 	if len(adminMenu) == 0 {
+		if !arg.SuperAdminFlag {
+			err = fmt.Errorf("您没有权限访问当前界面(%s)", arg.NowRoutePath)
+		}
 		return
 	}
 	arg.NowMenuId = adminMenu[0].Id
@@ -450,7 +546,7 @@ func (r *SrvPermitMenuImpl) getDefaultAccessPage(adminGroupId []int64, isSuperAd
 	menuIds, _ := r.pickMenuIds(adminMenu)
 	var listGroupMenu []*models.AdminUserGroupMenu
 	if listGroupMenu, err = dao_impl.NewDaoPermitGroup(r.Context).
-		GetAdminMenuByGroupIdAndMenuIds(menuIds, adminGroupId); err != nil {
+		GetAdminMenuByGidAndMenuIds(menuIds, adminGroupId); err != nil {
 		logContent["err"] = "GetAdminMenuByGroupIdAndMenuIds"
 		return
 	}
@@ -474,30 +570,31 @@ func (r *SrvPermitMenuImpl) pickMenuIds(adminMenu []*models.AdminMenu) (menuIds 
 	return
 }
 
-// 获取当前菜单的信息
-func (r *SrvPermitMenuImpl) getNowMenuImports(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-
-	param := &wrappers.ArgGetImportByMenuId{ArgGetImportByMenuIdSingle: arg.ArgGetImportByMenuIdSingle,}
-	param.SuperAdminFlag = arg.IsSuperAdmin
-
-	logContent := map[string]interface{}{
-		"arg": arg,
+func (r *SrvPermitMenuImpl) orgNowGeneralAdminMenu(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn, logContent map[string]interface{}, param *wrappers.ArgGetImportByMenuId) (err error) {
+	var childMenus []*models.AdminUserGroupMenu
+	if childMenus, err = dao_impl.NewDaoPermitGroup(r.Context).
+		GetAdminMenuByGidAndMenuIds([]int64{
+			arg.NowMenuId,
+		},
+			arg.GroupId,
+		); err != nil {
+		return
 	}
-
-	defer func() {
-		if err != nil {
-			logContent["err"] = err.Error()
-			r.Context.Error(logContent, "SrvPermitMenuImplGetNowMenuImports")
-		}
-	}()
-
-	//如果是超级管理员
-	if param.SuperAdminFlag {
-		err = r.orgNowSuperAdminMenu(arg, res, logContent, param)
-	} else {
-
+	for _, item := range childMenus {
+		res.NowImportAndMenu.MenuIds = append(res.NowImportAndMenu.MenuIds, wrappers.MenuSingle{
+			MenuId: item.MenuId,
+		})
 	}
-
+	var imports []*models.AdminUserGroupImport
+	if imports, err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		GetMenuIdsByPermitByGroupIds([]int64{arg.NowMenuId,}, arg.GroupId); err != nil {
+		return
+	}
+	for _, item := range imports {
+		res.NowImportAndMenu.ImportIds = append(res.NowImportAndMenu.ImportIds, wrappers.ImportSingle{
+			ImportId: item.ImportId,
+		}, )
+	}
 	return
 }
 
@@ -517,7 +614,7 @@ func (r *SrvPermitMenuImpl) orgNowSuperAdminMenu(arg *wrappers.ArgPermitMenu, re
 }
 
 // 非超级管理员
-func (r *SrvPermitMenuImpl) getPermitMenuListGeneralUser(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+func (r *SrvPermitMenuImpl) getGeneralPermitMenuListUser(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
 	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 获取接口权限列表
@@ -534,20 +631,6 @@ func (r *SrvPermitMenuImpl) getPermitMenuListGeneralUser(arg *wrappers.ArgPermit
 	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
 		return
 	}
-	return
-}
-
-func (r *SrvPermitMenuImpl) getPermitMenuList(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-
-	if arg.IsSuperAdmin { // 如果是超级管理员
-		err = r.getGroupMenuAdmin(arg, res)
-		return
-	}
-
-	if err = r.getPermitMenuListGeneralUser(arg, res); err != nil {
-		return
-	}
-
 	return
 }
 
@@ -595,16 +678,14 @@ func (r *SrvPermitMenuImpl) getNowUserSystemList(tmpList []*models.AdminMenu) (s
 
 // 超级管理员
 func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+
 	dao := dao_impl.NewDaoPermit(r.Context)
+
 	var (
 		groupPermit          map[int64][]wrappers.ResultPermitMenu
 		permitMap            map[int64]wrappers.ResultPermitMenu
 		list, systemMenuList []*models.AdminMenu
-	)
-
-	// 获取当前选中的系统
-	var (
-		current []string
+		current              []string // 获取当前选中的系统
 	)
 
 	if arg.Module == "" {
@@ -617,17 +698,16 @@ func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *
 
 	if list, err = dao.GetPermitMenuByIds(current); err != nil {
 		return
-	} else {
-		groupPermit, permitMap = r.groupPermit(list)
 	}
+	groupPermit, permitMap = r.groupPermit(list)
 
 	if systemMenuList, err = dao.GetPermitMenuByIds([]string{wrappers.DefaultPermitModule}); err != nil {
 		return
-	} else {
-		// 获取当前用户能够打开的系统列表
-		if res.Menu, err = r.getNowUserSystemList(systemMenuList); err != nil {
-			return
-		}
+	}
+
+	// 获取当前用户能够打开的系统列表
+	if res.Menu, err = r.getNowUserSystemList(systemMenuList); err != nil {
+		return
 	}
 
 	if len(res.Menu) <= 0 {

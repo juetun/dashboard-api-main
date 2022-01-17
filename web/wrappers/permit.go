@@ -43,8 +43,16 @@ type (
 		ArgGetImportByMenuIdSingle
 	}
 	ResultGetImportByMenuId struct {
-		ImportIds []int64 `json:"import_ids,omitempty"` //当前界面能够访问的接口列表
-		MenuIds   []int64 `json:"menu_ids,omitempty"`   //当前界面内能够跳转的界面ID列表
+		ImportIds []ImportSingle `json:"import_ids,omitempty"` //当前界面能够访问的接口列表
+		MenuIds   []MenuSingle   `json:"menu_ids,omitempty"`   //当前界面内能够跳转的界面ID列表
+	}
+	MenuSingle struct {
+		MenuId    int64  `json:"id"`
+		PermitKey string `json:"permit_key"`
+	}
+	ImportSingle struct {
+		ImportId int64 `json:"id"`
+		PermitKey string `json:"permit_key"`
 	}
 	ArgGetAppConfig struct {
 		app_param.RequestUser
@@ -506,7 +514,23 @@ func (r *ArgAdminUserAdd) Default(c *gin.Context) (err error) {
 	}
 	return
 }
-
+func (r *ArgGetImportByMenuIdSingle) Default(c *gin.Context) (err error) {
+	divString := "/"
+	pathSlice := strings.Split(strings.TrimLeft(r.NowRoutePath, "/"), divString)
+	switch len(pathSlice) {
+	case 0:
+		pathSlice = append(pathSlice, []string{"", ""}...)
+	case 1:
+		pathSlice = append(pathSlice, "")
+	}
+	r.NowModule = pathSlice[0]
+	r.NowPermitKey = strings.Join(pathSlice[1:], divString)
+	switch r.NowPermitKey {
+	case "home":
+		r.NowPermitKey = ""
+	}
+	return
+}
 func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -899,9 +923,15 @@ type ArgPermitMenu struct {
 
 // Default 初始化默认值
 func (r *ArgPermitMenu) Default(c *gin.Context) (err error) {
+
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
+
+	if err = r.ArgGetImportByMenuIdSingle.Default(c); err != nil {
+		return
+	}
+
 	r.PathTypes = []string{}
 
 	if r.PathType != "" {
@@ -946,8 +976,8 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 		//OpList:          map[string][]OpOne{},
 		NotReadMsgCount: 0,
 		NowImportAndMenu: ResultGetImportByMenuId{
-			ImportIds: []int64{},
-			MenuIds:   []int64{},
+			ImportIds: []ImportSingle{},
+			MenuIds:   []MenuSingle{},
 		},
 	}
 	return

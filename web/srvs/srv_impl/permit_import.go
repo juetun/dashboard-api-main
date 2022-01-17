@@ -58,14 +58,14 @@ func (r *SrvPermitImport) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) 
 
 func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error) {
 	res = wrappers.ResultGetImportByMenuId{
-		ImportIds: []int64{},
-		MenuIds:   []int64{},
+		ImportIds: []wrappers.ImportSingle{},
+		MenuIds:   []wrappers.MenuSingle{},
 	}
 
 	if err = NewSrvPermitMenu(r.Context).
 		GetMenuPermitKeyByPath(
 			&arg.ArgGetImportByMenuIdSingle,
- 		); err != nil {
+		); err != nil {
 		return
 	}
 
@@ -83,16 +83,16 @@ func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) 
 	return
 }
 
-func (r *SrvPermitImport) GetChildImport(nowMenuId int64) (importIds []int64, err error) {
-	importIds = []int64{}
+func (r *SrvPermitImport) GetChildImport(nowMenuId int64) (importIds []wrappers.ImportSingle, err error) {
+	importIds = []wrappers.ImportSingle{}
 	dao := dao_impl.NewDaoPermitImport(r.Context)
 	var importList []models.AdminMenuImport
 	if importList, err = dao.GetChildImportByMenuId(nowMenuId); err != nil {
 		return
 	}
-	importIds = make([]int64, 0, len(importList))
+	importIds = make([]wrappers.ImportSingle, 0, len(importList))
 	for _, value := range importList {
-		importIds = append(importIds, value.ImportId)
+		importIds = append(importIds, wrappers.ImportSingle{ImportId: value.ImportId})
 	}
 	return
 }
@@ -118,8 +118,8 @@ func (r *SrvPermitImport) GetOpList(dao daos.DaoPermit, arg *wrappers.ArgPermitM
 	return
 }
 
-func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []int64, err error) {
-	menuIds = []int64{}
+func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []wrappers.MenuSingle, err error) {
+	menuIds = []wrappers.MenuSingle{}
 	dao := dao_impl.NewDaoPermit(r.Context)
 	var res []models.AdminMenu
 	if res, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{
@@ -128,7 +128,9 @@ func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []int64, err er
 		return
 	}
 	for _, item := range res {
-		menuIds = append(menuIds, item.Id)
+		menuIds = append(menuIds, wrappers.MenuSingle{
+			MenuId: item.Id,
+		})
 	}
 	return
 }

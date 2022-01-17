@@ -10,6 +10,34 @@ type DaoPermitGroupImportImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitGroupImportImpl) GetMenuIdsByPermitByGroupIds(menuIds, groupIds []int64, ) (res []*models.AdminUserGroupImport, err error) {
+	res = []*models.AdminUserGroupImport{}
+	if len(menuIds) == 0 || len(groupIds) == 0 {
+		return
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"menuIds":  menuIds,
+			"groupIds": groupIds,
+			"err":      err.Error(),
+		}, "DaoPermitGroupImportImplGetMenuIdsByPermitByGroupIds")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminUserGroupImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("menu_id IN(?) AND group_id IN(?)", menuIds,
+				groupIds).
+			Find(&res).Error
+		return
+	})
+
+	return
+}
+
 func (r *DaoPermitGroupImportImpl) DeleteGroupMenuPermitByGroupIdAndMenuIds(groupId int64, menuIds ...int64) (err error) {
 
 	if len(menuIds) == 0 || groupId == 0 {
@@ -30,7 +58,7 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupMenuPermitByGroupIdAndMenuIds(grou
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		actErrorHandlerResult =r.GetDefaultActErrorHandlerResult(&m1)
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m1)
 
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).
@@ -95,12 +123,12 @@ func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.Mo
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var data = base.BatchAddDataParameter{
-			CommonDb:base.CommonDb{
+			CommonDb: base.CommonDb{
 				TableName: tableName,
 				DbName:    r.Context.DbName,
 				Db:        r.Context.Db,
 			},
-			Data:      list,
+			Data: list,
 		}
 		logContent["data"] = data
 		actErrorHandlerResult = &base.ActErrorHandlerResult{
