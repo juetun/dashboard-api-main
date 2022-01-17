@@ -105,6 +105,7 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 	res.Result = true
 	return
 }
+
 func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermitMenu, data *models.AdminMenu) (err error) {
 	var adminMenu models.AdminMenu
 

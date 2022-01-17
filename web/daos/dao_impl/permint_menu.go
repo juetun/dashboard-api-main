@@ -193,6 +193,7 @@ func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []models.AdminMenu, er
 	})
 	return
 }
+
 func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error) {
 	if condition == nil {
 		return
