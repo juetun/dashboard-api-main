@@ -39,13 +39,13 @@ func (r *PermitServiceImpl) GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.Resu
 	if arg.MenuId == 0 {
 		return
 	}
-	var li []models.AdminMenu
+	var li []*models.AdminMenu
 	daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
 	if li, err = daoPermitMenu.GetMenu(arg.MenuId); err != nil {
 		return
 	}
 	if len(li) > 0 {
-		res.AdminMenu = li[0]
+		res.AdminMenu = *(li[0])
 	}
 
 	return
@@ -191,8 +191,8 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		return
 	}
 	if arg.Id > 0 {
-		var menu models.AdminMenu
-		var menus []models.AdminMenu
+		var menu *models.AdminMenu
+		var menus []*models.AdminMenu
 		daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
 		if menus, err = daoPermitMenu.GetMenu(arg.Id); err != nil {
 			return
@@ -209,7 +209,6 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 			if err = r.updateChildModule(dao, menu.Id, arg.Module); err != nil {
 				return
 			}
-
 		}
 
 	}
@@ -290,9 +289,8 @@ func (r *PermitServiceImpl) getGroupHaveImportPermit(arg *wrappers.ArgAdminSetPe
 		return
 	}
 
-
-	commonPermit := make([]int64, 0, len(listSelectMenu))           // 当前已经选中的菜单
-	notPermitId = make([]int64, 0, len(listSelectMenu))             // 当前取消权限的菜单
+	commonPermit := make([]int64, 0, len(listSelectMenu))             // 当前已经选中的菜单
+	notPermitId = make([]int64, 0, len(listSelectMenu))               // 当前取消权限的菜单
 	newPermit = make([]wrappers.ImportSingle, 0, len(listSelectMenu)) // 新增的菜单
 	for _, item := range listSelectMenu {
 		if r.inSlice(item.MenuId, arg.PermitIds) {
@@ -318,7 +316,11 @@ func (r *PermitServiceImpl) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit) 
 	if err != nil {
 		return
 	}
-
+	var mapMenus map[int64]*models.AdminMenu
+	if mapMenus, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetMenuMap(arg.PermitIds...); err != nil {
+		return
+	}
 
 	commonPermit := make([]int64, 0, len(listSelectMenu))           // 当前已经选中的菜单
 	notPermitId = make([]int64, 0, len(listSelectMenu))             // 当前取消权限的菜单
@@ -330,12 +332,16 @@ func (r *PermitServiceImpl) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit) 
 			notPermitId = append(notPermitId, item.MenuId)
 		}
 	}
+	var tmp wrappers.MenuSingle
 	for _, it := range arg.PermitIds {
 		if !r.inSlice(it, commonPermit) {
-			newPermit = append(newPermit, wrappers.MenuSingle{
-				MenuId:    it,
-				PermitKey: "",
-			})
+			tmp = wrappers.MenuSingle{
+				MenuId: it,
+			}
+			if tp, ok := mapMenus[it]; ok {
+				tmp.PermitKey = tp.PermitKey
+			}
+			newPermit = append(newPermit, tmp)
 		}
 	}
 	return
@@ -351,7 +357,7 @@ func (r *PermitServiceImpl) inSlice(id int64, slice []int64) (res bool) {
 }
 
 func (r *PermitServiceImpl) isHomePage(permitIds []int64) (res bool, homePageId int64, module string, err error) {
-	var li []models.AdminMenu
+	var li []*models.AdminMenu
 	permitMenuDao := dao_impl.NewDaoPermitMenu(r.Context)
 	if li, err = permitMenuDao.GetMenu(permitIds...); err != nil {
 		return

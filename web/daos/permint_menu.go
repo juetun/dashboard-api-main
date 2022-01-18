@@ -14,9 +14,11 @@ type DaoPermitMenu interface {
 
 	GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []*models.AdminMenu, err error)
 
-	GetMenu(menuId ...int64) (res []models.AdminMenu, err error)
+	GetMenu(menuId ...int64) (res []*models.AdminMenu, err error)
 
-	GetMenuByMenuId(menuId int64) (res models.AdminMenu, err error)
+	GetMenuMap(menuId ...int64) (res map[int64]*models.AdminMenu, err error)
+
+	GetMenuByMenuId(menuId int64) (res *models.AdminMenu, err error)
 
 	//
 	GetAllSystemList() (res []*models.AdminMenu, err error)

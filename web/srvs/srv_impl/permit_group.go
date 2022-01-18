@@ -127,7 +127,7 @@ func (r *SrvPermitGroupImpl) getMapImport(importIds ...int64) (mapImport map[int
 
 func (r *SrvPermitGroupImpl) getMenuNameWithMenuId(menuId int64) (menuName string, err error) {
 	var (
-		menus []models.AdminMenu
+		menus []*models.AdminMenu
 	)
 	if menus, err = dao_impl.NewDaoPermitMenu(r.Context).
 		GetMenu(menuId); err != nil {

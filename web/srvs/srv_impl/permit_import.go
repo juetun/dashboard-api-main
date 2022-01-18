@@ -173,7 +173,7 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 			t            = time.Now()
 			list         []base.ModelBase
 			dt           *models.AdminUserGroupImport
-			menu         models.AdminMenu
+			menu         *models.AdminMenu
 		)
 
 		if menu, err = dao_impl.NewDaoPermitMenu(r.Context).
@@ -478,7 +478,7 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 	daoImportMenu := dao_impl.NewDaoPermitImport(r.Context)
 
 	var list []models.AdminMenuImport
-	var mapAdminMenu map[int64]models.AdminMenu
+	var mapAdminMenu map[int64]*models.AdminMenu
 	var mapAdminMenuGroup map[string]models.AdminMenu
 
 	if list, err = daoImportMenu.GetImportMenuByImportIds(importId...); err != nil {
@@ -490,7 +490,7 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 
 	var (
 		dt  wrappers.AdminImportListMenu
-		dtm models.AdminMenu
+		dtm *models.AdminMenu
 		ok  bool
 		ll  = len(list)
 	)
@@ -519,19 +519,19 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 	return
 }
 
-func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int64]models.AdminMenu, err error) {
+func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int64]*models.AdminMenu, err error) {
 	ll := len(list)
 	menuIds := make([]int64, 0, ll)
 	for _, value := range list {
 		menuIds = append(menuIds, value.MenuId)
 	}
-	var adminMenu []models.AdminMenu
+	var adminMenu []*models.AdminMenu
 	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
 		GetMenu(menuIds...); err != nil {
 		return
 	}
 
-	mapAdminMenu = make(map[int64]models.AdminMenu, len(adminMenu))
+	mapAdminMenu = make(map[int64]*models.AdminMenu, len(adminMenu))
 
 	var (
 		m          = make(map[int64]int64, len(adminMenu))

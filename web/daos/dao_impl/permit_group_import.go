@@ -111,6 +111,9 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupImportWithMenuId(menuId ...int64) 
 }
 
 func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.ModelBase) (err error) {
+	if len(list) == 0 {
+		return
+	}
 	logContent := map[string]interface{}{
 		"list": list,
 	}

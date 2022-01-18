@@ -13,6 +13,18 @@ type DaoPermitMenuImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoPermitMenuImpl) GetMenuMap(menuId ...int64) (res map[int64]*models.AdminMenu, err error) {
+	res = map[int64]*models.AdminMenu{}
+	var mapMenu []*models.AdminMenu
+	if mapMenu, err = r.GetMenu(menuId...); err != nil {
+		return
+	}
+	for _, item := range mapMenu {
+		res[item.Id] = item
+	}
+	return
+}
+
 func (r *DaoPermitMenuImpl) GetAdminMenuByModule(module string) (res models.AdminMenu, err error) {
 	var list []models.AdminMenu
 	if list, err = r.GetMenuByPermitKey("", module); err != nil {
@@ -154,8 +166,9 @@ func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, ord
 	return
 }
 
-func (r *DaoPermitMenuImpl) GetMenuByMenuId(menuId int64) (res models.AdminMenu, err error) {
-	var li []models.AdminMenu
+func (r *DaoPermitMenuImpl) GetMenuByMenuId(menuId int64) (res *models.AdminMenu, err error) {
+	res = &models.AdminMenu{}
+	var li []*models.AdminMenu
 	if li, err = r.GetMenu(menuId); err != nil {
 		return
 	}
@@ -165,9 +178,9 @@ func (r *DaoPermitMenuImpl) GetMenuByMenuId(menuId int64) (res models.AdminMenu,
 	return
 }
 
-func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []models.AdminMenu, err error) {
+func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []*models.AdminMenu, err error) {
 	l := len(menuId)
-	res = make([]models.AdminMenu, 0, l)
+	res = make([]*models.AdminMenu, 0, l)
 	if l == 0 {
 		return
 	}
