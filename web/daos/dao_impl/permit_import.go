@@ -278,11 +278,14 @@ func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string
 	var m models.AdminMenuImport
 	var e error
 	var fetchData = base.FetchDataParameter{
-		SourceDb:  r.Context.Db,
-		DbName:    r.Context.DbName,
-		TableName: m.TableName(),
+		CommonDb:base.CommonDb{
+			Db:  r.Context.Db,
+			DbName:    r.Context.DbName,
+			TableName: m.TableName(),
+		},
+
 	}
-	if e = fetchData.SourceDb.Table(fetchData.TableName).Scopes(base.ScopesDeletedAt()).
+	if e = fetchData.Db.Table(fetchData.TableName).Scopes(base.ScopesDeletedAt()).
 		Where(condition).
 		Updates(data).
 		Error; e == nil {
@@ -296,7 +299,7 @@ func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string
 	defer func() {
 		r.Context.Error(logContent, "DaoPermitImportUpdateMenuImport")
 	}()
-	if err = r.CreateTableWithError(fetchData.SourceDb, fetchData.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
+	if err = r.CreateTableWithError(fetchData.Db, fetchData.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
 		return
 	}
 	if err = r.UpdateMenuImport(condition, data); err != nil {

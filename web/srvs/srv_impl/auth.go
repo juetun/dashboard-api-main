@@ -69,7 +69,7 @@ package srv_impl
 // 		return
 // 	}
 //
-// 	token, err = common.CreateToken(app_obj.JwtUserMessage{
+// 	token, err = common.CreateToken(app_obj.JwtUser{
 // 		UserId: user.UserHid,
 // 		Name:   user.Name,
 // 		Status: user.Status,
