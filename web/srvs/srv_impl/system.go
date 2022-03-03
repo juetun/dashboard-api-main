@@ -71,7 +71,7 @@ func (r *SystemService) SystemUpdate(sId int, ss wrappers.ConsoleSystem) (err er
 func (r *SystemService) IndexSystem() (system *models.ZBaseSys, err error) {
 	cacheKey := common.Conf.SystemIndexKey
 	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		system, err := r.doCacheIndexSystem(cacheKey)
 		if err != nil {
 			r.Context.Error(

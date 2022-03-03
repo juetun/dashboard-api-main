@@ -90,7 +90,7 @@ func (r *LinkService) AllLink() (links []models.ZLinks, err error) {
 
 	cacheKey := common.Conf.LinkIndexKey
 	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		links, err := r.doCacheLinkList(cacheKey)
 		if err != nil {
 			r.Context.Error(map[string]interface{}{

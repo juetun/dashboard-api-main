@@ -322,7 +322,7 @@ func (r *CategoryService) CateListBySort() (res []wrappers.Category, err error) 
 		return
 	}
 	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		cates, err := r.doCacheCateList(cacheKey)

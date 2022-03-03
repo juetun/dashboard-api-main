@@ -42,7 +42,7 @@ func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithApp(appName string, data int
 	if e = r.Context.CacheClient.
 		Get(r.Context.GinContext.Request.Context(), k).
 		Scan(data); e != nil {
-		if e == redis.Nil {
+		if e.Error() == redis.Nil.Error() {
 			return
 		}
 		r.Context.Error(map[string]interface{}{

@@ -55,7 +55,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 
 	field := ":name:" + name + ":pages:" + page + ":limit:" + limit
 	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), postKey, field).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		indexPostIndex, err := r.doCacheIndexPostList(postKey, field, indexType, name, page, limit)
@@ -301,7 +301,7 @@ func (r *IndexService) IndexPostDetail(postIdStr string) (postDetail wrappers.In
 		return
 	}
 	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), cacheKey, field).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		postDetail, err := r.doCacheIndexPostDetail(postSrv, cacheKey, field, postIdInt)
@@ -445,7 +445,7 @@ func (r *ConsolePostService) PostArchives() (archivesList map[string][]*models.Z
 	field := ":all:"
 
 	cacheRes, err := r.Context.CacheClient.HGet(r.Context.GinContext.Request.Context(), cacheKey, field).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		// cache key does not exist
 		// set data to the cache what use the cache key
 		archivesList, err := r.doCacheArchives(cacheKey, field)

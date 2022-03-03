@@ -386,7 +386,7 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, app
 
 	var e error
 	if e = op.Err(); e != nil {
-		if e == redis.Nil {
+		if e.Error() == redis.Nil.Error() {
 			dataNil = true
 			return
 		}
@@ -468,7 +468,7 @@ func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid int64, data interfa
 	key, _ := r.getUserPermitGroupCacheKey(userHid)
 	var e error
 	if e = r.Context.CacheClient.Get(context.TODO(), key).Scan(data); e != nil {
-		if e == redis.Nil {
+		if e.Error() == redis.Nil.Error() {
 			dataNil = true
 			return
 		}

@@ -411,7 +411,7 @@ func (r *TagService) CommonData() (h gin.H, err error) {
 func (r *TagService) AllTags() ([]models.ZTags, error) {
 	cacheKey := common.Conf.TagListKey
 	cacheRes, err := r.Context.CacheClient.Get(r.Context.GinContext.Request.Context(), cacheKey).Result()
-	if err == redis.Nil {
+	if err.Error() == redis.Nil.Error() {
 		tags, err := r.doCacheTagList(cacheKey)
 		if err != nil {
 			r.Context.Error(
