@@ -46,5 +46,5 @@ func (r *ZAppPath) GetRandomDomain() (res string, err error) {
 	return
 }
 func (r *ZAppPath) TableName() string {
-	return "z_app_path"
+	return fmt.Sprintf("%sapp_path", TablePrefix)
 }

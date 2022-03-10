@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -29,5 +30,5 @@ func (r *AdminUserGroupMenu) GetTableComment() (res string) {
 }
 
 func (r *AdminUserGroupMenu) TableName() string {
-	return "admin_user_group_menu"
+	return fmt.Sprintf("%suser_group_menu", TablePrefix)
 }

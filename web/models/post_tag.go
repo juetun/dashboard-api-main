@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -11,5 +12,5 @@ type ZPostTag struct {
 }
 
 func (r *ZPostTag) TableName() string {
-	return "z_post_tag"
+	return fmt.Sprintf("%spost_tag", TablePrefix)
 }

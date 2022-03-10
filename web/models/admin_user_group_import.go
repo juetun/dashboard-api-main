@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -25,5 +26,5 @@ func (r *AdminUserGroupImport) GetTableComment() (res string) {
 }
 
 func (r *AdminUserGroupImport) TableName() string {
-	return "admin_user_group_import"
+	return fmt.Sprintf("%suser_group_import", TablePrefix)
 }

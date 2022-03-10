@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -13,5 +14,5 @@ type ZCategories struct {
 }
 
 func (r *ZCategories) TableName() string {
-	return "z_categories"
+	return fmt.Sprintf("%scategories", TablePrefix)
 }

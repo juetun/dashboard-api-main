@@ -9,6 +9,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/base-wrapper/lib/utils/hashid"
@@ -26,11 +27,11 @@ type ZExportData struct {
 	DownloadLink  string `gorm:"column:download_link;" json:"download_link"`
 	Domain        string `gorm:"column:domain;" json:"domain"`
 	FilePath      string `gorm:"column:file_path;" json:"file_path"`
-	CreateUserHid int64 `gorm:"column:create_user_hid;" json:"create_user_hid"`
+	CreateUserHid int64  `gorm:"column:create_user_hid;" json:"create_user_hid"`
 }
 
 func (r *ZExportData) TableName() string {
-	return "z_export_data"
+	return fmt.Sprintf("%sexport_data", TablePrefix)
 }
 
 func (r *ZExportData) SaltForHID() string {

@@ -31,6 +31,7 @@ func NewSystemService(context ...*base.Context) (p *SystemService) {
 }
 func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 	system = new(models.ZBaseSys)
+
 	var e error
 	e = r.Context.Db.
 		Table(system.TableName()).

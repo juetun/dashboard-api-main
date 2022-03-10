@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -31,9 +32,9 @@ type AdminImport struct {
 	DefaultOpen   uint8      `json:"default_open" gorm:"column:default_open" form:"default_open"`
 	NeedLogin     uint8      `json:"need_login" gorm:"column:need_login" form:"need_login"`
 	NeedSign      uint8      `json:"need_sign" gorm:"column:need_sign" form:"need_sign"`
-	CreatedAt          time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	UpdatedAt          time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
+	CreatedAt     time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt     time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt     *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
 func (r *AdminImport) GetTableComment() (res string) {
@@ -48,7 +49,7 @@ func (r *AdminImport) InitRegexpString() (err error) {
 }
 
 func (r *AdminImport) TableName() string {
-	return "admin_import"
+	return fmt.Sprintf("%simport", TablePrefix)
 }
 
 func (r *AdminImport) GetPathName() (res string) {

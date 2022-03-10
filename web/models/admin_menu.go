@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -59,7 +60,7 @@ func (r *AdminMenu) GetTableComment() (res string) {
 }
 
 func (r *AdminMenu) TableName() string {
-	return "admin_menu"
+	return fmt.Sprintf("%smenu", TablePrefix)
 }
 
 func (r *AdminMenu) getPathName() (res string) {

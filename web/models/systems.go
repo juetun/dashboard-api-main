@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
 
@@ -14,5 +15,5 @@ type ZBaseSys struct {
 }
 
 func (r *ZBaseSys) TableName() string {
-	return "z_base_sys"
+ 	return fmt.Sprintf("%sbase_sys", TablePrefix)
 }

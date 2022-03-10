@@ -3,6 +3,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -33,7 +34,7 @@ func (r *AdminApp) UnmarshalHosts() (err error) {
 }
 
 func (r *AdminApp) TableName() string {
-	return "admin_app"
+	return fmt.Sprintf("%sapp", TablePrefix)
 }
 
 func (r *AdminApp) MarshalHosts() (err error) {

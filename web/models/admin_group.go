@@ -34,7 +34,7 @@ func (r *AdminGroup) GetTableComment() (res string) {
 }
 
 func (r *AdminGroup) TableName() string {
-	return "admin_group"
+	return fmt.Sprintf("%sgroup", TablePrefix)
 }
 
 func (r AdminGroup) AfterUpdate(tx *gorm.DB) (err error) {

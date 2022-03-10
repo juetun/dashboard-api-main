@@ -3,6 +3,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -43,5 +44,5 @@ func (r *AdminUser) ParseCanNotUse() (res string) {
 }
 
 func (r *AdminUser) TableName() string {
-	return "admin_user"
+	return fmt.Sprintf("%suser", TablePrefix)
 }

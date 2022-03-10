@@ -2,6 +2,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -40,5 +41,5 @@ func (r *AdminUserGroup) GetTableComment() (res string) {
 }
 
 func (r *AdminUserGroup) TableName() string {
-	return "admin_user_group"
+ 	return fmt.Sprintf("%suser_group", TablePrefix)
 }
