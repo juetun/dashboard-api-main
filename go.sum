@@ -410,6 +410,8 @@ github.com/juetun/base-wrapper v0.0.154 h1:von09epo0x/LgyjhwgswLyTAK/CbjvmL/T2uY
 github.com/juetun/base-wrapper v0.0.154/go.mod h1:5Yz0SSC8d4wvq9oILD5peZCAg3LN64sHOcoxw7F/0Rg=
 github.com/juetun/base-wrapper v0.0.155 h1:Iftc1VlMeUV/sWK++rieWv9KPxHemWA8DfaF1d/iQwg=
 github.com/juetun/base-wrapper v0.0.155/go.mod h1:5Yz0SSC8d4wvq9oILD5peZCAg3LN64sHOcoxw7F/0Rg=
+github.com/juetun/base-wrapper v0.0.162 h1:hDxa9kYk+8CgiF66Q/4gJVmy14SNGdxTEZANeuQxLjY=
+github.com/juetun/base-wrapper v0.0.162/go.mod h1:5Yz0SSC8d4wvq9oILD5peZCAg3LN64sHOcoxw7F/0Rg=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
