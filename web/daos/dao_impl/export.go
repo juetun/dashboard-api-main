@@ -49,19 +49,28 @@ func (r DaoExportImpl) GetExportDb() (db *gorm.DB, dbName string) {
 	return
 }
 func (r DaoExportImpl) Update(model *models.ZExportData) (err error) {
-	var m models.ZExportData
-	db, dbName := r.GetExportDb()
-	if err = db.Table(m.TableName()).
-		Where("hid = ?", model.Hid).
-		Updates(model).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
-			"model":  model,
-			"dbName": dbName,
-			"err":    err.Error(),
+			"model": model,
+			"err":   err.Error(),
 		}, "DaoExportImplUpdate")
 		return
-	}
+
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = &base.ActErrorHandlerResult{}
+		actRes.Db, actRes.DbName = r.GetExportDb()
+		var m models.ZExportData
+		actRes.Err = actRes.Db.Table(m.TableName()).
+			Where("hid = ?", model.Hid).
+			Updates(model).
+			Error
+		return
+	})
+
 	return
 }
 func (r DaoExportImpl) UpdateByHIds(data map[string]interface{}, hIds *[]string) (err error) {
@@ -118,25 +127,33 @@ func (r DaoExportImpl) Progress(args *wrappers.ArgumentsExportProgress) (res *[]
 	return
 }
 func (r DaoExportImpl) GetListByUser(userHid int64, limit int) (res *[]models.ZExportData, err error) {
+	res = &[]models.ZExportData{}
 	if limit == 0 {
 		limit = 12
 	}
-	var m models.ZExportData
-	res = &[]models.ZExportData{}
-	db, dbName := r.GetExportDb()
-	if err = db.Table(m.TableName()).
-		Where("create_user_hid=?", userHid).
-		Order("created_at desc").
-		Limit(limit).
-		Find(&res).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"userHid": userHid,
 			"limit":   limit,
-			"dbName":  dbName,
 			"err":     err.Error(),
 		}, "daoExportImplGetListByUser")
 		return
-	}
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = &base.ActErrorHandlerResult{}
+		actRes.Db, actRes.DbName = r.GetExportDb()
+		var m *models.ZExportData
+		actRes.Model = m
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("create_user_hid=?", userHid).
+			Order("created_at desc").
+			Limit(limit).
+			Find(res).
+			Error
+		return
+	})
 	return
 }

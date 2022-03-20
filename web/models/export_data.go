@@ -30,6 +30,10 @@ type ZExportData struct {
 	CreateUserHid int64  `gorm:"column:create_user_hid;" json:"create_user_hid"`
 }
 
+func (r *ZExportData) GetTableComment() (res string) {
+	return "导出任务"
+}
+
 func (r *ZExportData) TableName() string {
 	return fmt.Sprintf("%sexport_data", TablePrefix)
 }
