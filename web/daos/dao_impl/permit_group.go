@@ -403,10 +403,10 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, app
 
 // 用户组每个接口权限缓存
 func (r *DaoPermitGroupImpl) getGroupAppPermitImportCacheKey(groupId int64, appName string) (res string, duration time.Duration) {
-	res = fmt.Sprintf(parameters.CacheKeyUserGroupAppImportWithAppKey, groupId, appName)
+	res = fmt.Sprintf(parameters.CacheKeyUserGroupAppImportWithAppKey.Key, groupId, appName)
 
 	// 生成一个基础时间加上随机时间的时间值避免缓存数据在同一个时间失效
-	duration = parameters.CacheKeyUserGroupAppImportTime + time.Duration(rand.Int63n(100))*time.Minute
+	duration = parameters.CacheKeyUserGroupAppImportWithAppKey.Expire + time.Duration(rand.Int63n(100))*time.Minute
 	return
 }
 
@@ -483,8 +483,8 @@ func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid int64, data interfa
 
 // 用户权限组缓存
 func (r *DaoPermitGroupImpl) getUserPermitGroupCacheKey(userHid int64) (res string, duration time.Duration) {
-	res = fmt.Sprintf(parameters.CacheKeyUserGroupWithAppKey, userHid)
-	duration = parameters.CacheKeyUserGroupWithAppKeyTime
+	res = fmt.Sprintf(parameters.CacheKeyUserGroupWithAppKey.Key, userHid)
+	duration = parameters.CacheKeyUserGroupWithAppKey.Expire
 	return
 }
 

@@ -16,8 +16,8 @@ type DaoGatewayPermitImpl struct {
 }
 
 func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithAppKey(appName string) (key string, duration time.Duration) {
-	key = fmt.Sprintf(parameters.CacheKeyImportWithAppKey, appName)
-	duration = parameters.CacheKeyImportWithAppKeyTime
+	key = fmt.Sprintf(parameters.CacheKeyImportWithAppKey.Key, appName)
+	duration = parameters.CacheKeyImportWithAppKey.Expire
 	return
 }
 

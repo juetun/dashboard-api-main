@@ -12,10 +12,11 @@ require (
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/jmoiron/sqlx v1.3.4 // indirect
-	github.com/juetun/base-wrapper v0.0.168
+	github.com/juetun/base-wrapper v0.0.173
 	github.com/microcosm-cc/bluemonday v1.0.1
 	github.com/qiniu/go-sdk/v7 v7.9.6
 	github.com/russross/blackfriday/v2 v2.0.1
+	github.com/shopspring/decimal v1.3.1 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	gorm.io/gorm v1.21.11
 )
