@@ -20,8 +20,8 @@ func main() {
 		},
 	).LoadPlugins() // 加载插件动作
 	// 启动GIN服务
-	app_start.NewWebApplication(
+	_ = app_start.NewWebApplication(
 		middlewares.SignHttp(), // 添加签名中间件
 	).LoadRouter(). // 记载gin 路由配置
-			Run()
+		Run()
 }
