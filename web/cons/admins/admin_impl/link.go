@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -45,16 +44,14 @@ func (r *ControllerLink) Index(c *gin.Context) {
 	arg.DefaultPage()
 	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewLinkService(base.CreateContext(&r.ControllerBase, c))
-	links, cnt, err := srv.LinkList(arg.GetOffset(), pager.PageSize)
+	pager.List, pager.TotalCount, err = srv.LinkList(arg.GetOffset(), pager.PageSize)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Link.Index2", "err", err.Error())
 		r.Response(c, 500000000, nil, err.Error())
 		return
 	}
-	data := make(map[string]interface{})
-	data["list"] = links
-	data["pages"] = utils.MyPaginate(cnt, pager.PageSize, pager.PageNo)
-	r.Response(c, 0, data)
+
+	r.Response(c, 0, pager)
 	return
 }
 func (r *ControllerLink) Create(c *gin.Context) {

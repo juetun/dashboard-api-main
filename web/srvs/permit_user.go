@@ -4,6 +4,7 @@ package srvs
 import (
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
 type SrvPermitUser interface {
@@ -17,4 +18,6 @@ type SrvPermitUser interface {
 
 	// GetUserAdminGroupIdByUserHid 获取用户的后台权限组
 	GetUserAdminGroupIdByUserHid(uid int64) (groupId []int64, isSuperAdmin bool, err error)
+
+	ValidateUserHavePermit(args *wrapper_intranet.ArgValidateUserHavePermit) (res *wrapper_intranet.ResultValidateUserHavePermit,err error)
 }

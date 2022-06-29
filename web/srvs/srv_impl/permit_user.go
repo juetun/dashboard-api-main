@@ -3,6 +3,7 @@ package srv_impl
 
 import (
 	"fmt"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -20,6 +21,13 @@ import (
 
 type SrvPermitUserImpl struct {
 	base.ServiceDao
+}
+
+func (r *SrvPermitUserImpl) ValidateUserHavePermit(args *wrapper_intranet.ArgValidateUserHavePermit) (res *wrapper_intranet.ResultValidateUserHavePermit, err error) {
+	res = &wrapper_intranet.ResultValidateUserHavePermit{}
+
+	res.HavePermit = true
+	return
 }
 
 // GetUserAdminGroupIdByUserHid 获取用户的用户组或判断用户是否为超级管理员

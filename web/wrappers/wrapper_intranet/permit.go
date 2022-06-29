@@ -9,6 +9,13 @@ import (
 )
 
 type (
+	ArgValidateUserHavePermit struct {
+		UserHid int64 `json:"user_hid" form:"user_hid"`
+		MainId  int64 `json:"main_id" form:"main_id"`
+	}
+	ResultValidateUserHavePermit struct {
+		HavePermit bool `json:"have_permit"`
+	}
 	AdminUserGroupPermit struct {
 		GroupId  int64  `json:"group_id" gorm:"column:group_id"`
 		AppName  string `json:"app_name" gorm:"column:app_name"`
@@ -47,6 +54,11 @@ type (
 		Methods map[string]uint8 `json:"method,omitempty"`
 	}
 )
+
+func (r *ArgValidateUserHavePermit) Default(c *gin.Context) (err error) {
+
+	return
+}
 
 func NewResultGetUerImportPermit(arg *ArgGetUerImportPermit) (res *ResultGetUerImportPermit) {
 	res = &ResultGetUerImportPermit{IsSuper: false, MapHavePermit: make(map[string]bool, len(arg.UrlInfo))}

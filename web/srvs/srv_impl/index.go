@@ -10,12 +10,12 @@ package srv_impl
 
 import (
 	"encoding/json"
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"gorm.io/gorm"
@@ -111,6 +111,7 @@ func (r *IndexService) IndexPost(page string, limit string, indexType IndexType,
 
 func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, indexType IndexType, name string, queryPage string, queryLimit string) (res wrappers.IndexPostList, err error) {
 	limit, offset := common.Offset(queryPage, queryLimit)
+
 	queryPageInt, err := strconv.Atoi(queryPage)
 	if err != nil {
 		r.Context.Error(map[string]interface{}{
@@ -125,6 +126,14 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		})
 		return
 	}
+	queryLimitInt, err := strconv.Atoi(queryLimit)
+	if err != nil {
+		return
+	}
+	res.Pager = response.NewPager()
+	res.PageNo = queryPageInt
+	res.PageSize = queryLimitInt
+
 	var postList *[]wrappers.ConsolePostList
 	var postCount int64
 	var dba *gorm.DB
@@ -257,12 +266,8 @@ func (r *IndexService) doCacheIndexPostList(cacheKey string, field string, index
 		}
 	}
 
-	paginate := utils.MyPaginate(postCount, limit, queryPageInt)
+	res.List= postList
 
-	res = wrappers.IndexPostList{
-		PostListArr: postList,
-		Paginate:    paginate,
-	}
 
 	jsonRes, err := json.Marshal(&res)
 	if err != nil {

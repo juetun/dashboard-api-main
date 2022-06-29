@@ -1,11 +1,11 @@
 package wrappers
 
 import (
+	"github.com/juetun/base-wrapper/lib/common/response"
 	"html/template"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
-	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -108,8 +108,8 @@ type ConsoleView struct {
 }
 
 type IndexPostList struct {
-	PostListArr *[]ConsolePostList
-	Paginate    utils.Paginate
+ 	*response.Pager
+	//Paginate    utils.Paginate
 }
 
 type IndexPost struct {

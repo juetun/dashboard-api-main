@@ -12,6 +12,24 @@ type ConPermitIntranetImpl struct {
 	base.ControllerBase
 }
 
+func (r *ConPermitIntranetImpl) ValidateUserHavePermit(c *gin.Context) {
+	var (
+		err  error
+		args wrapper_intranet.ArgValidateUserHavePermit
+		res  *wrapper_intranet.ResultValidateUserHavePermit
+	)
+	if haveErr := r.ParametersAccept(c, &args); haveErr {
+		return
+	}
+	if res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+		ValidateUserHavePermit(&args); err != nil {
+		r.ResponseError(c, err)
+		return
+	}
+	r.Response(c, base.SuccessCode, res)
+	return
+}
+
 // GetUerImportPermit 判断接口是否有权限访问
 func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 	var (

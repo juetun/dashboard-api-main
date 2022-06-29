@@ -8,7 +8,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/base-wrapper/lib/utils"
 	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -44,21 +43,15 @@ func (r *ControllerTrash) Index(c *gin.Context) {
 	srv := srv_impl.NewConsolePostService(base.CreateContext(&r.ControllerBase, c))
 	dba, postCount, err := srv.ConsolePostCount(pager.PageSize, offset, false)
 
-	var postList = &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
-		postList, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, false)
+		pager.List, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, false)
 		if err != nil {
 			r.Log.Logger.Errorln("message", "console.Index", "err", err.Error())
 			r.Response(c, 500000000, nil)
 			return
 		}
 	}
-
-	data := make(map[string]interface{})
-	data["list"] = postList
-	data["pages"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
-
-	r.Response(c, 0, data)
+	r.Response(c, 0, pager)
 	return
 }
 func (r *ControllerTrash) Create(c *gin.Context) {
@@ -232,20 +225,15 @@ func (r *ControllerTrash) TrashIndex(c *gin.Context) {
 		r.Response(c, 500000000, nil)
 		return
 	}
-	var postList = &[]wrappers.ConsolePostList{}
 	if postCount > 0 {
-		postList, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, true)
+		pager.List, err = srv.ConsolePostIndex(dba, pager.PageSize, offset, true)
 		if err != nil {
 			r.Log.Logger.Errorln("message", "console.TrashIndex", "err", err.Error())
 			r.Response(c, 500000000, nil)
 			return
 		}
 	}
-
-	data := make(map[string]interface{})
-	data["list"] = postList
-	data["pages"] = utils.MyPaginate(postCount, pager.PageSize, pager.PageNo)
-	r.Response(c, 0, data)
+	r.Response(c, 0, pager)
 	return
 }
 func (r *ControllerTrash) UnTrash(c *gin.Context) {

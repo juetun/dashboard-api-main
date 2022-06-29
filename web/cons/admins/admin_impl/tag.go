@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/base-wrapper/lib/utils"
 	cons_admin2 "github.com/juetun/dashboard-api-main/web/cons/admins"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -40,18 +39,13 @@ func (r *ControllerTag) Index(c *gin.Context) {
 	offset := arg.GetOffset()
 	pager := response.NewPager(response.PagerBaseQuery(&arg))
 	srv := srv_impl.NewTagService(base.CreateContext(&r.ControllerBase, c))
-	count, tags, err := srv.TagsIndex(pager.PageSize, offset)
+	pager.TotalCount, pager.List, err = srv.TagsIndex(pager.PageSize, offset)
 	if err != nil {
 		r.Log.Logger.Errorln("message", "console.Tag.Index", "err", err.Error())
 		r.Response(c, 402000001, nil, err.Error())
 		return
 	}
-
-	data := make(map[string]interface{})
-	data["list"] = tags
-	data["pages"] = utils.MyPaginate(count, pager.PageSize, pager.PageNo)
-
-	r.Response(c, 0, data)
+	r.Response(c, 0, pager)
 	return
 }
 
