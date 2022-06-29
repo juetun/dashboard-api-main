@@ -23,6 +23,7 @@ type SrvPermitUserImpl struct {
 	base.ServiceDao
 }
 
+// 验证用户是否有权限使用子客服
 func (r *SrvPermitUserImpl) ValidateUserHavePermit(args *wrapper_intranet.ArgValidateUserHavePermit) (res *wrapper_intranet.ResultValidateUserHavePermit, err error) {
 	res = &wrapper_intranet.ResultValidateUserHavePermit{}
 

@@ -18,8 +18,7 @@ func init() {
 
 		path.GET("/get_have_permit", con.GetUerImportPermit) // 判断用户是否有接口权限
 
-		path.GET("/validate_user_have_permit",con.ValidateUserHavePermit)//验证用户是否有客服后台权限
-
+		path.GET("/dashboard/validate_user_have_permit", con.ValidateUserHavePermit) //验证用户是否有客服后台权限
 
 	})
 }
