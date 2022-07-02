@@ -363,6 +363,12 @@ github.com/juetun/base-wrapper v0.0.198 h1:HLx6UskLqWbQ+sFwSfjEcwNls6q0sPxzXXLSt
 github.com/juetun/base-wrapper v0.0.198/go.mod h1:ETdzKX4xh50+t1k9HQjSFqBSY53X6pHQGnIPF3/i9+E=
 github.com/juetun/base-wrapper v0.0.199 h1:vQgzNzAc3JOGu8daLJDbqiQjgf9XNPZFt2MW3UgMC8I=
 github.com/juetun/base-wrapper v0.0.199/go.mod h1:ETdzKX4xh50+t1k9HQjSFqBSY53X6pHQGnIPF3/i9+E=
+github.com/juetun/base-wrapper v0.0.200 h1:gxqLe3qQyS/tZuhtXKmEJ1Ck2YNjigbWqSH56MwyRCM=
+github.com/juetun/base-wrapper v0.0.200/go.mod h1:ETdzKX4xh50+t1k9HQjSFqBSY53X6pHQGnIPF3/i9+E=
+github.com/juetun/base-wrapper v0.0.202 h1:+hSIDZGoX93W50YircVzVi5Slr2DP71L8UiR0h63FJQ=
+github.com/juetun/base-wrapper v0.0.202/go.mod h1:+kXhpkS/UzK7PMByj1yAOwng/ZGonxOzLFqewTdETEE=
+github.com/juetun/base-wrapper v0.0.203 h1:tBQ9Jbpgonu947s08JbYxRxt7ogIWyfrT+F0lDpMJ+M=
+github.com/juetun/base-wrapper v0.0.203/go.mod h1:+kXhpkS/UzK7PMByj1yAOwng/ZGonxOzLFqewTdETEE=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
@@ -526,6 +532,7 @@ github.com/qiniu/go-sdk/v7 v7.9.6 h1:iKK1caSLxKvb+tS43ZDzgfXPP1VT6ngEz9535xaMrAg
 github.com/qiniu/go-sdk/v7 v7.9.6/go.mod h1:Eeqk1/Km3f1MuLUUkg2JCSg/dVkydKbBvEdJJqFgn9g=
 github.com/rainycape/memcache v0.0.0-20150622160815-1031fa0ce2f2/go.mod h1:7tZKcyumwBO6qip7RNQ5r77yrssm9bfCowcLEBcU5IA=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
+github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
