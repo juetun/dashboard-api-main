@@ -73,7 +73,8 @@ func (r *UserService) GetUserByIds(userId []int64) (users map[int64]app_param.Re
 		Method:  "POST",
 		AppName: parameters.MicroUser,
 		Header:  httpHeader,
-		URI:     "/in/user/get_by_uid",
+		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
+		URI:     "/user/get_by_uid",
 		Value:   url.Values{},
 	}
 	var userIdString = make([]string, 0, len(userId))

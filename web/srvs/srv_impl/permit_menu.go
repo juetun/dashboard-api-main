@@ -897,12 +897,13 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 	httpHeader.Set(app_obj.HttpUserToken, r.Context.GinContext.GetHeader(app_obj.HttpUserToken))
 	httpHeader.Set(app_obj.HttpUserHid, r.Context.GinContext.GetHeader(app_obj.HttpUserHid))
 	request := &rpc.RequestOptions{
-		Context: r.Context,
-		Method:  "GET",
-		AppName: parameters.MicroUser,
-		Header:  httpHeader,
-		URI:     "/in/user/has_not_msg",
-		Value:   url.Values{},
+		Context:     r.Context,
+		Method:      "GET",
+		AppName:     parameters.MicroUser,
+		Header:      httpHeader,
+		URI:         "/user/has_not_msg",
+		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
+		Value:       url.Values{},
 	}
 	request.Value.Set("user_hid", fmt.Sprintf("%d", userHid))
 	logContent["request"] = request
