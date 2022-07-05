@@ -7,7 +7,7 @@ import (
 
 type DaoPermitGroupMenu interface {
 	base.DaoBatchAdd
-	BatchAddData(tableName string, list []base.ModelBase) (err error)
+	BatchAddDataUserGroupMenu(list []base.ModelBase) (err error)
 
 	DeleteGroupMenuByGroupIdAndIds(groupId int64, ids ...int64) (err error)
 

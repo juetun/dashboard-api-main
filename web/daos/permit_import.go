@@ -32,7 +32,7 @@ type DaoPermitImport interface {
 
 	UpdateMenuImport(condition string, data map[string]interface{}) (err error)
 
-	BatchMenuImport(tableName string, list []*models.AdminMenuImport) (err error)
+	BatchMenuImport(list []*models.AdminMenuImport) (err error)
 
 	GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error)
 

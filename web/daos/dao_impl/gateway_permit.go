@@ -71,17 +71,24 @@ func (r *DaoGatewayPermitImpl) GetImportListByAppName(appName string, refreshCac
 			return
 		}
 	}
-	var m models.AdminImport
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{"appName": appName, "err": err.Error(),}, "DaoGatewayPermitImplGetImportListByAppName")
+	}()
 	var dt []models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("app_name = ?", appName).
-		Find(&dt).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"appName": appName,
-		}, "DaoGatewayPermitImplGetImportListByAppName")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(m.TableName()).
+			Scopes(base.ScopesDeletedAt()).
+			Where("app_name = ?", appName).
+			Find(&dt).
+			Error
+		return
+	})
+	if err != nil {
 		return
 	}
 	for _, adminImport := range dt {

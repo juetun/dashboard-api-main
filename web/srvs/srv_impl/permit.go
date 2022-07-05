@@ -613,9 +613,8 @@ func (r *PermitServiceImpl) addNewImportPermit(menuItems []wrappers.MenuSingle, 
 		}
 		list = append(list, &dt)
 	}
-	var m models.AdminUserGroupImport
 	if err = dao_impl.NewDaoPermitGroupImport(r.Context).
-		BatchAddData(m.TableName(), list); err != nil {
+		BatchAddDataGroupImport(list); err != nil {
 		err = fmt.Errorf("操作异常")
 		return
 	}
@@ -645,7 +644,7 @@ func (r *PermitServiceImpl) addNewMenuPermit(newPermit []wrappers.MenuSingle, ar
 		list = append(list, dt)
 	}
 	daoGroupMenu := dao_impl.NewDaoPermitGroupMenu(r.Context)
-	if err = daoGroupMenu.BatchAddData(dt.TableName(), list); err != nil {
+	if err = daoGroupMenu.BatchAddDataUserGroupMenu(list); err != nil {
 		err = fmt.Errorf("操作异常")
 		return
 	}
@@ -671,9 +670,8 @@ func (r *PermitServiceImpl) addNewApiPermit(newPermit []wrappers.ImportSingle, g
 		}
 		list = append(list, dt)
 	}
-	dao := dao_impl.NewDaoPermitGroupImport(r.Context)
-	var m models.AdminUserGroupImport
-	if err = dao.BatchAddData(m.TableName(), list); err != nil {
+	if err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		BatchAddDataGroupImport(list); err != nil {
 		return
 	}
 	return

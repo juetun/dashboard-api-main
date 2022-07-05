@@ -146,23 +146,26 @@ func (r *DaoPermitGroupMenuImpl) DeleteGroupMenuByGroupIdAndIds(groupId int64, m
 	return
 }
 
-func (r *DaoPermitGroupMenuImpl) BatchAddData(tableName string, list []base.ModelBase) (err error) {
-	var data = base.BatchAddDataParameter{
-		Data: list,
-		CommonDb: base.CommonDb{
-			TableName: tableName,
-			DbName:    r.Context.DbName,
-			Db:        r.Context.Db,
-		},
+func (r *DaoPermitGroupMenuImpl) BatchAddDataUserGroupMenu(list []base.ModelBase) (err error) {
+	if len(list) == 0 {
+		return
 	}
-	if err = r.BatchAdd(&data); err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
-			"data": data,
+			"list": list,
 			"err":  err.Error(),
 		}, "DaoPermitGroupMenuImplBatchAddData")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(list[0])
+		actRes.Err = r.BatchAdd(actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(list)))
 		return
-	}
+	})
+
 	return
 }
 

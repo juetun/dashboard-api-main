@@ -140,7 +140,6 @@ func (r *SrvPermitGroupImpl) getMenuNameWithMenuId(menuId int64) (menuName strin
 
 func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
-		m   models.AdminMenuImport
 		t   = time.Now()
 		dtm models.AdminImport
 		ok  bool
@@ -169,7 +168,7 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 		dts = append(dts, dt)
 	}
 	if err = dao_impl.NewDaoPermitImport(r.Context).
-		BatchMenuImport(m.TableName(), dts); err != nil {
+		BatchMenuImport(dts); err != nil {
 		return
 	}
 
@@ -178,7 +177,6 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 
 func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet, mapImport map[int64]models.AdminImport) (err error) {
 	var (
-		m   models.AdminMenuImport
 		t   = time.Now()
 		dtm models.AdminImport
 		ok  bool
@@ -219,7 +217,7 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 		}
 		dts = append(dts, dt)
 	}
-	if err = dao.BatchMenuImport(m.TableName(), dts); err != nil {
+	if err = dao.BatchMenuImport(dts); err != nil {
 		return
 	}
 
@@ -228,7 +226,6 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 
 func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet, menuName string, mapImport map[int64]models.AdminImport) (err error) {
 	var (
-		m   models.AdminMenuImport
 		t   = time.Now()
 		dtm models.AdminImport
 		ok  bool
@@ -255,7 +252,7 @@ func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet,
 		dts = append(dts, dt)
 	}
 	if err = dao_impl.NewDaoPermitImport(r.Context).
-		BatchMenuImport(m.TableName(), dts); err != nil {
+		BatchMenuImport(dts); err != nil {
 		return
 	}
 

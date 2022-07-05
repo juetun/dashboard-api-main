@@ -49,61 +49,83 @@ func (r *DaoPermitMenuImpl) GetAllSystemList() (res []*models.AdminMenu, err err
 
 func (r *DaoPermitMenuImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
 
-	var m models.AdminMenu
-
-	db := r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt())
-	lPk := len(permitKey)
-	var f bool
-	if lPk != 0 {
-		f = true
-		db = db.Where("permit_key IN(?)", permitKey)
-	}
-	if module != "" {
-		f = true
-		db = db.Where("module = ?", module)
-	}
-	if !f {
-		return
-	}
-
-	if err = db.Limit(len(permitKey)).
-		Order("sort_value desc").
-		Find(&res).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
+			"module":    module,
 			"permitKey": permitKey,
 			"err":       err.Error(),
-		}, "daoPermitGetMenuByPermitKey")
+		}, "DaoPermitMenuImplGetMenuByPermitKey")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		db := actRes.Db.Table(actRes.TableName).Scopes(base.ScopesDeletedAt())
+		lPk := len(permitKey)
+		var f bool
+		if lPk != 0 {
+			f = true
+			db = db.Where("permit_key IN(?)", permitKey)
+		}
+		if module != "" {
+			f = true
+			db = db.Where("module = ?", module)
+		}
+		if !f {
+			return
+		}
+		actRes.Err = db.Limit(len(permitKey)).
+			Order("sort_value desc").
+			Find(&res).
+			Error
 		return
-	}
+	})
 	return
 }
 
 func (r *DaoPermitMenuImpl) Add(data *models.AdminMenu) (err error) {
-
-	if err = r.Context.Db.Create(data).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"data": data,
-			"err":  err,
+			"err":  err.Error(),
 		}, "DaoPermitMenuImplAdd")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(data)
+		actRes.Err = actRes.Db.Create(data).Error
+		return
+	})
 	return
 }
 
 func (r *DaoPermitMenuImpl) UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error) {
-	var m models.AdminMenu
-	if err = r.Context.Db.
-		Table(m.TableName()).
-		Where(condition).
-		Updates(data).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
-			"condition": condition,
 			"data":      data,
-			"err":       err,
-		}, "daoPermitUpdateMenuByCondition")
+			"condition": condition,
+			"err":       err.Error(),
+		}, "DaoPermitUpdateMenuByCondition")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where(condition).
+			Updates(data).
+			Error
 		return
-	}
+	})
 	return
 }
 
@@ -111,17 +133,27 @@ func (r *DaoPermitMenuImpl) Save(id int64, data map[string]interface{}) (err err
 	if id == 0 {
 		return
 	}
-	if err = r.Context.Db.
-		Model(&models.AdminMenu{}).
-		Where("id = ?", id).
-		Updates(data).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"id":   id,
 			"data": data,
-			"err":  err,
+			"err":  err.Error(),
 		}, "DaoPermitMenuImplSave")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.
+			Table(actRes.TableName).
+			Where("id = ?", id).
+			Updates(data).
+			Error
+		return
+	})
 	return
 }
 func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, orderBy []wrappers.DaoOrderBy, limit int) (res []*models.AdminMenu, err error) {
@@ -139,30 +171,30 @@ func (r *DaoPermitMenuImpl) GetByCondition(condition map[string]interface{}, ord
 		}, "daoPermitGetByCondition")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
-	var m models.AdminMenu
-	db := r.Context.Db.
-		Table(m.TableName()).
-		Where(condition)
 
-	if len(orderBy) > 0 {
-		var orderString string
-		for _, item := range orderBy {
-			orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+	var actHandler = func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		db := actRes.Db.Table(actRes.TableName).
+			Where(condition)
+
+		if len(orderBy) > 0 {
+			var orderString string
+			for _, item := range orderBy {
+				orderString += fmt.Sprintf("%s %s", item.Column, item.SortFormat)
+			}
+			if orderString != "" {
+				db = db.Order(orderString)
+			}
 		}
-		if orderString != "" {
-			db = db.Order(orderString)
+		if limit > 0 {
+			db = db.Limit(limit)
 		}
-	}
-
-	if limit > 0 {
-		db = db.Limit(limit)
-	}
-	if err = db.
-		Find(&res).
-		Error; err != nil {
-
+		actRes.Err = db.Find(&res).Error
 		return
 	}
+
+	err = r.ActErrorHandler(actHandler)
 	return
 }
 
@@ -211,19 +243,28 @@ func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []mod
 	if condition == nil {
 		return
 	}
-	var m models.AdminMenu
-	if err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where(condition).
-		Limit(1000).
-		Find(&res).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
-			"err":       err,
+			"err":       err.Error(),
 		}, "DaoPermitMenuImplGetMenuByCondition")
+	}()
+	var actHandler = func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where(condition).
+			Limit(1000).
+			Find(&res).
+			Error
 		return
 	}
+	err = r.ActErrorHandler(actHandler)
 	return
 }
 

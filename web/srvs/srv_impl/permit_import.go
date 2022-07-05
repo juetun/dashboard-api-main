@@ -203,8 +203,7 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 			}
 			list = append(list, dt)
 		}
-		var m models.AdminUserGroupImport
-		if err = dao.BatchAddData(m.TableName(), list); err != nil {
+		if err = dao.BatchAddDataGroupImport(list); err != nil {
 			err = fmt.Errorf("操作异常")
 			return
 		}
@@ -226,21 +225,22 @@ func (r *SrvPermitImport) getImportId(l int, list []models.AdminImport) (importI
 	}
 	return
 }
+
 func (r *SrvPermitImport) ImportList(arg *wrappers.ArgImportList) (res *wrappers.ResultImportList, err error) {
-	var db *gorm.DB
 	if arg.Order == "" {
 		arg.Order = "id desc"
 	}
 	res = &wrappers.ResultImportList{Pager: response.NewPagerAndDefault(&arg.PageQuery)}
 	dao := dao_impl.NewDaoPermit(r.Context)
 
+	var actRes *base.ActErrorHandlerResult
 	// 获取分页数据
 	if err = res.Pager.CallGetPagerData(func(pager *response.Pager) (err error) {
-		pager.TotalCount, db, err = dao.GetImportListCount(db, arg)
+		pager.TotalCount, actRes, err = dao.GetImportListCount(arg)
 		return
 	}, func(pager *response.Pager) (err error) {
 		var list []models.AdminImport
-		list, err = dao.GetImportListData(db, arg, pager)
+		list, err = dao.GetImportListData(actRes, arg, pager)
 		pager.List, err = r.orgImportList(dao, list)
 		return
 	}); err != nil {

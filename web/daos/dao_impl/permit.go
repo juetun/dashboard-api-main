@@ -10,12 +10,12 @@ package dao_impl
 
 import (
 	"fmt"
+	"github.com/juetun/dashboard-api-main/web/daos"
 	"strconv"
 	"strings"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
-	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
@@ -65,8 +65,19 @@ func (r *DaoPermitImpl) MenuImportCount(arg *wrapper_admin.ArgMenuImport, count 
 	return
 }
 
+func (r *DaoPermitImpl) getIIds(data []models.AdminImport) (iIds []int64) {
+	iIds = make([]int64, 0, len(data))
+	for _, value := range data {
+		iIds = append(iIds, value.Id)
+	}
+	return
+}
+
 func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrapper_admin.ArgMenuImport) (res []wrappers.ResultMenuImportItem, err error) {
-	var data []models.AdminImport
+	var (
+		data []models.AdminImport
+		iIds []int64
+	)
 	db = r.getMenuImportCountDb(db, arg)
 	if err = db.Select("a.*").
 		Offset(arg.GetOffset()).
@@ -81,108 +92,129 @@ func (r *DaoPermitImpl) MenuImportList(db *gorm.DB, arg *wrapper_admin.ArgMenuIm
 	if arg.MenuId == 0 {
 		return
 	}
-	iIds := make([]int64, 0, len(data))
-	for _, value := range data {
-		iIds = append(iIds, value.Id)
-	}
-	if len(iIds) == 0 {
+
+	if iIds = r.getIIds(data); len(iIds) == 0 {
 		return
-	}
-	var m1 models.AdminMenuImport
-	var dt []models.AdminMenuImport
-	if err = r.Context.Db.Table(m1.TableName()).
-		Where("menu_id=? AND import_id IN (?)", arg.MenuId, iIds).
-		Scopes(base.ScopesDeletedAt()).
-		Find(&dt).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg":  arg,
-			"iIds": iIds,
-			"err":  err.Error(),
-		}, "daoPermitImplMenuImportList1")
-		return
-	}
-	var mv = make(map[int64]models.AdminMenuImport, len(iIds))
-	for _, it := range dt {
-		mv[it.ImportId] = it
 	}
 
-	var dta wrappers.ResultMenuImportItem
+	mv := make(map[int64]models.AdminMenuImport, len(iIds))
+	if mv, err = r.getAdminMenuImportByMenuAndImportIds(arg.MenuId, iIds...); err != nil {
+		return
+	}
+	r.orgMenuImportListRes(data, &iIds, mv, &res)
+	return
+}
+
+func (r *DaoPermitImpl) orgMenuImportListRes(data []models.AdminImport, iIds *[]int64, mv map[int64]models.AdminMenuImport, res *[]wrappers.ResultMenuImportItem) {
 	for _, value := range data {
-		iIds = append(iIds, value.Id)
-		dta = wrappers.ResultMenuImportItem{
-			AdminImport: value,
-		}
+		*iIds = append(*iIds, value.Id)
+		dta := wrappers.ResultMenuImportItem{AdminImport: value,}
 		if dtm, ok := mv[value.Id]; ok {
 			dta.Checked = true
 			dta.DefaultOpen = dtm.DefaultOpen
 		}
-		res = append(res, dta)
+		*res = append(*res, dta)
 	}
 	return
 }
 
-func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
-	p := &DaoPermitImpl{}
-	p.SetContext(c...)
-	return p
+func (r *DaoPermitImpl) getAdminMenuImportByMenuAndImportIds(menuId int, iIds ...int64) (mv map[int64]models.AdminMenuImport, err error) {
+	mv = map[int64]models.AdminMenuImport{}
+	var dt []models.AdminMenuImport
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m1 *models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(m1)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("menu_id=? AND import_id IN (?)", menuId, iIds).
+			Scopes(base.ScopesDeletedAt()).
+			Find(&dt).
+			Error
+		return
+	})
+	if err != nil {
+		return
+	}
+	mv = make(map[int64]models.AdminMenuImport, len(dt))
+	for _, it := range dt {
+		mv[it.ImportId] = it
+	}
+	return
 }
 
-func (r *DaoPermitImpl) fetchDb(db *gorm.DB, arg *wrappers.ArgImportList) (dba *gorm.DB) {
-	var m models.AdminImport
-	dba = db
-	if db == nil {
-		dba = r.Context.Db.Table(m.TableName())
-	}
-	dba = dba.Scopes(base.ScopesDeletedAt())
+func (r *DaoPermitImpl) fetchDb(arg *wrappers.ArgImportList) (actRes *base.ActErrorHandlerResult) {
+	var m *models.AdminImport
+	actRes = r.GetDefaultActErrorHandlerResult(m)
+	db := actRes.Db
+	db = db.Scopes(base.ScopesDeletedAt())
 	if arg.AppName != "" {
-		dba = dba.Where("app_name = ?", arg.AppName)
+		db = db.Where("app_name = ?", arg.AppName)
 	}
 	if arg.NeedLogin > 0 {
-		dba = dba.Where("need_login = ?", arg.NeedLogin)
+		db = db.Where("need_login = ?", arg.NeedLogin)
 	}
 	if arg.NeedSign > 0 {
-		dba = dba.Where("need_sign = ?", arg.NeedSign)
+		db = db.Where("need_sign = ?", arg.NeedSign)
 	}
 	if arg.DefaultOpen > 0 {
-		dba = dba.Where("default_open = ?", arg.DefaultOpen)
+		db = db.Where("default_open = ?", arg.DefaultOpen)
 	}
 	if arg.PermitKey != "" {
-		dba = dba.Where("permit_key = ?", arg.PermitKey)
+		db = db.Where("permit_key = ?", arg.PermitKey)
 	}
 	if arg.UrlPath != "" {
-		dba = dba.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
+		db = db.Where("url_path LIKE  ?", fmt.Sprintf("%%%s%%", arg.UrlPath))
 	}
+	actRes.Db = db
 	return
 }
 
-func (r *DaoPermitImpl) GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int64, dba *gorm.DB, err error) {
-	dba = r.fetchDb(db, arg)
-	if err = dba.Count(&totalCount).Error; err != nil {
+func (r *DaoPermitImpl) GetImportListCount(arg *wrappers.ArgImportList) (totalCount int64, actRes *base.ActErrorHandlerResult, err error) {
+	actRes = r.fetchDb(arg)
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitImplGetImportListCount")
+	}()
+	err = r.ActErrorHandler(func() (actResChild *base.ActErrorHandlerResult) {
+		actResChild = actRes
+		actResChild.Err = actResChild.Db.
+			Count(&totalCount).
+			Error
 		return
-	}
+	})
+
 	return
 }
-func (r *DaoPermitImpl) GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error) {
-
+func (r *DaoPermitImpl) GetImportListData(actRes *base.ActErrorHandlerResult, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error) {
+	actRes = r.fetchDb(arg)
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"arg":   arg,
+			"pager": pager,
+			"err":   err.Error(),
+		}, "daoPermitImplGetImportListData")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
 	res = []models.AdminImport{}
-	if err = r.fetchDb(db, arg).
-		Offset(arg.PageQuery.GetOffset()).
-		Order(arg.Order).
-		Limit(pager.PageSize).
-		Find(&res).
-		Error; err == nil {
-		return
-	}
+	err = r.ActErrorHandler(func() (actResChild *base.ActErrorHandlerResult) {
+		actResChild = actRes
+		actResChild.Err = actResChild.Db.
+			Offset(arg.PageQuery.GetOffset()).
+			Order(arg.Order).
+			Limit(pager.PageSize).
+			Find(&res).
+			Error
 
-	r.Context.Error(map[string]interface{}{
-		"arg": arg,
-		"err": err.Error(),
-	}, "daoPermitImplGetImportListData")
-	err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+		return
+	})
+
 	return
 }
 
@@ -192,24 +224,27 @@ func (r *DaoPermitImpl) getPermitImportByModuleWithSuperAdmin(arg *wrappers.ArgP
 		adminMenu       models.AdminMenu
 		adminMenuImport models.AdminMenuImport
 	)
-
-	if err = r.Context.Db.Table(adminImport.TableName()).
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"arg": arg,
+			"err": err.Error(),
+		}, "DaoPermitImplGetPermitImportByModuleWithSuperAdmin")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.Context.Db.Table(adminImport.TableName()).
 		Select("b.permit_key,a.permit_key AS menu_permit_key").
 		Joins(fmt.Sprintf("AS b LEFT JOIN  %s as c ON c.import_id=b.id LEFT JOIN %s AS a  ON a.id = c.menu_id",
 			adminMenuImport.TableName(),
 			adminMenu.TableName())).
 		Where("b.deleted_at IS NULL AND a.deleted_at IS NULL AND c.deleted_at IS NULL").Unscoped().
 		Find(&res).
-		Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"arg": arg,
-			"err": err.Error(),
-		}, "DaoPermitImplGetPermitImportByModuleWithSuperAdmin")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-		return
-	}
+		Error
 	return
 }
+
 func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error) {
 	var (
 		adminUserGroupPermit models.AdminUserGroupImport
@@ -258,54 +293,83 @@ func (r *DaoPermitImpl) GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (re
 }
 func (r *DaoPermitImpl) GetImportMenuId(menuId ...int64) (list []models.AdminImport, err error) {
 	list = []models.AdminImport{}
-	var m models.AdminImport
+
 	if len(menuId) == 0 {
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("menu_id IN(?)", menuId).
-		Find(&list).Error; err == nil {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"menuId": menuId,
+			"err":    err.Error(),
+		}, "daoPermitGetImportMenuId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("menu_id IN(?)", menuId).
+			Find(&list).
+			Error
 		return
-	}
-
-	r.Context.Error(map[string]interface{}{
-		"menuId": menuId,
-		"err":    err,
-	}, "daoPermitGetImportMenuId")
-	err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	})
 
 	return
 }
 
 func (r *DaoPermitImpl) CreateImport(data *models.AdminImport) (res bool, err error) {
-	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).Create(data).Error; err != nil {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"data": data,
 			"err":  err,
 		}, "daoPermitCreateImport")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Create(data).
+			Error
 		return
-	}
+	})
 
 	return
 }
 func (r *DaoPermitImpl) UpdateAdminImport(condition, data map[string]interface{}) (res bool, err error) {
-	var m models.AdminImport
+	var m *models.AdminImport
 	if len(condition) == 0 {
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where(condition).
-		Updates(data).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"data":      data,
 			"err":       err,
 		}, "daoPermitUpdateAdminImport")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where(condition).
+			Updates(data).
+			Error
+		return
+	})
+	if err != nil {
 		return
 	}
 	res = true
@@ -316,19 +380,25 @@ func (r *DaoPermitImpl) GetAdminImportById(id ...int64) (res []models.AdminImpor
 		res = []models.AdminImport{}
 		return
 	}
-	var m models.AdminImport
-	err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("id IN(?)", id).
-		Find(&res).Error
-	if err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
 			"err": err,
 		}, "daoPermitGetAdminImportByIdError")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("id IN(?)", id).
+			Find(&res).Error
 		return
-	}
+	})
 	return
 }
 func (r *DaoPermitImpl) getColumnName(s string) (res string) {
@@ -379,30 +449,54 @@ func (r *DaoPermitImpl) GetDefaultImportByMenuIds(pageType, module string, menuI
 	return
 }
 func (r *DaoPermitImpl) GetImportId(id int) (res models.AdminImport, err error) {
-	var m models.AdminImport
-	err1 := r.Context.Db.Table(m.TableName()).Where("id=?", id).Find(&res).Error
-	if err1 != nil && err1 != gorm.ErrRecordNotFound {
-		err = err1
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
 			"err": err,
 		}, "daoPermitGetImportId")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		var list []models.AdminImport
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("id=?", id).
+			Find(&list).
+			Error
+		if actRes.Err != nil {
+			return
+		}
+		if len(list) == 0 {
+			return
+		}
+		res = list[0]
 		return
-	}
+	})
+
 	return
 }
 func (r *DaoPermitImpl) GetImportCount(arg *wrappers.ArgGetImport, count *int64) (db *gorm.DB, err error) {
 	if arg.MenuId == 0 {
 		return
 	}
-	db = r.getImportListDb(nil, arg)
-	err = db.Count(count).Error
-	if err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
-			"err": err,
+			"err": err.Error(),
 		}, "daoPermitGetImportCount error")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	db = r.getImportListDb(nil, arg)
+	err = db.Count(count).Error
+
 	return
 }
 func (r *DaoPermitImpl) getImportListDb(db *gorm.DB, arg *wrappers.ArgGetImport) (res *gorm.DB) {
@@ -462,82 +556,134 @@ func (r *DaoPermitImpl) AdminUserGroupRelease(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var m models.AdminUserGroup
-	err = r.Context.Db.Table(m.TableName()).
-		Where("id IN (?) ", ids).
-		Delete(&models.AdminUserGroup{}).
-		Error
-	if err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"ids": ids,
-			"err": err,
+			"err": err.Error(),
 		}, "daoPermitAdminUserGroupRelease")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminUserGroup
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("id IN (?) ", ids).
+			Delete(&models.AdminUserGroup{}).
+			Error
+		return
+	})
 	return
 }
 
 func (r *DaoPermitImpl) FetchByName(name string) (res models.AdminGroup, err error) {
-	var m models.AdminGroup
+
 	res = models.AdminGroup{}
-	err1 := r.Context.Db.Table(m.TableName()).
-		Where("name = ?", name).
-		Find(&res).
-		Error
-	if err1 == gorm.ErrRecordNotFound {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"name": name,
+			"err":  err.Error(),
+		}, "daoPermitFetchByName")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminGroup
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		var list []models.AdminGroup
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("name = ?", name).
+			Find(&list).
+			Error
+		if actRes.Err != nil {
+			return
+		}
+		if len(list) > 0 {
+			res = list[0]
+		}
 		return
-	}
-	err = err1
-	r.Context.Error(map[string]interface{}{
-		"name": name,
-		"err":  err,
-	}, "daoPermitFetchByName")
+	})
+
 	return
 }
+
 func (r *DaoPermitImpl) InsertAdminGroup(group *models.AdminGroup) (err error) {
-	var m models.AdminGroup
-	err = r.Context.Db.Table(m.TableName()).
-		Create(group).
-		Error
-	if err != nil {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"group": group,
-			"err":   err,
+			"err":   err.Error(),
 		}, "daoPermitInsertAdminGroup")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminGroup
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).Create(group).
+			Error
+		return
+	})
+
 	return
 }
-func (r *DaoPermitImpl) UpdateAdminGroup(data, where map[string]interface{}) (err error) {
-	var group *models.AdminGroup
 
-	if err = r.Context.Db.Table(group.TableName()).
-		Where(where).
-		Scopes(base.ScopesDeletedAt()).
-		Updates(data).
-		Error; err != nil {
+func (r *DaoPermitImpl) UpdateAdminGroup(data, where map[string]interface{}) (err error) {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"data":  data,
 			"where": where,
-			"err":   err,
+			"err":   err.Error(),
 		}, "daoPermitUpdateAdminGroup")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var group *models.AdminGroup
+		actRes = r.GetDefaultActErrorHandlerResult(group)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where(where).
+			Scopes(base.ScopesDeletedAt()).
+			Updates(data).
+			Error
+		return
+	})
+
 	return
 }
 func (r *DaoPermitImpl) GetAdminGroupByIds(gIds ...int64) (res []models.AdminGroup, err error) {
 	if len(gIds) == 0 {
 		return
 	}
-	var m models.AdminGroup
-	err = r.Context.Db.Table(m.TableName()).
-		Scopes(base.ScopesDeletedAt()).
-		Where("id IN (?)", gIds).
-		Find(&res).
-		Error
-	if err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"gIds": gIds,
-			"err":  err,
+			"err":  err.Error(),
 		}, "daoPermitGetAdminGroupByIds")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminGroup
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("id IN (?)", gIds).
+			Find(&res).
+			Error
+		return
+	})
+
 	return
 }
 
@@ -572,72 +718,95 @@ func (r *DaoPermitImpl) DeleteMenuByIds(ids ...string) (err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var m models.AdminMenu
-	if err = r.Context.Db.
-		Table(m.TableName()).Unscoped().
-		Where("id in (?)", ids).
-		Delete(&models.AdminMenu{}).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"ids": ids,
 			"err": err,
 		}, "daoPermitDeleteByIds")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.
+			Table(actRes.TableName).
+			Unscoped().
+			Where("id in (?)", ids).
+			Delete(&models.AdminMenu{}).
+			Error
+		return
+	})
 	return
 }
 
 func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
 	res = []models.AdminMenu{}
-	var m models.AdminMenu
-	dba := r.Context.Db.Table(m.TableName())
-	if arg.SystemId > 0 {
-		if err = r.Context.Db.Table(m.TableName()).
-			Scopes(base.ScopesDeletedAt()).
-			Order("sort_value desc").
-			Where("id = ?", arg.SystemId).
-			First(&m).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				return
-			}
-			err = fmt.Errorf("你查看权限系统不存在或已删除")
-			r.Context.Error(map[string]interface{}{
-				"arg": arg,
-				"err": err,
-			}, "daoPermitGetAdminMenuList0")
+	defer func() {
+		if err == nil {
 			return
 		}
-		arg.Module = m.PermitKey
-	}
-	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
-		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
-	}
-	if arg.ParentId > 0 {
-		dba = dba.Where("parent_id = ?", arg.ParentId)
-	}
-	if arg.Module != "" {
-		dba = dba.Where("module = ? OR parent_id=?", arg.Module, wrappers.DefaultPermitParentId)
-	}
-	if arg.AppName != "" {
-		dba = dba.Where("app_name = ?", arg.AppName)
-	}
-	if arg.IsMenuShow != -1 {
-		dba = dba.Where("hide_in_menu = ?", arg.IsMenuShow)
-	}
-	if arg.IsDel == -1 || arg.IsDel == 0 {
-		dba = dba.Where("deleted_at IS NULL")
-	} else {
-		dba = dba.Where("deleted_at NOT NULL")
-	}
-	if arg.Id != 0 {
-		dba = dba.Where("id = ?", arg.Id)
-	}
-	if err = dba.Order("sort_value desc").Find(&res).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
-		}, "daoPermitGetAdminMenuList2")
+		}, "daoPermitGetAdminMenuList")
+
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		dba := actRes.Db.Table(actRes.TableName)
+		if arg.SystemId > 0 {
+			var list []*models.AdminMenu
+			if actRes.Err = dba.
+				Scopes(base.ScopesDeletedAt()).
+				Order("sort_value desc").
+				Where("id = ?", arg.SystemId).
+				First(&list).Error; actRes.Err != nil {
+				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
+				return
+			}
+			if len(list) == 0 {
+				actRes.Err = fmt.Errorf("你查看权限系统不存在或已删除")
+				return
+			}
+			m = list[0]
+			arg.Module = m.PermitKey
+		}
+		defer func() {
+			if actRes.Err != nil {
+				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
+			}
+		}()
+		if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
+			dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
+		}
+		if arg.ParentId > 0 {
+			dba = dba.Where("parent_id = ?", arg.ParentId)
+		}
+		if arg.Module != "" {
+			dba = dba.Where("module = ? OR parent_id=?", arg.Module, wrappers.DefaultPermitParentId)
+		}
+		if arg.AppName != "" {
+			dba = dba.Where("app_name = ?", arg.AppName)
+		}
+		if arg.IsMenuShow != -1 {
+			dba = dba.Where("hide_in_menu = ?", arg.IsMenuShow)
+		}
+		if arg.IsDel == -1 || arg.IsDel == 0 {
+			dba = dba.Where("deleted_at IS NULL")
+		} else {
+			dba = dba.Where("deleted_at NOT NULL")
+		}
+		if arg.Id != 0 {
+			dba = dba.Where("id = ?", arg.Id)
+		}
+		actRes.Err = dba.Order("sort_value desc").Find(&res).Error
 		return
-	}
+	})
+
 	return
 }
 
@@ -692,29 +861,45 @@ func (r *DaoPermitImpl) GetAdminGroupList(db *gorm.DB, arg *wrappers.ArgAdminGro
 
 func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (res []*models.AdminMenu, err error) {
 	res = []*models.AdminMenu{}
-	var m models.AdminMenu
-	db := r.Context.Db.
-		Table(m.TableName())
-	var haveWhere bool
-	// 兼容超级管理员和普通管理员
-	if len(menuIds) != 0 {
-		db = db.Where("id IN(?)", menuIds)
-		haveWhere = true
-	}
-	if len(module) > 0 {
-		db = db.Where("module IN(?)", module)
-		haveWhere = true
-	}
-	if !haveWhere {
-		return
-	}
-	if err = db.Order("sort_value desc").
-		Find(&res).Error; err != nil {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"menuIds": menuIds,
 			"err":     err,
 		}, "daoPermitGetPermitMenuByIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminMenu
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		db := actRes.Db.
+			Table(actRes.TableName)
+		var haveWhere bool
+		// 兼容超级管理员和普通管理员
+		if len(menuIds) != 0 {
+			db = db.Where("id IN(?)", menuIds)
+			haveWhere = true
+		}
+		if len(module) > 0 {
+			db = db.Where("module IN(?)", module)
+			haveWhere = true
+		}
+		if !haveWhere {
+			return
+		}
+		actRes.Err = db.Order("sort_value desc").
+			Find(&res).Error
 		return
-	}
+	})
+
 	return
+}
+
+func NewDaoPermit(c ...*base.Context) daos.DaoPermit {
+	p := &DaoPermitImpl{}
+	p.SetContext(c...)
+	return p
 }

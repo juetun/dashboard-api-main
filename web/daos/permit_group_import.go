@@ -13,7 +13,7 @@ type DaoPermitGroupImport interface {
 	//菜单下的有权限的接口列表
 	GetMenuIdsByPermitByGroupIds(menuIds, groupIds []int64, ) (res []*models.AdminUserGroupImport, err error)
 
-	BatchAddData(tableName string, list []base.ModelBase) (err error)
+	BatchAddDataGroupImport(list []base.ModelBase) (err error)
 
 	DeleteGroupImportWithMenuId(menuId ...int64) (err error)
 

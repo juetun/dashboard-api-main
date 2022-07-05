@@ -9,6 +9,7 @@
 package daos
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -17,9 +18,9 @@ import (
 )
 
 type DaoPermit interface {
-	GetImportListData(db *gorm.DB, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error)
+	GetImportListData(actRes *base.ActErrorHandlerResult, arg *wrappers.ArgImportList, pager *response.Pager) (res []models.AdminImport, err error)
 
-	GetImportListCount(db *gorm.DB, arg *wrappers.ArgImportList) (totalCount int64, dba *gorm.DB, err error)
+	GetImportListCount(arg *wrappers.ArgImportList) (totalCount int64, actRes *base.ActErrorHandlerResult, err error)
 
 	GetPermitImportByModule(arg *wrappers.ArgPermitMenu) (res []wrappers.Op, err error)
 

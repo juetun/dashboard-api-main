@@ -237,27 +237,11 @@ func (r *DaoPermitGroupImpl) AdminUserGroupAdd(data []base.ModelBase) (err error
 		}
 	}()
 
-	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		var (
-			dt        models.AdminUserGroup
-			batchData = &base.BatchAddDataParameter{
-				CommonDb: base.CommonDb{
-					Db:        r.Context.Db,
-					DbName:    r.Context.DbName,
-					TableName: dt.TableName(),
-				},
-				Data: data,
-			}
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(data[0])
+		actRes.Err = r.BatchAdd(
+			actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(data)),
 		)
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			CommonDb: base.CommonDb{
-				DbName:    batchData.DbName,
-				TableName: dt.TableName(),
-				Db:        batchData.Db,
-			},
-			Model: &dt,
-		}
-		actErrorHandlerResult.Err = r.BatchAdd(batchData)
 		return
 	})
 

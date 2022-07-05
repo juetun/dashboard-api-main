@@ -175,25 +175,13 @@ func (r *DaoPermitUserImpl) AdminUserAdd(dataUser []base.ModelBase) (err error) 
 	}()
 
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		var (
-			dt   models.AdminUser
-			data = base.BatchAddDataParameter{
-				CommonDb: base.CommonDb{
-					DbName:    r.Context.DbName,
-					TableName: dt.TableName(),
-				},
-				Data: dataUser,
-			}
+		var dt *models.AdminUser
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(dt)
+		actErrorHandlerResult.Err = r.BatchAdd(
+			actErrorHandlerResult.ParseBatchAddDataParameter(
+				base.BatchAddDataParameterData(dataUser),
+			),
 		)
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			CommonDb: base.CommonDb{
-				DbName:    data.DbName,
-				TableName: dt.TableName(),
-				Db:        data.Db,
-			},
-			Model: &dt,
-		}
-		actErrorHandlerResult.Err = r.BatchAdd(&data)
 		return
 	})
 

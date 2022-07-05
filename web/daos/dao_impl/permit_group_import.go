@@ -110,7 +110,7 @@ func (r *DaoPermitGroupImportImpl) DeleteGroupImportWithMenuId(menuId ...int64) 
 	return
 }
 
-func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.ModelBase) (err error) {
+func (r *DaoPermitGroupImportImpl) BatchAddDataGroupImport(list []base.ModelBase) (err error) {
 	if len(list) == 0 {
 		return
 	}
@@ -125,19 +125,13 @@ func (r *DaoPermitGroupImportImpl) BatchAddData(tableName string, list []base.Mo
 		}
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		var data = base.BatchAddDataParameter{
-			CommonDb: base.CommonDb{
-				TableName: tableName,
-				DbName:    r.Context.DbName,
-				Db:        r.Context.Db,
-			},
-			Data: list,
-		}
-		logContent["data"] = data
-		actErrorHandlerResult = &base.ActErrorHandlerResult{
-			CommonDb: data.CommonDb,
-		}
-		actErrorHandlerResult.Err = r.BatchAdd(&data)
+		var m models.AdminUserGroupImport
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+		actErrorHandlerResult.Err = r.BatchAdd(
+			actErrorHandlerResult.ParseBatchAddDataParameter(
+				base.BatchAddDataParameterData(list),
+			),
+		)
 		return
 	})
 

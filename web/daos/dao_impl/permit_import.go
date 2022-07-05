@@ -27,53 +27,65 @@ func (r *DaoPermitImportImpl) GetMenuImportByMenuIdAndImportIds(menuId int64, im
 	if menuId == 0 || len(importIds) == 0 {
 		return
 	}
-
-	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"menuId":    menuId,
+			"importIds": importIds,
+			"err":       err.Error(),
+		}, "DaoPermitImportImplGetMenuImportByMenuIdAndImportIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		var m models.AdminMenuImport
 		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
-		actErrorHandlerResult.Err = actErrorHandlerResult.
-			Db.
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Scopes(base.ScopesDeletedAt()).
 			Table(actErrorHandlerResult.TableName).
 			Where("menu_id = ? AND import_id IN(?)", menuId, importIds).
 			Find(&res).
 			Error
 		return
-	}); err != nil {
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-		return
-	}
+	})
+
 	return
 }
 
 func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]*models.AdminImport, err error) {
-	l := len(ids)
+
+	var (
+		l          = len(ids)
+		m          models.AdminImport
+		data       []*models.AdminImport
+		logContent = map[string]interface{}{"ids": ids,}
+	)
+
 	res = make(map[int64]*models.AdminImport, l)
 	if l == 0 {
 		return
 	}
-	var m models.AdminImport
-	var data []*models.AdminImport
-	logContent := map[string]interface{}{
-		"ids": ids,
-	}
+
 	defer func() {
-		if err != nil {
-			r.Context.Error(logContent, "DaoPermitImportImplGetImportFromDbByIds")
+		if err == nil {
+			return
 		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "DaoPermitImportImplGetImportFromDbByIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
 
-	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
+	if err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
 		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
-
-		actErrorHandlerResult.Err = r.Context.Db.Table(m.TableName()).
+		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
+			Table(actErrorHandlerResult.TableName).
 			Where("id IN (?)", ids).
 			Scopes(base.ScopesDeletedAt()).
-			Find(&data).Error
+			Find(&data).
+			Error
 		return
-	})
-	if err != nil {
-		logContent["err"] = err.Error()
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}); err != nil {
 		return
 	}
 	for _, item := range data {
@@ -81,53 +93,44 @@ func (r *DaoPermitImportImpl) GetImportFromDbByIds(ids ...int64) (res map[int64]
 	}
 	return
 }
+
 func (r *DaoPermitImportImpl) GetImportForGateway(arg *wrapper_intranet.ArgGetImportPermit) (list []models.AdminImport, err error) {
 	condition := map[string]interface{}{}
 	if arg.AppName != "" {
 		condition["app_name"] = arg.AppName
 	}
-	var m models.AdminImport
-	db := r.Context.Db.Table(m.TableName()).
-		Where(condition).Scopes(base.ScopesDeletedAt()).
-		Where("need_login = ? OR need_sign = ?", models.NeedLoginNot, models.NeedSignNot)
-	var e error
-	if e = db.
-		Find(&list).
-		Error; e == nil {
-		return
-	}
-
-	logContent := map[string]interface{}{
-		"err": e.Error(),
-	}
-
+	logContent := map[string]interface{}{"arg": arg}
 	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(logContent, "DaoPermitImportGetImportForGateway")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
-
-	if err = r.CreateTableWithError(r.Context.Db, m.TableName(), e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
-		logContent["err1"] = err.Error()
-		logContent["desc"] = "CreateTableWithError"
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).Where(condition).
+			Scopes(base.ScopesDeletedAt()).
+			Where("need_login = ? OR need_sign = ?",
+				models.NeedLoginNot,
+				models.NeedSignNot).
+			Find(&list).
+			Error
 		return
-	}
-
-	if list, err = r.GetImportForGateway(arg); err != nil {
-		logContent["err2"] = err.Error()
-		logContent["desc"] = "ReGetImportForGateway"
-		return
-	}
+	})
 	return
 }
 
 func (r *DaoPermitImportImpl) AddData(adminImport *models.AdminImport) (err error) {
-	logContent := map[string]interface{}{
-		"adminImport": adminImport,
-	}
+	logContent := map[string]interface{}{"adminImport": adminImport,}
 	defer func() {
-		if err != nil {
-			logContent["err"] = err.Error()
-			r.Context.Error(logContent, "DaoPermitImportAddData")
+		if err == nil {
+			return
 		}
+		logContent["err"] = err.Error()
+		r.Context.Error(logContent, "DaoPermitImportAddData")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
 	if err = adminImport.InitRegexpString(); err != nil {
 		logContent["desc"] = "InitRegexpString"
@@ -158,7 +161,8 @@ func (r *DaoPermitImportImpl) getColumnName(s string) (res string) {
 	}
 	return
 }
-func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []*models.AdminMenuImport) (err error) {
+
+func (r *DaoPermitImportImpl) BatchMenuImport(list []*models.AdminMenuImport) (err error) {
 	if len(list) == 0 {
 		return
 	}
@@ -166,68 +170,82 @@ func (r *DaoPermitImportImpl) BatchMenuImport(tableName string, list []*models.A
 	for _, menuImport := range list {
 		dtList = append(dtList, menuImport)
 	}
-	var batchData = base.BatchAddDataParameter{
-		CommonDb: base.CommonDb{
-			DbName:    r.Context.DbName,
-			Db:        r.Context.Db,
-			TableName: tableName,
-		},
-		Data: dtList,
-	}
-	if err = r.BatchAdd(&batchData); err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"data": list,
-			"err":  err,
+			"err":  err.Error(),
 		}, "DaoPermitImportBatchMenuImport")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(list[0])
+		actRes.Err = r.BatchAdd(actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(dtList)))
 		return
-	}
-
+	})
 	return
 }
 
 func (r *DaoPermitImportImpl) DeleteByCondition(condition interface{}) (res bool, err error) {
-	var m models.AdminImport
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"err":       err.Error(),
+		}, "DaoPermitImportDeleteByCondition")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
 	if condition == nil {
 		err = fmt.Errorf("您没有选择要删除的数据")
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err.Error(),
-		}, "DaoPermitImportDeleteByCondition0")
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Where(condition).
-		Delete(&models.AdminImport{}).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"err":       err.Error(),
-		}, "DaoPermitImportDeleteByCondition1")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where(condition).
+			Delete(&models.AdminImport{}).
+			Error
 		return
-	}
+	})
+
 	return
 }
 
 func (r *DaoPermitImportImpl) UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error) {
-	var m models.AdminImport
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err.Error(),
+		}, "DaoPermitImportImplUpdateByCondition")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
 	if condition == nil || len(data) == 0 {
 		err = fmt.Errorf("您没有选择要更新的数据")
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"data":      data,
-			"err":       err.Error(),
-		}, "DaoPermitImportUpdateByCondition0")
 		return
 	}
-	if err = r.Context.Db.Table(m.TableName()).
-		Where(condition).Scopes(base.ScopesDeletedAt()).
-		Updates(data).Error; err != nil {
-		r.Context.Error(map[string]interface{}{
-			"condition": condition,
-			"data":      data,
-			"err":       err.Error(),
-		}, "DaoPermitImportUpdateByCondition1")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+
+	if err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where(condition).
+			Scopes(base.ScopesDeletedAt()).
+			Updates(data).
+			Error
+		return
+	}); err != nil {
 		return
 	}
 	res = true
@@ -240,131 +258,142 @@ func (r *DaoPermitImportImpl) GetChildImportByMenuId(menuIds ...int64) (list []m
 	if len(menuIds) == 0 {
 		return
 	}
-	var m models.AdminMenuImport
-	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("menu_id IN (?)", menuIds).
-		Find(&list).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
-			"iIds": menuIds,
-			"err":  err.Error(),
+			"menuIds": menuIds,
+			"err":     err.Error(),
 		}, "DaoPermitImportGetChildImportByMenuId")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("menu_id IN (?)", menuIds).
+			Find(&list).
+			Error
 		return
-	}
+	})
 	return
 }
+
 func (r *DaoPermitImportImpl) GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error) {
 	list = []models.AdminMenuImport{}
 	if len(iIds) == 0 {
 		return
 	}
-	var m models.AdminMenuImport
-	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).
-		Where("import_id IN (?)", iIds).
-		Find(&list).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"iIds": iIds,
 			"err":  err.Error(),
 		}, "DaoPermitImportGetImportMenuByImportIds")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("import_id IN (?)", iIds).
+			Find(&list).
+			Error;
 		return
-	}
+	})
+
 	return
 }
 func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
-
-	var m models.AdminMenuImport
-	var e error
-	var fetchData = base.FetchDataParameter{
-		CommonDb:base.CommonDb{
-			Db:  r.Context.Db,
-			DbName:    r.Context.DbName,
-			TableName: m.TableName(),
-		},
-
-	}
-	if e = fetchData.Db.Table(fetchData.TableName).Scopes(base.ScopesDeletedAt()).
-		Where(condition).
-		Updates(data).
-		Error; e == nil {
-		return
-	}
-
-	logContent := map[string]interface{}{
-		"condition": condition,
-		"e":         e.Error(),
-	}
 	defer func() {
-		r.Context.Error(logContent, "DaoPermitImportUpdateMenuImport")
-	}()
-	if err = r.CreateTableWithError(fetchData.Db, fetchData.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
-		return
-	}
-	if err = r.UpdateMenuImport(condition, data); err != nil {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"condition": condition,
+			"data":      data,
+			"err":       err.Error(),
+		}, "DaoPermitImportUpdateMenuImport")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.
+			Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where(condition).
+			Updates(data).
+			Error
 		return
-	}
-
+	})
 	return
 }
 
 func (r *DaoPermitImportImpl) BatchAddData(list []models.AdminImport) (err error) {
 
+	if len(list) == 0 {
+		return
+	}
 	var (
-		m        models.AdminImport
-		data     *base.BatchAddDataParameter
 		dataList []base.ModelBase
-		e        error
 	)
 
 	for _, adminImport := range list {
 		dataList = append(dataList, &adminImport)
 	}
-	if data, err = r.GetDefaultBatchAddDataParameter(dataList...); err != nil {
-		return
-	}
-
-	if e = r.BatchAdd(data); e == nil {
-		return
-	}
-	logContent := map[string]interface{}{
-		"list": list,
-		"e":    e.Error(),
-	}
+	logContent := map[string]interface{}{"list": list,}
 	defer func() {
+		if err == nil {
+			return
+		}
+		logContent["err"] = err.Error()
 		r.Context.Error(logContent, "DaoPermitImportBatchAddData")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
-	if err = r.CreateTableWithError(data.Db, data.TableName, e, &m, base.TableSetOption{"COMMENT": m.GetTableComment()}); err != nil {
-		logContent["err1"] = err.Error()
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(dataList[0])
+		actRes.Err = r.BatchAdd(actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(dataList)))
 		return
-	}
-	if err = r.BatchAddData(list); err != nil {
-		logContent["err2"] = err.Error()
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-		return
-	}
+	})
 	return
 }
+
 func (r *DaoPermitImportImpl) DeleteImportByIds(id ...int64) (err error) {
 	if len(id) == 0 {
 		return
 	}
-	var m models.AdminImport
-	if err = r.Context.Db.Table(m.TableName()).Scopes(base.ScopesDeletedAt()).Unscoped().
-		Where("id IN(?)", id).
-		Delete(&models.AdminImport{}).Error; err == nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
-			"err": err,
-		}, "daoPermitDeleteImportByIds0")
+			"err": err.Error(),
+		}, "daoPermitDeleteImportByIds")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Unscoped().
+			Where("id IN(?)", id).
+			Delete(&models.AdminImport{}).
+			Error
+		return
+	})
+	if err != nil {
 		return
 	}
-	daoGroupImport := NewDaoPermitGroupImport(r.Context)
-	if err = daoGroupImport.DeleteGroupImportWithMenuId(id...); err != nil {
+	if err = NewDaoPermitGroupImport(r.Context).
+		DeleteGroupImportWithMenuId(id...); err != nil {
 		return
 	}
 
@@ -376,19 +405,26 @@ func (r *DaoPermitImportImpl) GetImportByCondition(condition map[string]interfac
 	if len(condition) == 0 {
 		return
 	}
-	var m models.AdminImport
-
-	if err = r.Context.Db.Table(m.TableName()).
-		Where(condition).
-		Scopes(base.ScopesDeletedAt()).
-		Find(&list).
-		Limit(1000).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"err":       err.Error(),
-		}, "DaoPermitImportGetImportByCondition")
+		}, "DaoPermitImportImplGetImportByCondition")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where(condition).
+			Scopes(base.ScopesDeletedAt()).
+			Find(&list).
+			Limit(1000).Error
 		return
-	}
+	})
 	return
 }
 
@@ -397,23 +433,30 @@ func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (re
 	if len(menuId) == 0 {
 		return
 	}
-	var m models.AdminImport
-	var ami models.AdminMenuImport
-	if err = r.Context.Db.Table(ami.TableName()).
-		Unscoped().
-		Select(`b.*,a.menu_id`).
-		Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
-		Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ",
-			menuId,
-			models.DefaultOpen).
-		Find(&res).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"menuId": menuId,
-			"err":    err,
+			"err":    err.Error(),
 		}, "GetDefaultOpenImportByMenuIds")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m models.AdminImport
+		var ami models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(&m)
+		err = actRes.Db.Table(ami.TableName()).
+			Unscoped().
+			Select(`b.*,a.menu_id`).
+			Joins(fmt.Sprintf("AS a LEFT JOIN %s AS b  ON  b.`id` = a.import_id", m.TableName())).
+			Where("a.menu_id IN(?) AND  b.default_open = ? AND `a`.`deleted_at` IS NULL ",
+				menuId,
+				models.DefaultOpen).
+			Find(&res).
+			Error
 		return
-	}
+	})
 	return
 }
 func NewDaoPermitImport(c ...*base.Context) (res daos.DaoPermitImport) {
