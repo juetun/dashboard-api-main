@@ -24,6 +24,10 @@ type AdminApp struct {
 	HostConfig map[string]string `json:"hosts" gorm:"-"`
 }
 
+func (r *AdminApp) GetTableComment() (res string) {
+	return "服务管理"
+}
+
 func (r *AdminApp) UnmarshalHosts() (err error) {
 	r.HostConfig = make(map[string]string)
 	if r.Hosts != "" {

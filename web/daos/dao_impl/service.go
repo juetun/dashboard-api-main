@@ -25,56 +25,96 @@ type DaoServiceImpl struct {
 
 func (r *DaoServiceImpl) GetByKeys(keys ...string) (res []models.AdminApp, err error) {
 	res = make([]models.AdminApp, 0, len(keys))
-	var m models.AdminApp
-	if err = r.Context.Db.Table(m.TableName()).
-		Where("unique_key IN(?)", keys).
-		Find(&res).
-		Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"keys": keys,
 			"err":  err.Error(),
 		}, "daoServiceImplGetByKeys")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("unique_key IN(?)", keys).
+			Find(&res).
+			Error
 		return
-	}
+	})
+
 	return
 }
+
 func (r *DaoServiceImpl) GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error) {
-	var ami models.AdminMenuImport
-	if err = r.Context.Db.Table(ami.TableName()).
-		Select("DISTINCT import_app_name as app_name").
-		Where("`menu_module` = ?  AND `deleted_at` IS NULL", module).
-		Find(&res).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"module": module,
 			"err":    err.Error(),
 		}, "daoServiceImplGetImportMenuByModule")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var ami *models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(ami)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Select("DISTINCT import_app_name as app_name").
+			Where("`menu_module` = ?  AND `deleted_at` IS NULL", module).
+			Find(&res).Error
 		return
-	}
+	})
+
 	return
 }
 
 func (r *DaoServiceImpl) Update(condition, data map[string]interface{}) (err error) {
-	var m models.AdminApp
-	if err = r.Context.Db.Model(&m).Where(condition).Updates(data).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"condition": condition,
 			"data":      data,
 			"err":       err.Error(),
 		}, "DaoServiceImplUpdate")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where(condition).
+			Updates(data).Error
 		return
-	}
+	})
+
 	return
 }
 
 func (r *DaoServiceImpl) Create(app *models.AdminApp) (err error) {
-	// var m models.AdminApp
-	if err = r.Context.Db.Create(app).Error; err != nil {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"app": app,
 			"err": err.Error(),
 		}, "DaoServiceImplCreate")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(app)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Create(app).Error
 		return
-	}
+	})
+
 	return
 }
 
@@ -83,14 +123,25 @@ func (r *DaoServiceImpl) GetByIds(id ...int) (res []models.AdminApp, err error) 
 	if len(id) == 0 {
 		return
 	}
-	var m models.AdminApp
-	if err = r.Context.Db.Model(&m).Where("id IN(?)", id).Find(&res).Error; err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"id":  id,
 			"err": err.Error(),
 		}, "DaoServiceImplGetByIds")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("id IN(?)", id).
+			Find(&res).Error
 		return
-	}
+	})
+
 	return
 }
 
@@ -128,14 +179,14 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 }
 func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int64, dba *gorm.DB, err error) {
 	dba = r.fetchGetDb(db, arg)
- 	if err = dba.Count(&total).Error; err != nil {
+	if err = dba.Count(&total).Error; err != nil {
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "DaoServiceImplGetCount")
 		return
 	}
- 	return
+	return
 }
 
 func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page *response.Pager) (list []models.AdminApp, err error) {

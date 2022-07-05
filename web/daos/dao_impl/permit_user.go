@@ -3,6 +3,7 @@ package dao_impl
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -144,20 +145,29 @@ func (r *DaoPermitUserImpl) DeleteAdminUser(userHIds ...int64) (err error) {
 	if len(userHIds) == 0 {
 		return
 	}
-	var m models.AdminUser
-	err = r.Context.Db.Table(m.TableName()).
-		Where("user_hid IN (?) ", userHIds).
-		Scopes(base.ScopesDeletedAt()).
-		Updates(map[string]interface{}{
-			"deleted_at": time.Now().Format("2006-01-02 15:04:05"),
-		}).
-		Error
-	if err != nil {
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"ids": userHIds,
 			"err": err,
 		}, "DaoPermitUserImplAdminUserDelete")
-	}
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminUser
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("user_hid IN (?) ", userHIds).
+			Scopes(base.ScopesDeletedAt()).
+			Updates(map[string]interface{}{
+				"deleted_at": time.Now().Format(utils.DateTimeGeneral),
+			}).
+			Error
+		return
+	})
+
 	return
 }
 
@@ -228,8 +238,8 @@ func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, us
 		}
 	}()
 	err = r.ActErrorHandler(func() (actErrorHandlerResult *base.ActErrorHandlerResult) {
-		var m models.AdminUser
-		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(&m)
+		var m *models.AdminUser
+		actErrorHandlerResult = r.GetDefaultActErrorHandlerResult(m)
 		actErrorHandlerResult.Err = actErrorHandlerResult.Db.
 			Table(actErrorHandlerResult.TableName).Scopes(base.ScopesDeletedAt()).
 			Where("user_hid IN (?)", userHIds).
