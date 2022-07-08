@@ -52,7 +52,7 @@ func (r *ServiceActExport) InsertDataToDb() (dt *models.ZExportData, err error) 
 		Type:          extFileName,
 		Arguments:     r.argsString,
 		DownloadLink:  "",
-		CreateUserHid: r.args.RequestUser.UserHid,
+		CreateUserHid: r.args.RequestUser.UUserHid,
 	}
 	if _, err = dao_impl.NewDaoExportImpl(r.Context).Create(dt); err != nil {
 		return

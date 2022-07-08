@@ -146,7 +146,7 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	// 判断当前用户是否是超级管理员,
 	// 如果不是超级管理员 返回当前用户所属用户组
 	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
+		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
 		return
 	}
 
@@ -180,7 +180,7 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 
 	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
 	if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
+		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
 		return
 	}
 
@@ -336,7 +336,7 @@ func (r *SrvPermitMenuImpl) adminMenuWithCheckReadyParameterArg(arg *wrappers.Ar
 
 	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
 	if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UserHid); err != nil {
+		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
 		return
 	}
 
@@ -654,7 +654,7 @@ func (r *SrvPermitMenuImpl) getPermitByGroupIds(module string, groupIds ...int64
 
 // 获取用户未读消息数
 func (r *SrvPermitMenuImpl) getNotReadMessage(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-	res.NotReadMsgCount, _ = r.getMessageCount(arg.UserHid)
+	res.NotReadMsgCount, _ = r.getMessageCount(arg.UUserHid)
 	return
 }
 

@@ -114,7 +114,7 @@ func (r DaoExportImpl) Progress(args *wrappers.ArgumentsExportProgress) (res *[]
 	var m models.ZExportData
 	db, dbName := r.GetExportDb()
 	if err = db.Table(m.TableName()).
-		Where("create_user_hid=? AND hid in (?)", args.UserHid, args.IdString).
+		Where("create_user_hid=? AND hid in (?)", args.UUserHid, args.IdString).
 		Find(&res).
 		Error; err != nil {
 		r.Context.Error(map[string]interface{}{

@@ -38,7 +38,7 @@ func NewServiceExport(context ...*base.Context) (p *ServiceExport) {
 func (r *ServiceExport) List(args *wrappers.ArgumentsExportList) (res wrappers.ResultExportList, err error) {
 	res = wrappers.ResultExportList{List: []wrappers.ExportShowObject{}}
 	dao := dao_impl.NewDaoExportImpl(r.Context)
-	list, err := dao.GetListByUser(args.RequestUser.UserHid, args.Limit)
+	list, err := dao.GetListByUser(args.RequestUser.UUserHid, args.Limit)
 	if err != nil {
 		return
 	}
