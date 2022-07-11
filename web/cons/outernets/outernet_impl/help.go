@@ -5,7 +5,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/cons/outernets"
 	"github.com/juetun/dashboard-api-main/web/srvs/srv_impl"
-	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_outernet"
 )
 
 type ConOuterNetsHelpImpl struct {
@@ -15,8 +15,8 @@ type ConOuterNetsHelpImpl struct {
 func (r *ConOuterNetsHelpImpl) Tree(c *gin.Context) {
 
 	var (
-		arg wrapper_admin.ArgHelpTree
-		res wrapper_admin.ResultHelpTree
+		arg wrapper_outernet.ArgTree
+		res *wrapper_outernet.ResultTree
 		err error
 	)
 
@@ -30,7 +30,7 @@ func (r *ConOuterNetsHelpImpl) Tree(c *gin.Context) {
 	}
 
 	if res, err = srv_impl.NewSrvHelpRelate(base.CreateContext(&r.ControllerBase, c)).
-		HelpTree(&arg); err != nil {
+		Tree(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
