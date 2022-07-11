@@ -30,6 +30,7 @@ func NewCategoryService(context ...*base.Context) (p *CategoryService) {
 	p.SetContext(context...)
 	return
 }
+
 func (r *CategoryService) GetCateById(cateId int) (cate *models.ZCategories, err error) {
 	cate = &models.ZCategories{}
 	err = r.Context.Db.Table((&models.ZCategories{}).TableName()).

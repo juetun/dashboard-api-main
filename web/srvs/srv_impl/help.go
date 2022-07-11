@@ -1,0 +1,125 @@
+package srv_impl
+
+import (
+	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/dashboard-api-main/web/daos"
+	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
+	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/dashboard-api-main/web/srvs"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+)
+
+type SrvHelpImpl struct {
+	base.ServiceBase
+	dao daos.DaoHelp
+}
+
+func (r *SrvHelpImpl) HelpList(arg *wrapper_admin.ArgHelpList) (res *wrapper_admin.ResultHelpList, err error) {
+	res = &wrapper_admin.ResultHelpList{Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery))}
+	switch arg.PageType {
+	case response.DefaultPageTypeList:
+		err = r.getWithList(arg, res)
+	default:
+		err = fmt.Errorf("当前不支持你选择的分类类型")
+	}
+	return
+}
+
+func (r *SrvHelpImpl) getWithList(arg *wrapper_admin.ArgHelpList, res *wrapper_admin.ResultHelpList) (err error) {
+	var actRes *base.ActErrorHandlerResult
+	var actGetCount = func(pagerObject *response.Pager) (err error) {
+		actRes, err = r.dao.GetCountByArg(arg, pagerObject)
+		return
+	}
+
+	var actGetList = func(pagerObject *response.Pager) (err error) {
+		var list []*models.HelpDocument
+		if list, err = r.dao.GetListByArg(arg, actRes, pagerObject); err != nil {
+			return
+		}
+		pagerObject.List = list
+		return
+	}
+	err = res.CallGetPagerData(actGetCount, actGetList)
+	return
+}
+
+func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper_admin.ResultHelpDetail, err error) {
+	res = &wrapper_admin.ResultHelpDetail{}
+	var help *models.HelpDocument
+	if help, err = r.getById(arg.Id); err != nil {
+		return
+	}
+	res.ParseFromHelpDoc(help)
+	return
+}
+
+func (r *SrvHelpImpl) getById(id int64) (res *models.HelpDocument, err error) {
+	var helpMap map[int64]*models.HelpDocument
+	if helpMap, err = r.dao.GetByIds(base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(id))); err != nil {
+		return
+	}
+	var ok bool
+	if res, ok = helpMap[id]; !ok {
+		err = fmt.Errorf("你要查看(或编辑)的帮助信息不存在或已删除")
+		return
+	}
+	return
+}
+
+func (r *SrvHelpImpl) validatePk(arg *wrapper_admin.ArgHelpEdit, helpMap map[string]*models.HelpDocument) (err error) {
+	var help *models.HelpDocument
+	var ok bool
+
+	if help, ok = helpMap[arg.PKey]; !ok { //如果没查到数据
+		return
+	}
+	if arg.Id == 0 {
+		err = fmt.Errorf("你输入的数据唯一KEY已存在")
+		return
+	}
+	if help.Id != arg.Id {
+		err = fmt.Errorf("你输入的数据唯一KEY已存在")
+		return
+	}
+	return
+}
+
+func (r *SrvHelpImpl) HelpEdit(arg *wrapper_admin.ArgHelpEdit) (res *wrapper_admin.ResultHelpEdit, err error) {
+	res = &wrapper_admin.ResultHelpEdit{}
+	var help map[string]*models.HelpDocument
+	if help, err = r.dao.GetByPKey(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.PKey))); err != nil {
+		return
+	}
+	//判断key的唯一性
+	if err = r.validatePk(arg, help); err != nil {
+		return
+	}
+
+	if _, err = r.getById(arg.Id); err != nil {
+		return
+	}
+	data := &models.HelpDocument{
+		Id:        arg.Id,
+		PKey:      arg.PKey,
+		Content:   arg.Content,
+		CreatedAt: arg.TimeNow,
+	}
+	if err = data.DefaultBeforeAdd(); err != nil {
+		return
+	}
+	if err = r.dao.AddHelpDocument(data); err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+
+func NewSrvHelp(context ...*base.Context) (res srvs.SrvHelp) {
+	p := &SrvHelpImpl{}
+	p.SetContext(context...)
+	p.dao = dao_impl.NewDaoHelp(p.Context)
+	return p
+}

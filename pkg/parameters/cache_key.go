@@ -6,6 +6,14 @@ import (
 )
 
 var (
+	CacheKeyHelp = redis_pkg.CacheProperty{
+		Key:    "p:hp:%s",
+		Expire: 30 * 24 * time.Hour,
+	}
+	CacheKeyHelpWithId = redis_pkg.CacheProperty{
+		Key:    "p:hp_id:%s",
+		Expire: 12 * time.Hour,
+	}
 	//接口按照appname缓存的key
 	CacheKeyImportWithAppKey = redis_pkg.CacheProperty{
 		Key:    "p:app_c:%s",

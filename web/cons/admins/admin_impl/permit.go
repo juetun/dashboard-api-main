@@ -14,11 +14,6 @@ type ControllerPermit struct {
 	base.ControllerBase
 }
 
-func NewControllerPermit() admins.Permit {
-	controller := &ControllerPermit{}
-	controller.ControllerBase.Init()
-	return controller
-}
 
 func (r *ControllerPermit) MenuImportSet(c *gin.Context) {
 	var (
@@ -569,4 +564,10 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 	}
 	r.Response(c, base.SuccessCode, res)
 
+}
+
+func NewControllerPermit() admins.Permit {
+	controller := &ControllerPermit{}
+	controller.ControllerBase.Init()
+	return controller
 }
