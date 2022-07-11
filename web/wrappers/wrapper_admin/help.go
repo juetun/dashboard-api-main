@@ -11,13 +11,24 @@ import (
 
 type (
 	ArgHelpTree struct {
-		TopId   int64  `json:"top_id" form:"top_id"`
-		BizCode string `json:"biz_code" form:"biz_code"`
+		TopId     int64  `json:"top_id" form:"top_id"`
+		BizCode   string `json:"biz_code" form:"biz_code"`
+		CurrentId int64  `json:"current_id" form:"current_id"`
 	}
-	ResultHelpTree     []*ResultHelpTreeItem
+	ResultHelpTree     []*ResultFormPage
 	ResultHelpTreeItem struct {
 		models.HelpDocumentRelate
+		//Expand bool                  `json:"expand"`
 		Child []*ResultHelpTreeItem `json:"child,omitempty"`
+	}
+	ResultFormPage struct {
+		Id         int64             `json:"id"`
+		Title      string            `json:"title"`
+		Expand     bool              `json:"expand"`
+		DocKey     string            `json:"doc_key"`
+		Display    uint8             `json:"display"`
+		IsLeafNode uint8             `json:"is_leaf_node"`
+		Children   []*ResultFormPage `json:"children,omitempty"`
 	}
 	ArgTreeEditNode struct {
 		Id         int64           `json:"id" form:"id"`

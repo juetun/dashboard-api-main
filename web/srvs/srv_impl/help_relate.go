@@ -15,17 +15,71 @@ type SrvHelpRelateImpl struct {
 }
 
 func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res wrapper_admin.ResultHelpTree, err error) {
-	res = []*wrapper_admin.ResultHelpTreeItem{}
+	res = []*wrapper_admin.ResultFormPage{}
 	if arg.BizCode == "" {
 		return
 	}
-	var data map[int64][]*wrapper_admin.ResultHelpTreeItem
+	var (
+		data    map[int64][]*wrapper_admin.ResultHelpTreeItem
+		ok      bool
+		dataRes []*wrapper_admin.ResultHelpTreeItem
+	)
 	if data, err = r.dao.GetByTopId(arg.BizCode, arg.TopId); err != nil {
 		return
 	}
-	var ok bool
-	if res, ok = data[arg.TopId]; !ok {
-		res = []*wrapper_admin.ResultHelpTreeItem{}
+	if dataRes, ok = data[arg.TopId]; !ok {
+		res = []*wrapper_admin.ResultFormPage{}
+	}
+	var mapParent = make(map[int64]int64)
+
+	res = r.setExpand(dataRes, arg.CurrentId, &mapParent)
+	var currentId = arg.CurrentId
+	for {
+		if len(mapParent) == 0 {
+			break
+		}
+		if currentId, ok = mapParent[currentId]; !ok || currentId == 0 {
+			break
+		}
+		delete(mapParent, currentId)
+		r.setAllParentExpand(res, currentId)
+
+	}
+	return
+}
+
+func (r *SrvHelpRelateImpl) setAllParentExpand(res []*wrapper_admin.ResultFormPage, currentId int64) {
+	for _, value := range res {
+		if value.Id == currentId {
+			value.Expand = true
+		}
+		if len(value.Children) > 0 {
+			r.setAllParentExpand(value.Children, currentId)
+		}
+	}
+
+	return
+}
+
+func (r *SrvHelpRelateImpl) setExpand(data []*wrapper_admin.ResultHelpTreeItem, currentId int64, mapParent *map[int64]int64) (res []*wrapper_admin.ResultFormPage) {
+	var dataItem *wrapper_admin.ResultFormPage
+	res = make([]*wrapper_admin.ResultFormPage, 0, len(data))
+	for _, value := range data {
+		(*mapParent)[value.Id] = value.ParentId
+		dataItem = &wrapper_admin.ResultFormPage{
+			Title:      value.Label,
+			Id:         value.Id,
+			DocKey:     value.DocKey,
+			Display:    value.Display,
+			IsLeafNode: value.IsLeafNode,
+		}
+		if value.Id == currentId {
+			dataItem.Expand = true
+		}
+		if len(value.Child) > 0 {
+			dataItem.Children = r.setExpand(value.Child, currentId, mapParent)
+		}
+		res = append(res, dataItem)
 	}
 	return
 }

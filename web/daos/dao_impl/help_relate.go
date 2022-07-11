@@ -57,6 +57,7 @@ func (r *DaoHelpRelateImpl) getChildByTopIds(bizCode string, actRes *base.ActErr
 	var list []*models.HelpDocumentRelate
 	if err = actRes.Db.Table(actRes.TableName).
 		Where("parent_id IN(?) AND biz_code = ?", topIds, bizCode).
+		Scopes(base.ScopesDeletedAt()).
 		Find(&list).
 		Error; err != nil {
 		return
