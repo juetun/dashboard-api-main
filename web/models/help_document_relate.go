@@ -41,9 +41,10 @@ var (
 
 type HelpDocumentRelate struct {
 	Id         int64      `gorm:"column:id;primary_key" json:"id" form:"id"`
- 	Display    uint8      `gorm:"column:display;default:1;not null;type:tinyint(2);comment:是否在列表页展示 1-展示 0-不展示" json:"display"`
+	Display    uint8      `gorm:"column:display;default:1;not null;type:tinyint(2);comment:是否在列表页展示 1-展示 0-不展示" json:"display"`
 	ParentId   int64      `gorm:"column:parent_id;not null;type:bigint(20);default:0;comment:上级文档ID" json:"parent_id"`
-	IsLeafNode uint8      `gorm:"column:is_leaf_node;default:1;not null;type:tinyint(2);comment:是否叶子节点;1-是 0-不是" json:"is_leaf_node"`
+	Label      string     `gorm:"column:label;not null;type:varchar(150);default:'';comment:名称"json:"label"`
+	IsLeafNode uint8      `gorm:"column:is_leaf_node;default:0;not null;type:tinyint(2);comment:是否叶子节点;1-是 0-不是" json:"is_leaf_node"`
 	DocKey     string     `gorm:"column:p_key;not null;type:varchar(150);default:'';comment:文档唯一的key"json:"doc_key"`
 	CreatedAt  time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	UpdatedAt  time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `

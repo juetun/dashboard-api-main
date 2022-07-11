@@ -16,10 +16,11 @@ func (r *DaoHelpRelateImpl) GetByTopId(topIds ...int64) (res map[int64][]*wrappe
 		return
 	}
 	var list []*models.HelpDocumentRelate
-	var actResParam *base.ActErrorHandlerResult
+	var m *models.HelpDocumentRelate
+	var actResParam = r.GetDefaultActErrorHandlerResult(m)
+
 	var actHandler = func() (actRes *base.ActErrorHandlerResult) {
-		var m *models.HelpDocumentRelate
-		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes = actResParam
 		actRes.Err = actRes.Db.
 			Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
@@ -104,8 +105,8 @@ func (r *DaoHelpRelateImpl) groupRelate(list []*models.HelpDocumentRelate) (data
 		dtRes = &wrapper_admin.ResultHelpTreeItem{}
 		dtRes.HelpDocumentRelate = *item
 		//如果不是叶子节点
-		if item.IsLeafNode == models.HelpDocumentRelateIsLeafNodeNo {
-			childTopIds = append(childTopIds, item.ParentId)
+		if item.IsLeafNode == models.HelpDocumentRelateIsLeafNodeNo && item.Id != 0 {
+			childTopIds = append(childTopIds, item.Id)
 		}
 		dataMap[item.ParentId] = append(dataMap[item.ParentId], dtRes)
 	}
