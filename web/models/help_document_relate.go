@@ -45,7 +45,7 @@ type HelpDocumentRelate struct {
 	ParentId   int64            `gorm:"column:parent_id;not null;uniqueIndex:idx_pk,priority:2;type:bigint(20);default:0;comment:上级文档ID" json:"parent_id"`
 	Label      string           `gorm:"column:label;not null;uniqueIndex:idx_pk,priority:3;type:varchar(150);default:'';comment:名称"json:"label"`
 	IsLeafNode uint8            `gorm:"column:is_leaf_node;default:0;not null;type:tinyint(2);comment:是否叶子节点;1-是 0-不是" json:"is_leaf_node"`
-	DocKey     string           `gorm:"column:p_key;not null;type:varchar(150);default:'';comment:文档唯一的key"json:"doc_key"`
+	DocKey     string           `gorm:"column:doc_key;not null;type:varchar(150);default:'';comment:文档唯一的key"json:"doc_key"`
 	CreatedAt  base.TimeNormal  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	UpdatedAt  base.TimeNormal  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt  *base.TimeNormal `gorm:"column:deleted_at" json:"-"`

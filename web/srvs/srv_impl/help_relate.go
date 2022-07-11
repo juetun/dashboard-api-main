@@ -22,13 +22,25 @@ func (r *SrvHelpRelateImpl) Tree(arg *wrapper_outernet.ArgTree) (res *wrapper_ou
 		ok        bool
 		mapParent = make(map[int64]int64)
 		currentId = arg.CurrentId
+		docKey    string
 	)
+
 	if dataRes, err = r.getDataWithBizAndTopId(arg.BizCode, arg.TopId); err != nil {
 		return
 	}
 
-	res.Data = r.setExpandAsTree(dataRes, arg.CurrentId, &mapParent)
+	res.Data, docKey = r.setExpandAsTree(dataRes, arg.CurrentId, &mapParent)
 
+	if docKey != "" {
+		var mapDoc map[string]*models.HelpDocument
+		argFetchDoc := base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(docKey))
+		if mapDoc, err = dao_impl.NewDaoHelp(r.Context).GetByPKey(argFetchDoc); err != nil {
+			return
+		}
+		if tmp, ok := mapDoc[docKey]; ok {
+			res.DocContent = tmp.Content
+		}
+	}
 	for {
 		if len(mapParent) == 0 {
 			break
@@ -54,23 +66,32 @@ func (r *SrvHelpRelateImpl) setAllParentExpandAsTree(res []*wrapper_outernet.Res
 
 	return
 }
-func (r *SrvHelpRelateImpl) setExpandAsTree(data []*wrapper_admin.ResultHelpTreeItem, currentId int64, mapParent *map[int64]int64) (res []*wrapper_outernet.ResultFormPage) {
+func (r *SrvHelpRelateImpl) setExpandAsTree(data []*wrapper_admin.ResultHelpTreeItem, currentId int64, mapParent *map[int64]int64) (res []*wrapper_outernet.ResultFormPage, docKey string) {
 	var dataItem *wrapper_outernet.ResultFormPage
 	res = make([]*wrapper_outernet.ResultFormPage, 0, len(data))
 	for _, value := range data {
+		if value.Display == models.HelpDocumentRelateIsLeafNodeNo {
+			continue
+		}
 		(*mapParent)[value.Id] = value.ParentId
 		dataItem = &wrapper_outernet.ResultFormPage{
 			Title:      value.Label,
 			Id:         value.Id,
 			DocKey:     value.DocKey,
-			Display:    value.Display,
 			IsLeafNode: value.IsLeafNode,
 		}
 		if value.Id == currentId {
 			dataItem.Expand = true
 		}
+		if value.IsLeafNode == models.HelpDocumentRelateIsLeafNodeYes {
+			docKey = value.DocKey
+		}
 		if len(value.Child) > 0 {
-			dataItem.Children = r.setExpandAsTree(value.Child, currentId, mapParent)
+			var docKeyTmp string
+			dataItem.Children, docKeyTmp = r.setExpandAsTree(value.Child, currentId, mapParent)
+			if docKeyTmp != "" {
+				docKey = docKeyTmp
+			}
 		}
 		res = append(res, dataItem)
 	}
