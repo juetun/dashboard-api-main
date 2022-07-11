@@ -11,8 +11,8 @@ type DaoHelpRelateImpl struct {
 	base.ServiceDao
 }
 
-func (r *DaoHelpRelateImpl) GetByTopId(topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error) {
-	if len(topIds) == 0 {
+func (r *DaoHelpRelateImpl) GetByTopId(bizCode string, topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error) {
+	if len(topIds) == 0 || bizCode == "" {
 		return
 	}
 	var list []*models.HelpDocumentRelate
@@ -24,7 +24,7 @@ func (r *DaoHelpRelateImpl) GetByTopId(topIds ...int64) (res map[int64][]*wrappe
 		actRes.Err = actRes.Db.
 			Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
-			Where("id IN (?)", topIds).
+			Where("id IN (?) AND biz_code=?", topIds, bizCode).
 			Find(&list).
 			Error
 		if actRes.Err != nil {
@@ -35,13 +35,13 @@ func (r *DaoHelpRelateImpl) GetByTopId(topIds ...int64) (res map[int64][]*wrappe
 	if err = r.ActErrorHandler(actHandler); err != nil {
 		return
 	}
-	if res, err = r.orgGroupRelate(actResParam, topIds...); err != nil {
+	if res, err = r.orgGroupRelate(bizCode, actResParam, topIds...); err != nil {
 		return
 	}
 	return
 }
 
-func (r *DaoHelpRelateImpl) getChildByTopIds(actRes *base.ActErrorHandlerResult, topIds ...int64) (dataMap map[int64][]*wrapper_admin.ResultHelpTreeItem, childTopIds []int64, err error) {
+func (r *DaoHelpRelateImpl) getChildByTopIds(bizCode string, actRes *base.ActErrorHandlerResult, topIds ...int64) (dataMap map[int64][]*wrapper_admin.ResultHelpTreeItem, childTopIds []int64, err error) {
 	if len(topIds) == 0 {
 		return
 	}
@@ -56,7 +56,7 @@ func (r *DaoHelpRelateImpl) getChildByTopIds(actRes *base.ActErrorHandlerResult,
 	}()
 	var list []*models.HelpDocumentRelate
 	if err = actRes.Db.Table(actRes.TableName).
-		Where("parent_id IN(?)", topIds).
+		Where("parent_id IN(?) AND biz_code = ?", topIds, bizCode).
 		Find(&list).
 		Error; err != nil {
 		return
@@ -65,17 +65,17 @@ func (r *DaoHelpRelateImpl) getChildByTopIds(actRes *base.ActErrorHandlerResult,
 	return
 }
 
-func (r *DaoHelpRelateImpl) orgGroupRelate(actRes *base.ActErrorHandlerResult, topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error) {
+func (r *DaoHelpRelateImpl) orgGroupRelate(bizCode string, actRes *base.ActErrorHandlerResult, topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error) {
 	var (
 		childTopIds []int64
 	)
-	if res, childTopIds, err = r.getChildByTopIds(actRes, topIds...); err != nil {
+	if res, childTopIds, err = r.getChildByTopIds(bizCode, actRes, topIds...); err != nil {
 		return
 	}
 	if len(childTopIds) > 0 {
 		var resChildren map[int64][]*wrapper_admin.ResultHelpTreeItem
 		//获得儿子的数据
-		if resChildren, err = r.orgGroupRelate(actRes, childTopIds...); err != nil {
+		if resChildren, err = r.orgGroupRelate(bizCode, actRes, childTopIds...); err != nil {
 			return
 		}
 		for _, item := range res {

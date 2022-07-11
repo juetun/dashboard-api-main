@@ -15,8 +15,12 @@ type SrvHelpRelateImpl struct {
 }
 
 func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res wrapper_admin.ResultHelpTree, err error) {
+	res = []*wrapper_admin.ResultHelpTreeItem{}
+	if arg.BizCode == "" {
+		return
+	}
 	var data map[int64][]*wrapper_admin.ResultHelpTreeItem
-	if data, err = r.dao.GetByTopId(arg.TopId); err != nil {
+	if data, err = r.dao.GetByTopId(arg.BizCode, arg.TopId); err != nil {
 		return
 	}
 	var ok bool
@@ -36,7 +40,10 @@ func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (re
 	data.ParentId = arg.ParentId
 	data.IsLeafNode = arg.IsLeafNode
 	data.DocKey = arg.DocKey
-
+	data.Label = arg.Label
+	data.BizCode = arg.BizCode
+	data.CreatedAt = arg.TimeNow
+	data.UpdatedAt = arg.TimeNow
 	if err = r.dao.AddOneHelpRelate(data); err != nil {
 		return
 	}
