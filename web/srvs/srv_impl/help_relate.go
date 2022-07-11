@@ -14,20 +14,32 @@ type SrvHelpRelateImpl struct {
 	dao daos.DaoHelpRelate
 }
 
-func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res *wrapper_admin.ResultHelpTree, err error) {
-
+func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res wrapper_admin.ResultHelpTree, err error) {
+	var data map[int64][]*wrapper_admin.ResultHelpTreeItem
+	if data, err = r.dao.GetByTopId(arg.TopId); err != nil {
+		return
+	}
+	var ok bool
+	if res, ok = data[arg.TopId]; !ok {
+		res = []*wrapper_admin.ResultHelpTreeItem{}
+	}
 	return
 }
 
 func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (res *wrapper_admin.ResultTreeEditNode, err error) {
+
 	res = &wrapper_admin.ResultTreeEditNode{}
+
 	var data = &models.HelpDocumentRelate{}
 	data.Id = arg.Id
 	data.Display = arg.Display
 	data.ParentId = arg.ParentId
 	data.IsLeafNode = arg.IsLeafNode
 	data.DocKey = arg.DocKey
-	err=r.dao.AddOneHelpRelate(data)
+
+	if err = r.dao.AddOneHelpRelate(data); err != nil {
+		return
+	}
 	res.Result = true
 	return
 }

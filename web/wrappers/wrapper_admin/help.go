@@ -13,10 +13,10 @@ type (
 	ArgHelpTree struct {
 		TopId int64 `json:"top_id" form:"top_id"`
 	}
-	ResultHelpTree     []ResultHelpTreeItem
+	ResultHelpTree     []*ResultHelpTreeItem
 	ResultHelpTreeItem struct {
 		models.HelpDocumentRelate
-		Child []ResultHelpTreeItem `json:"child"`
+		Child []*ResultHelpTreeItem `json:"child,omitempty"`
 	}
 	ArgTreeEditNode struct {
 		Id         int64  `json:"id" form:"id"`
