@@ -16,9 +16,9 @@ type (
 	ResultFormPage struct {
 		Id         int64             `json:"id"`
 		Title      string            `json:"title"`
-		Expand     bool              `json:"expand"`
+		Expand     bool              `json:"expand,omitempty"`
 		DocKey     string            `json:"doc_key,omitempty"`
- 		IsLeafNode uint8             `json:"is_leaf_node"`
+ 		IsLeafNode uint8             `json:"is_leaf_node,omitempty"`
 		Children   []*ResultFormPage `json:"children,omitempty"`
 	}
 )

@@ -8,7 +8,7 @@ import (
 type HelpDocument struct {
 	Id        int64            `gorm:"column:id;primary_key" json:"id" form:"id"`
 	PKey      string           `gorm:"column:p_key;uniqueIndex:idx_pk,priority:1;not null;type:varchar(150);default:'';comment:唯一的key" json:"p_key"`
-	Content   string           `gorm:"column:content;not null;type:text;default:'';comment:文档内容" json:"content"`
+	Content   string           `gorm:"column:content;not null;type:text;comment:文档内容" json:"content"`
 	CreatedAt base.TimeNormal  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	UpdatedAt base.TimeNormal  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt *base.TimeNormal `gorm:"column:deleted_at" json:"-"`

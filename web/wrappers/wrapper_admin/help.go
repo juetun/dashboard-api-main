@@ -18,8 +18,7 @@ type (
 	ResultHelpTree     []*ResultFormPage
 	ResultHelpTreeItem struct {
 		models.HelpDocumentRelate
-		//Expand bool                  `json:"expand"`
-		Child []*ResultHelpTreeItem `json:"child,omitempty"`
+ 		Child []*ResultHelpTreeItem `json:"child,omitempty"`
 	}
 	ResultFormPage struct {
 		Id         int64             `json:"id"`
