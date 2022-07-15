@@ -1,5 +1,4 @@
-config/*
 /juetun_dashboard_api_main
-/config/
+/config/apps
 /log/
 vendor
