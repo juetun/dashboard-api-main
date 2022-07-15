@@ -376,6 +376,8 @@ github.com/juetun/base-wrapper v0.0.223 h1:UyMX4x3TVlR5U7gFr0U0+a81jkzGW4jCn7YdH
 github.com/juetun/base-wrapper v0.0.223/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
 github.com/juetun/base-wrapper v0.0.224 h1:ds2xPSXLSJpuuFGhO4DFFvnwhQr+DFotD0FwXYu5pzw=
 github.com/juetun/base-wrapper v0.0.224/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
+github.com/juetun/base-wrapper v0.0.225 h1:q/87f+zV2BrAKGgIah/lSH11mM+a9d9lYUZCQgDDhn4=
+github.com/juetun/base-wrapper v0.0.225/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
 github.com/juetun/library v0.0.1 h1:Esd0VDbYPBsME4jpMy7BX5XnLdnmG2tAg4OAYmhgX9w=
 github.com/juetun/library v0.0.1/go.mod h1:L/RNkNlvZeL5wmzx1dl6Tnow1jLWHzZn+J67YC/WWMo=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
