@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/app_param"
+	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"

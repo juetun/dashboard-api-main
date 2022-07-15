@@ -15,7 +15,7 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/base-wrapper/lib/common/app_param"
+	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 )

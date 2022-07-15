@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juetun/base-wrapper/lib/common/app_param"
+	"github.com/juetun/library/common/app_param"
 )
 
 type ArgumentsExportList struct {
