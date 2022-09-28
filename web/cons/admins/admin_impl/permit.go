@@ -14,24 +14,19 @@ type ControllerPermit struct {
 	base.ControllerBase
 }
 
-
 func (r *ControllerPermit) MenuImportSet(c *gin.Context) {
 	var (
 		res *wrappers.ResultMenuImportSet
 		arg wrappers.ArgMenuImportSet
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-	var err error
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
+		return
+	}
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitGroupImpl(ctx).
 		MenuImportSet(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -45,19 +40,14 @@ func (r *ControllerPermit) GetMenu(c *gin.Context) {
 		err error
 		arg wrappers.ArgGetMenu
 		res wrappers.ResultGetMenu
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(ctx).
 		GetMenu(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -70,19 +60,14 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 		arg wrappers.ArgAdminMenu
 		err error
 		res wrappers.ResAdminMenuSearch
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(ctx).
 		AdminMenuSearch(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -92,20 +77,17 @@ func (r *ControllerPermit) AdminMenuSearch(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
-	var arg wrappers.ArgAdminUserGroupRelease
-	var err error
-	err = c.Bind(&arg)
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgAdminUserGroupRelease
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	srv := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvPermitGroupImpl(ctx)
 	res, err := srv.AdminUserGroupRelease(&arg)
 
 	if err != nil {
@@ -116,22 +98,18 @@ func (r *ControllerPermit) AdminUserGroupRelease(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
-	var arg wrappers.ArgAdminUserGroupAdd
-	var err error
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgAdminUserGroupAdd
+		err error
+		res wrappers.ResultAdminUserGroupAdd
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
 
-		return
-	}
-	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminUserGroupAdd(&arg)
-
-	if err != nil {
+	if res, err = srv_impl.NewSrvPermitGroupImpl(ctx).
+		AdminUserGroupAdd(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
 	}
@@ -139,25 +117,18 @@ func (r *ControllerPermit) AdminUserGroupAdd(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
-	var arg wrappers.ArgAdminGroupDelete
-	var err error
-	err = c.Bind(&arg)
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgAdminGroupDelete
+		err error
+		res wrappers.ResultAdminGroupDelete
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
-	if err = arg.Default(c); err != nil {
-		return
-	}
-
-	// 记录日志
-	context := base.CreateContext(&r.ControllerBase, c)
-	context.Info(map[string]interface{}{"arg": arg})
-
-	res, err := srv_impl.NewSrvPermitGroupImpl(context).
-		AdminGroupDelete(&arg)
-
-	if err != nil {
+	ctx.Info(map[string]interface{}{"arg": arg})
+	if res, err = srv_impl.NewSrvPermitGroupImpl(ctx).
+		AdminGroupDelete(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
 	}
@@ -165,20 +136,17 @@ func (r *ControllerPermit) AdminGroupDelete(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
-	var arg wrappers.ArgAdminGroupEdit
-	var err error
-	err = c.Bind(&arg)
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgAdminGroupEdit
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewSrvPermitGroupImpl(ctx).
 		AdminGroupEdit(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
@@ -188,38 +156,39 @@ func (r *ControllerPermit) AdminGroupEdit(c *gin.Context) {
 }
 
 func (r *ControllerPermit) DeleteImport(c *gin.Context) {
-	var err error
-	var arg wrappers.ArgDeleteImport
-	if err = c.ShouldBindUri(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		err error
+		arg wrappers.ArgDeleteImport
+		res *wrappers.ResultDeleteImport
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeShouldBindUri); haveErr {
 		return
 	}
-	var res *wrappers.ResultDeleteImport
+
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		DeleteImport(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
-	} else {
-		r.Response(c, base.SuccessCode, res)
 	}
+	r.Response(c, base.SuccessCode, res)
+	return
 }
 
 func (r *ControllerPermit) UpdateImportValue(c *gin.Context) {
-	var arg wrappers.ArgUpdateImportValue
-	var err error
-	var res *wrappers.ResultUpdateImportValue
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgUpdateImportValue
+		err error
+		res *wrappers.ResultUpdateImportValue
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		UpdateImportValue(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -227,21 +196,20 @@ func (r *ControllerPermit) UpdateImportValue(c *gin.Context) {
 	r.Response(c, base.SuccessCode, res)
 	return
 }
+
 func (r *ControllerPermit) ImportList(c *gin.Context) {
-	var arg wrappers.ArgImportList
-	var err error
-	var res *wrappers.ResultImportList
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgImportList
+		err error
+		res *wrappers.ResultImportList
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeShouldBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		ImportList(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -249,21 +217,20 @@ func (r *ControllerPermit) ImportList(c *gin.Context) {
 	r.Response(c, base.SuccessCode, res)
 	return
 }
+
 func (r *ControllerPermit) EditImport(c *gin.Context) {
-	var arg wrappers.ArgEditImport
-	var err error
-	var res *wrappers.ResultEditImport
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgEditImport
+		err error
+		res *wrappers.ResultEditImport
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		EditImport(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -271,24 +238,20 @@ func (r *ControllerPermit) EditImport(c *gin.Context) {
 	r.Response(c, base.SuccessCode, res)
 	return
 }
+
 func (r *ControllerPermit) GetImport(c *gin.Context) {
 	var (
 		res *wrappers.ResultGetImport
 		arg wrappers.ArgGetImport
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		GetImport(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -304,19 +267,14 @@ func (r *ControllerPermit) GetImportByMenuId(c *gin.Context) {
 		arg wrappers.ArgGetImportByMenuId
 		res = wrappers.ResultGetImportByMenuId{}
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitImport(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitImport(ctx).
 		GetImportByMenuId(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -330,18 +288,14 @@ func (r *ControllerPermit) MenuImport(c *gin.Context) {
 		arg wrapper_admin.ArgMenuImport
 		err error
 		res *wrapper_admin.ResultMenuImport
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
+		return
+	}
 
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(ctx).
 		MenuImport(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -355,19 +309,14 @@ func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 		arg wrappers.ArgMenuDelete
 		err error
 		res *wrappers.ResultMenuDelete
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewPermitServiceImpl(ctx).
 		MenuDelete(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -377,18 +326,16 @@ func (r *ControllerPermit) MenuDelete(c *gin.Context) {
 }
 
 func (r *ControllerPermit) MenuSave(c *gin.Context) {
-	var arg wrappers.ArgMenuSave
-	var err error
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgMenuSave
+		err error
+		res *wrappers.ResultMenuSave
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	var res *wrappers.ResultMenuSave
 	// 记录日志
 	if res, err = srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
 		MenuSave(&arg); err != nil {
@@ -399,21 +346,17 @@ func (r *ControllerPermit) MenuSave(c *gin.Context) {
 }
 
 func (r *ControllerPermit) MenuAdd(c *gin.Context) {
-	var arg wrappers.ArgMenuAdd
-	var err error
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-
+	var (
+		arg wrappers.ArgMenuAdd
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewPermitServiceImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewPermitServiceImpl(ctx).
 		MenuAdd(&arg)
 	if err != nil {
 		r.ResponseError(c, err)
@@ -427,17 +370,13 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 		arg wrappers.ArgAdminMenuWithCheck
 		res *wrappers.ResultMenuWithCheck
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitMenu(ctx).
 		AdminMenuWithCheck(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -446,23 +385,20 @@ func (r *ControllerPermit) AdminMenuWithCheck(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminMenu(c *gin.Context) {
-	var arg wrappers.ArgAdminMenu
-	err := c.Bind(&arg)
-	if err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-
+	var (
+		arg wrappers.ArgAdminMenu
+		res *wrappers.ResultAdminMenu
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
-		AdminMenu(&arg)
 
-	if err != nil {
+	if res, err = srv_impl.NewSrvPermitMenu(ctx).
+		AdminMenu(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
 	}
@@ -471,16 +407,14 @@ func (r *ControllerPermit) AdminMenu(c *gin.Context) {
 
 // AdminSetPermit 设置权限
 func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
-	var arg wrappers.ArgAdminSetPermit
-	var err error
-	var res *wrappers.ResultAdminSetPermit
+	var (
+		arg wrappers.ArgAdminSetPermit
+		err error
+		res *wrappers.ResultAdminSetPermit
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
@@ -494,21 +428,20 @@ func (r *ControllerPermit) AdminSetPermit(c *gin.Context) {
 }
 
 func (r *ControllerPermit) AdminGroup(c *gin.Context) {
-	var arg wrappers.ArgAdminGroup
-	var err error
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		arg wrappers.ArgAdminGroup
+		err error
+		res *wrappers.ResultAdminGroup
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitGroupImpl(base.CreateContext(&r.ControllerBase, c)).
-		AdminGroup(&arg)
-	if err != nil {
+	if res, err = srv_impl.NewSrvPermitGroupImpl(ctx).
+		AdminGroup(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
 	}
@@ -521,18 +454,15 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 		err error
 		arg wrappers.ArgPermitMenu
 		res *wrappers.ResultPermitMenuReturn
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitMenu(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitMenu(ctx).
 		Menu(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -546,18 +476,14 @@ func (r *ControllerPermit) GetAppConfig(c *gin.Context) {
 		arg wrappers.ArgGetAppConfig
 		res *wrappers.ResultGetAppConfig
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvPermitAppImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitAppImpl(ctx).
 		GetAppConfig(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return

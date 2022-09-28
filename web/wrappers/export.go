@@ -9,10 +9,10 @@
 package wrappers
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/juetun/library/common/app_param"
 )
 
@@ -21,7 +21,7 @@ type ArgumentsExportList struct {
 	Limit int `json:"limit"`
 }
 
-func (r *ArgumentsExportList) Default(c *gin.Context) (err error) {
+func (r *ArgumentsExportList) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -45,7 +45,7 @@ type ArgumentsExportCancel struct {
 	app_param.RequestUser
 }
 
-func (r *ArgumentsExportCancel) Default(c *gin.Context) (err error) {
+func (r *ArgumentsExportCancel) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -78,11 +78,11 @@ type ArgumentsExportInit struct {
 	HttpHeader http.Header           `form:"-"  json:"http_header"`
 }
 
-func (r *ArgumentsExportInit) Default(c *gin.Context) (err error) {
+func (r *ArgumentsExportInit) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
-	r.HttpHeader = c.Request.Header
+	r.HttpHeader = c.GinContext.Request.Header
 	return
 }
 
@@ -112,7 +112,7 @@ func (r *ArgumentsExportProgress) InitIds() {
 	}
 }
 
-func (r *ArgumentsExportProgress) Default(c *gin.Context) (err error) {
+func (r *ArgumentsExportProgress) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}

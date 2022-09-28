@@ -17,11 +17,14 @@ func (r *ConPermitIntranetImpl) ValidateUserHavePermit(c *gin.Context) {
 		err  error
 		args wrapper_intranet.ArgValidateUserHavePermit
 		res  *wrapper_intranet.ResultValidateUserHavePermit
+		ctx  = base.CreateContext(&r.ControllerBase, c)
 	)
-	if haveErr := r.ParametersAccept(c, &args); haveErr {
+
+	if haveErr := r.ParametersAccept(ctx, &args); haveErr {
 		return
 	}
-	if res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+
+	if res, err = srv_impl.NewSrvPermitUserImpl(ctx).
 		ValidateUserHavePermit(&args); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -36,19 +39,13 @@ func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 		err  error
 		args wrapper_intranet.ArgGetUerImportPermit
 		res  *wrapper_intranet.ResultGetUerImportPermit
+		ctx  = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.ShouldBind(&args); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &args); haveErr {
 		return
 	}
-
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-
-	srv := srv_impl.NewSrvGatewayImport(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvGatewayImport(ctx)
 
 	if res, err = srv.GetUerImportPermit(&args); err != nil {
 		r.ResponseError(c, err)
@@ -60,20 +57,18 @@ func (r *ConPermitIntranetImpl) GetUerImportPermit(c *gin.Context) {
 
 // GetImportPermit 获取接口权限
 func (r *ConPermitIntranetImpl) GetImportPermit(c *gin.Context) {
-	var args wrapper_intranet.ArgGetImportPermit
-	var err error
-	var res wrapper_intranet.ResultGetImportPermit
+	var (
+		args wrapper_intranet.ArgGetImportPermit
+		err  error
+		res  wrapper_intranet.ResultGetImportPermit
+		ctx  = base.CreateContext(&r.ControllerBase, c)
+	)
 
-	if err = c.Bind(&args); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &args, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
-	srv := srv_impl.NewSrvGatewayImport(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewSrvGatewayImport(ctx)
 
 	if res, err = srv.GetImportPermit(&args); err != nil {
 		r.ResponseError(c, err)

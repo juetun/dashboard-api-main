@@ -1,6 +1,8 @@
 package wrapper_outernet
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/juetun/base-wrapper/lib/base"
+)
 
 type (
 	ArgTree struct {
@@ -10,20 +12,20 @@ type (
 		DocKey    string `json:"doc_key" form:"doc_key"`
 	}
 	ResultTree struct {
-		Data []*ResultFormPage `json:"data"`
-		DocContent string `json:"doc_content"`
+		Data       []*ResultFormPage `json:"data"`
+		DocContent string            `json:"doc_content"`
 	}
 	ResultFormPage struct {
 		Id         int64             `json:"id"`
 		Title      string            `json:"title"`
 		Expand     bool              `json:"expand,omitempty"`
 		DocKey     string            `json:"doc_key,omitempty"`
- 		IsLeafNode uint8             `json:"is_leaf_node,omitempty"`
+		IsLeafNode uint8             `json:"is_leaf_node,omitempty"`
 		Children   []*ResultFormPage `json:"children,omitempty"`
 	}
 )
 
-func (r *ArgTree) Default(context *gin.Context) (err error) {
+func (r *ArgTree) Default(context *base.Context) (err error) {
 
 	return
 }

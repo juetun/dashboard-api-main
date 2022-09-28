@@ -18,18 +18,13 @@ func (r *ConsoleHelpImpl) HelpTree(c *gin.Context) {
 		arg wrapper_admin.ArgHelpTree
 		res wrapper_admin.ResultHelpTree
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvHelpRelate(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelpRelate(ctx).
 		HelpTree(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -43,18 +38,13 @@ func (r *ConsoleHelpImpl) TreeEditNode(c *gin.Context) {
 		arg wrapper_admin.ArgTreeEditNode
 		res *wrapper_admin.ResultTreeEditNode
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvHelpRelate(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelpRelate(ctx).
 		TreeEditNode(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -69,18 +59,13 @@ func (r *ConsoleHelpImpl) HelpList(c *gin.Context) {
 		arg wrapper_admin.ArgHelpList
 		res *wrapper_admin.ResultHelpList
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvHelp(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelp(ctx).
 		HelpList(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -95,18 +80,12 @@ func (r *ConsoleHelpImpl) HelpDetail(c *gin.Context) {
 		arg wrapper_admin.ArgHelpDetail
 		res *wrapper_admin.ResultHelpDetail
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-
-	if res, err = srv_impl.NewSrvHelp(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelp(ctx).
 		HelpDetail(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return
@@ -121,18 +100,13 @@ func (r *ConsoleHelpImpl) HelpEdit(c *gin.Context) {
 		arg wrapper_admin.ArgHelpEdit
 		res *wrapper_admin.ResultHelpEdit
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
-
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvHelp(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelp(ctx).
 		HelpEdit(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return

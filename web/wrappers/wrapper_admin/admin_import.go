@@ -2,10 +2,10 @@ package wrapper_admin
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
+	"github.com/juetun/library/common/app_param"
 )
 
 const (
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-func (r *ArgMenuImport) Default(c *gin.Context) (err error) {
+func (r *ArgMenuImport) Default(c *base.Context) (err error) {
 	_ = c
 	if r.HaveSelect != "" {
 		if r.HaveSelect != ArgMenuImportHaveSelectYes {

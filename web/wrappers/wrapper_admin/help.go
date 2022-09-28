@@ -2,7 +2,6 @@ package wrapper_admin
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
@@ -71,12 +70,12 @@ type (
 	}
 )
 
-func (r *ArgHelpTree) Default(context *gin.Context) (err error) {
+func (r *ArgHelpTree) Default(context *base.Context) (err error) {
 
 	return
 }
 
-func (r *ArgTreeEditNode) Default(context *gin.Context) (err error) {
+func (r *ArgTreeEditNode) Default(context *base.Context) (err error) {
 	r.TimeNow = base.GetNowTimeNormal()
 	if r.BizCode == "" {
 		err = fmt.Errorf("请填写业务编码")
@@ -96,12 +95,12 @@ func (r *ResultHelpDetail) ParseFromHelpDoc(document *models.HelpDocument) {
 	return
 }
 
-func (r *ArgHelpList) Default(c *gin.Context) (err error) {
+func (r *ArgHelpList) Default(c *base.Context) (err error) {
 
 	return
 }
 
-func (r *ArgHelpDetail) Default(c *gin.Context) (err error) {
+func (r *ArgHelpDetail) Default(c *base.Context) (err error) {
 	if r.Id == 0 {
 		err = fmt.Errorf("请选择你要查看的信息")
 		return
@@ -109,7 +108,7 @@ func (r *ArgHelpDetail) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgHelpEdit) Default(context *gin.Context) (err error) {
+func (r *ArgHelpEdit) Default(context *base.Context) (err error) {
 	if r.TimeNow.IsZero() {
 		r.TimeNow = base.GetNowTimeNormal()
 	}

@@ -3,8 +3,8 @@ package wrapper_intranet
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 
-	"github.com/gin-gonic/gin"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
 
@@ -55,7 +55,7 @@ type (
 	}
 )
 
-func (r *ArgValidateUserHavePermit) Default(c *gin.Context) (err error) {
+func (r *ArgValidateUserHavePermit) Default(c *base.Context) (err error) {
 
 	return
 }
@@ -75,7 +75,7 @@ func (r *UerImportItem) ToUk() (res string) {
 	res = fmt.Sprintf("%s%s%s", r.Method, r.App, r.Uri)
 	return
 }
-func (r *ArgGetUerImportPermit) Default(c *gin.Context) (err error) {
+func (r *ArgGetUerImportPermit) Default(c *base.Context) (err error) {
 	if r.UHid == 0 {
 		err = fmt.Errorf("请选择你要查看权限的用户")
 		return
@@ -113,6 +113,6 @@ func (r *ArgGetUerImportPermit) GetUrlApps() (apps []string) {
 	return
 }
 
-func (r *ArgGetImportPermit) Default(c *gin.Context) (err error) {
+func (r *ArgGetImportPermit) Default(c *base.Context) (err error) {
 	return
 }

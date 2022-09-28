@@ -2,10 +2,9 @@ package wrapper_admin
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"strconv"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
 type (
@@ -20,7 +19,7 @@ type (
 	}
 )
 
-func (r *ArgAdminUserUpdateWithColumn) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUserUpdateWithColumn) Default(c *base.Context) (err error) {
 	_ = c
 	if r.UserHids == "" {
 		err = fmt.Errorf("请选择要编辑的管理员")

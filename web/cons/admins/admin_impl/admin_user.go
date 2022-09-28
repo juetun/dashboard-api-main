@@ -18,18 +18,14 @@ func (r *ConAdminUser) AdminUserUpdateWithColumn(c *gin.Context) {
 		err error
 		arg wrapper_admin.ArgAdminUserUpdateWithColumn
 		res *wrapper_admin.ResultAdminUserUpdateWithColumn
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitUserImpl(ctx).
 		AdminUserUpdateWithColumn(&arg); err != nil {
 		r.ResponseError(c, err)
 		return
@@ -42,19 +38,15 @@ func (r *ConAdminUser) AdminUser(c *gin.Context) {
 	var (
 		err error
 		arg wrappers.ArgAdminUser
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
 	// 记录日志
-	res, err := srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err := srv_impl.NewSrvPermitUserImpl(ctx).
 		AdminUser(&arg)
 
 	if err != nil {
@@ -70,19 +62,14 @@ func (r *ConAdminUser) AdminUserEdit(c *gin.Context) {
 		res wrappers.ResultAdminUserAdd
 		arg wrappers.ArgAdminUserAdd
 		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
-
-	if err = arg.Default(c); err != nil {
-		return
-	}
-
 	// 记录日志
-	res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+	res, err = srv_impl.NewSrvPermitUserImpl(ctx).
 		AdminUserEdit(&arg)
 
 	if err != nil {
@@ -93,20 +80,18 @@ func (r *ConAdminUser) AdminUserEdit(c *gin.Context) {
 }
 
 func (r *ConAdminUser) AdminUserDelete(c *gin.Context) {
-	var arg wrappers.ArgAdminUserDelete
-	var err error
-	var res wrappers.ResultAdminUserDelete
+	var (
+		arg wrappers.ArgAdminUserDelete
+		err error
+		res wrappers.ResultAdminUserDelete
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
 
-	if err = c.Bind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 	// 记录日志
-	if res, err = srv_impl.NewSrvPermitUserImpl(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvPermitUserImpl(ctx).
 		AdminUserDelete(&arg); err != nil {
 		r.ResponseError(c, err)
 		return

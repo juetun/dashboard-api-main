@@ -9,12 +9,14 @@
 package wrappers
 
 import (
+	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
+	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/library/common/app_param"
 )
 
 type (
@@ -68,7 +70,20 @@ type (
 	}
 )
 
-func (r *ArgServiceEdit) Default(c *gin.Context) (err error) {
+func (r *ArgServiceList) Default(ctx *base.Context) (err error) {
+
+	return
+}
+
+func (r *ArgDetail) Default(ctx *base.Context) (err error) {
+	if r.Id, err = strconv.Atoi(ctx.GinContext.Params.ByName("id")); err != nil {
+		err = fmt.Errorf("参数格式不正确")
+		return
+	}
+	return
+}
+
+func (r *ArgServiceEdit) Default(c *base.Context) (err error) {
 
 	return
 }

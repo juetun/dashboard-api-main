@@ -18,18 +18,14 @@ func (r *ConOuterNetsHelpImpl) Tree(c *gin.Context) {
 		arg wrapper_outernet.ArgTree
 		res *wrapper_outernet.ResultTree
 		err error
+		ctx  = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if err = c.ShouldBind(&arg); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = arg.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
 
-	if res, err = srv_impl.NewSrvHelpRelate(base.CreateContext(&r.ControllerBase, c)).
+	if res, err = srv_impl.NewSrvHelpRelate(ctx).
 		Tree(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
 		return

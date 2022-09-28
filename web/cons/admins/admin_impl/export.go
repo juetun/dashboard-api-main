@@ -21,19 +21,17 @@ type ControllerExportData struct {
 }
 
 func (r ControllerExportData) Cancel(c *gin.Context) {
-	var args wrappers.ArgumentsExportCancel
-	var err error
-	var res wrappers.ResultExportCancel
+	var (
+		args wrappers.ArgumentsExportCancel
+		err  error
+		res  wrappers.ResultExportCancel
+		ctx  = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &args, base.ControllerGetParamTypeBind); haveErr {
+		return
+	}
 
-	if err = c.Bind(&args); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(ctx)
 
 	if res, err = srv.Cancel(&args); err != nil {
 		r.ResponseError(c, err)
@@ -43,19 +41,16 @@ func (r ControllerExportData) Cancel(c *gin.Context) {
 }
 
 func (r ControllerExportData) Init(c *gin.Context) {
-	var args = wrappers.ArgumentsExportInit{}
-	var err error
-
-	if err = c.Bind(&args); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		args = wrappers.ArgumentsExportInit{}
+		err  error
+		ctx  = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &args, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
-	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
+	srv := srv_impl.NewServiceExport(ctx)
 	var res wrappers.ResultExportInit
 	res, err = srv.Init(&args)
 	if err != nil {
@@ -66,22 +61,17 @@ func (r ControllerExportData) Init(c *gin.Context) {
 }
 
 func (r ControllerExportData) Progress(c *gin.Context) {
-	var args wrappers.ArgumentsExportProgress
-	var err error
-
-	if err = c.BindQuery(&args); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		args wrappers.ArgumentsExportProgress
+		err  error
+		res  wrappers.ResultExportProgress
+		ctx  = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &args, base.ControllerGetParamTypeBindQuery); haveErr {
 		return
 	}
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-
-	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
-	var res wrappers.ResultExportProgress
-	res, err = srv.Progress(&args)
-	if err != nil {
+	if res, err = srv_impl.NewServiceExport(ctx).
+		Progress(&args); err != nil {
 		r.ResponseError(c, err)
 		return
 	}
@@ -90,22 +80,18 @@ func (r ControllerExportData) Progress(c *gin.Context) {
 
 func (r ControllerExportData) List(c *gin.Context) {
 
-	var args wrappers.ArgumentsExportList
-	var err error
-
-	if err = c.Bind(&args); err != nil {
- 		r.ResponseError(c, err, base.ErrorParameterCode)
-		return
-	}
-	if err = args.Default(c); err != nil {
-		r.ResponseError(c, err, base.ErrorParameterCode)
+	var (
+		args wrappers.ArgumentsExportList
+		err  error
+		res  wrappers.ResultExportList
+		ctx  = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &args, base.ControllerGetParamTypeBind); haveErr {
 		return
 	}
 
-	srv := srv_impl.NewServiceExport(base.CreateContext(&r.ControllerBase, c))
-	var res wrappers.ResultExportList
-	res, err = srv.List(&args)
-	if err != nil {
+	if res, err = srv_impl.NewServiceExport(ctx).
+		List(&args); err != nil {
 		r.Log.Logger.Errorln("message", "export.list", "err", err.Error())
 		r.ResponseError(c, err)
 		return

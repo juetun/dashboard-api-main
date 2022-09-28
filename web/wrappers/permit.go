@@ -10,16 +10,16 @@ package wrappers
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/gin-gonic/gin"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/pkg/utils"
+	"github.com/juetun/library/common/app_param"
 
 	"github.com/juetun/dashboard-api-main/web/models"
 )
@@ -340,6 +340,10 @@ type (
 	}
 )
 
+func (r *ArgDeleteImport) Default(ctx *base.Context) (err error) {
+	return
+}
+
 func (r *ResultMenuWithCheck) SetSystemList(list []*models.AdminMenu, systemId int64) {
 	var data ResultSystemAdminMenu
 	for _, item := range list {
@@ -359,7 +363,7 @@ func (r *ResultMenuWithCheck) SetSystemList(list []*models.AdminMenu, systemId i
 	return
 }
 
-func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
+func (r *ArgGetImportByMenuId) Default(c *base.Context) (err error) {
 	_ = c
 	if r.NowMenuId == 0 && r.NowRoutePath == "" {
 		err = fmt.Errorf("请选择菜单界面")
@@ -368,14 +372,14 @@ func (r *ArgGetImportByMenuId) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgGetAppConfig) Default(c *gin.Context) (err error) {
+func (r *ArgGetAppConfig) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
 	return
 }
 
-func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
+func (r *ArgAdminMenuWithCheck) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -383,7 +387,7 @@ func (r *ArgAdminMenuWithCheck) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
+func (r *ArgAdminSetPermit) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -428,7 +432,7 @@ func (r *ArgAdminSetPermit) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
+func (r *ArgUpdateImportValue) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -451,7 +455,7 @@ func (r *ArgUpdateImportValue) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgImportList) Default(c *gin.Context) (err error) {
+func (r *ArgImportList) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -459,7 +463,7 @@ func (r *ArgImportList) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgEditImport) Default(c *gin.Context) (err error) {
+func (r *ArgEditImport) Default(c *base.Context) (err error) {
 	_ = c
 	if r.AppName == "" {
 		err = fmt.Errorf("请输入接口所属应用KEY")
@@ -483,7 +487,7 @@ func (r *ArgEditImport) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
+func (r *ArgMenuImportSet) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -505,7 +509,7 @@ func (r *ArgMenuImportSet) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgGetImport) Default(c *gin.Context) (err error) {
+func (r *ArgGetImport) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -513,13 +517,13 @@ func (r *ArgGetImport) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgAdminUserAdd) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUserAdd) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
 	return
 }
-func (r *ArgGetImportByMenuIdSingle) Default(c *gin.Context) (err error) {
+func (r *ArgGetImportByMenuIdSingle) Default(c *base.Context) (err error) {
 	divString := "/"
 	pathSlice := strings.Split(strings.TrimLeft(r.NowRoutePath, "/"), divString)
 	switch len(pathSlice) {
@@ -536,7 +540,7 @@ func (r *ArgGetImportByMenuIdSingle) Default(c *gin.Context) (err error) {
 	}
 	return
 }
-func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUserDelete) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -558,7 +562,7 @@ func (r *ArgAdminUserDelete) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgAdminUserGroupRelease) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUserGroupRelease) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -578,7 +582,7 @@ type ArgAdminUserGroupAdd struct {
 	UserHIds     []int64
 }
 
-func (r *ArgAdminUserGroupAdd) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUserGroupAdd) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -632,7 +636,7 @@ type ArgAdminGroupDelete struct {
 	IdString []int64 `json:"-" form:"-"`
 }
 
-func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
+func (r *ArgAdminGroupDelete) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -651,7 +655,7 @@ func (r *ArgAdminGroupDelete) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
+func (r *ArgAdminGroupEdit) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -666,7 +670,7 @@ func (r *ArgAdminGroupEdit) Default(c *gin.Context) (err error) {
 	return
 }
 
-func (r *ArgMenuAdd) Default(c *gin.Context) (err error) {
+func (r *ArgMenuAdd) Default(c *base.Context) (err error) {
 	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
@@ -690,7 +694,7 @@ type ArgMenuSave struct {
 	models.AdminMenu
 }
 
-func (r *ArgMenuSave) Default(c *gin.Context) (err error) {
+func (r *ArgMenuSave) Default(c *base.Context) (err error) {
 	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
@@ -725,7 +729,7 @@ type ArgMenuDelete struct {
 	IdValueNumber []int64  `json:"-"`
 }
 
-func (r *ArgMenuDelete) Default(c *gin.Context) (err error) {
+func (r *ArgMenuDelete) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -758,7 +762,7 @@ type ArgAdminGroup struct {
 	GroupId string `json:"group_id" form:"group_id"`
 }
 
-func (r *ArgAdminGroup) Default(c *gin.Context) (err error) {
+func (r *ArgAdminGroup) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -787,7 +791,7 @@ type ArgAdminMenu struct {
 	OperatorIsSuperAdmin bool    `json:"-" form:"-"` // 当前操作用户是否为超级管理员
 }
 
-func (r *ArgAdminMenu) Default(c *gin.Context) (err error) {
+func (r *ArgAdminMenu) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -862,7 +866,7 @@ type ArgAdminUser struct {
 	CannotUse    int8    `json:"can_not_use" form:"can_not_use"`
 }
 
-func (r *ArgAdminUser) Default(c *gin.Context) (err error) {
+func (r *ArgAdminUser) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -917,17 +921,17 @@ type ResultAdminUserList struct {
 
 type ArgPermitMenu struct {
 	app_param.RequestUser
-	ArgGetImportByMenuIdSingle               // 通用参数逻辑处理 用于获取当前菜单下的接口列表
-	ParentId     int64    `json:"parent_id"` // 上级菜单ID
-	PathType     string   `json:"path_type" form:"path_type"`
-	PathTypes    []string `json:"-" form:"-"`
-	Module       string   `json:"module" form:"module"` // 系统ID
-	IsSuperAdmin bool     `json:"-" form:"-"`           // 是否为超级管理员
-	GroupId      []int64  `json:"-" form:"-"`
+	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
+	ParentId                   int64    `json:"parent_id"` // 上级菜单ID
+	PathType                   string   `json:"path_type" form:"path_type"`
+	PathTypes                  []string `json:"-" form:"-"`
+	Module                     string   `json:"module" form:"module"` // 系统ID
+	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
+	GroupId                    []int64  `json:"-" form:"-"`
 }
 
 // Default 初始化默认值
-func (r *ArgPermitMenu) Default(c *gin.Context) (err error) {
+func (r *ArgPermitMenu) Default(c *base.Context) (err error) {
 
 	if err = r.InitRequestUser(c); err != nil {
 		return
@@ -988,7 +992,7 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 	return
 }
 
-func (r *ArgFlag) Default(c *gin.Context) (err error) {
+func (r *ArgFlag) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
@@ -998,7 +1002,8 @@ func (r *ArgFlag) Default(c *gin.Context) (err error) {
 func (r *ArgAdminMenuSearch) Default() {
 
 }
-func (r *ArgGetMenu) Default(c *gin.Context) (err error) {
+
+func (r *ArgGetMenu) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
