@@ -764,7 +764,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 				Scopes(base.ScopesDeletedAt()).
 				Order("sort_value desc").
 				Where("id = ?", arg.SystemId).
-				First(&list).Error; actRes.Err != nil {
+				Find(&list).Error; actRes.Err != nil {
 				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
 				return
 			}
