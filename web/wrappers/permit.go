@@ -586,7 +586,10 @@ func (r *ArgAdminUserGroupAdd) Default(c *base.Context) (err error) {
 	if err = r.InitRequestUser(c); err != nil {
 		return
 	}
-
+	if r.UserHid == 0 {
+		err = fmt.Errorf("您没有选择要添加权限组的用户ID")
+		return
+	}
 	r.GroupIds = []int64{}
 	r.UserHIds = []int64{}
 

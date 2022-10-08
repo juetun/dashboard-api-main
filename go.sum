@@ -382,6 +382,10 @@ github.com/juetun/base-wrapper v0.0.227 h1:tKeJ4B6rZj6qbibGD/bibfcLNL5G27gX3GPjz
 github.com/juetun/base-wrapper v0.0.227/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
 github.com/juetun/base-wrapper v0.0.231 h1:t4SLFHA2btJU3HMiNfDlhn5C8PiBQNPBWzv4dkfzO/c=
 github.com/juetun/base-wrapper v0.0.231/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
+github.com/juetun/base-wrapper v0.0.232 h1:HMexBDcW9LPraRHCn5ejmZWZPQ3Pr3vJpwolPgV5Xy0=
+github.com/juetun/base-wrapper v0.0.232/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
+github.com/juetun/base-wrapper v0.0.233 h1:pu1yv1BQxYYACDi9+0WdVc01snFXEX6TNk4GQ0wDZ3A=
+github.com/juetun/base-wrapper v0.0.233/go.mod h1:JfIHmBZORWjzfIcEP9chtwbFcwSS3IkkgilddH0NfqY=
 github.com/juetun/library v0.0.1 h1:Esd0VDbYPBsME4jpMy7BX5XnLdnmG2tAg4OAYmhgX9w=
 github.com/juetun/library v0.0.1/go.mod h1:L/RNkNlvZeL5wmzx1dl6Tnow1jLWHzZn+J67YC/WWMo=
 github.com/juetun/library v0.0.8 h1:kvygnTbIDHPlpLle8jfk5wRmWy0637/q0dYN22aUEto=

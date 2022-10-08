@@ -226,6 +226,9 @@ func (r *DaoPermitGroupImpl) GetGroupByIds(groupIds ...int64) (res []*models.Adm
 }
 
 func (r *DaoPermitGroupImpl) AdminUserGroupAdd(data []base.ModelBase) (err error) {
+	if len(data) == 0 {
+		return
+	}
 	logContent := map[string]interface{}{
 		"base": data,
 	}
