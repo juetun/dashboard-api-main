@@ -23,4 +23,6 @@ type DaoPermitUser interface {
 	GetAdminUserList(db *gorm.DB, arg *wrappers.ArgAdminUser, pager *response.Pager) (res []models.AdminUser, err error)
 
 	GetGroupByUserId(userId int64) (res []wrappers.AdminGroupUserStruct, err error)
+
+	GetAdminUserByIds(arg *base.ArgGetByNumberIds) (res map[int64]*models.AdminUser, err error)
 }

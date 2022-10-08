@@ -15,9 +15,8 @@ import (
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
-	"github.com/juetun/dashboard-api-main/pkg/parameters"
+	"github.com/juetun/library/common/app_param"
 )
 
 type UserService struct {
@@ -69,13 +68,13 @@ func (r *UserService) GetUserByIds(userId []int64) (users map[int64]app_param.Re
 	httpHeader.Set(app_obj.HttpUserToken, r.Context.GinContext.GetHeader(app_obj.HttpUserToken))
 
 	request := &rpc.RequestOptions{
-		Context: r.Context,
-		Method:  "POST",
-		AppName: parameters.MicroUser,
-		Header:  httpHeader,
+		Context:     r.Context,
+		Method:      "POST",
+		AppName:     app_param.AppNameUser,
+		Header:      httpHeader,
 		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
-		URI:     "/user/get_by_uid",
-		Value:   url.Values{},
+		URI:         "/user/get_by_uid",
+		Value:       url.Values{},
 	}
 	var userIdString = make([]string, 0, len(userId))
 	for _, i2 := range userId {

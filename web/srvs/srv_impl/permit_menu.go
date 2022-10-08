@@ -4,6 +4,7 @@ package srv_impl
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/juetun/library/common/app_param"
 	"net/http"
 	"net/url"
 	"sync"
@@ -11,7 +12,6 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/plugins/rpc"
-	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -134,6 +134,39 @@ func (r *SrvPermitMenuImpl) getGeneralNowMenuImports(arg *wrappers.ArgPermitMenu
 	return
 }
 
+func (r *SrvPermitMenuImpl) generalAdminister(handlers map[string]MenuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+
+	err = r.generalAdminMenu(arg, handlers)
+
+	// 并行执行逻辑
+	r.syncOperate(handlers, arg, res)
+	return
+}
+
+func (r *SrvPermitMenuImpl) superAdminister(handlers map[string]MenuHandler, arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
+	//如果是超级管理员
+	err = r.superAdminMenu(arg, handlers)
+
+	// 并行执行逻辑
+	r.syncOperate(handlers, arg, res)
+	return
+}
+
+func (r *SrvPermitMenuImpl) getAdminUserInfo(getUserArgument *base.ArgGetByNumberIds, userHid int64) (isSuperAdmin bool, err error) {
+	var adminUserMap models.AdminUserMap
+	if adminUserMap, err = dao_impl.NewDaoPermitUser(r.Context).
+		GetAdminUserByIds(getUserArgument); err != nil {
+		return
+	}
+	if dt, ok := adminUserMap[userHid]; !ok {
+		err = fmt.Errorf("当前账号没有管理员权限")
+		return
+	} else if dt.FlagAdmin == models.AdminUserFlagAdminYes {
+		isSuperAdmin = true
+	}
+	return
+}
+
 // Menu 每个界面调用获取菜单列表
 func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.ResultPermitMenuReturn, err error) {
 
@@ -144,29 +177,37 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	}
 
 	// 判断当前用户是否是超级管理员,
-	// 如果不是超级管理员 返回当前用户所属用户组
-	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+	var getUserArgument = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(arg.UUserHid))
+	if arg.IsSuperAdmin, err = r.getAdminUserInfo(getUserArgument, arg.UUserHid); err != nil {
 		return
+	} else {
+		res.IsSuperAdmin = arg.IsSuperAdmin
+		arg.SuperAdminFlag = arg.IsSuperAdmin
 	}
 
-	res.IsSuperAdmin = arg.IsSuperAdmin
-	arg.SuperAdminFlag = arg.IsSuperAdmin
+	//如果不是超级管理员
+	if !arg.IsSuperAdmin {
 
-	if !arg.IsSuperAdmin { //普通管理员
-
-		err = r.generalAdminMenu(arg, handlers)
-
-		// 并行执行逻辑
-		r.syncOperate(handlers, arg, res)
-		return
+		// 如果不是超级管理员 返回当前用户所属用户组
+		if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+			GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+			return
+		} else {
+			res.IsSuperAdmin = arg.IsSuperAdmin
+			arg.SuperAdminFlag = arg.IsSuperAdmin
+		}
+		if !arg.IsSuperAdmin { //普通管理员
+			if err = r.generalAdminister(handlers, arg, res); err != nil {
+				return
+			}
+			return
+		}
 	}
 
 	//如果是超级管理员
-	err = r.superAdminMenu(arg, handlers)
-
-	// 并行执行逻辑
-	r.syncOperate(handlers, arg, res)
+	if err = r.superAdminister(handlers, arg, res); err != nil {
+		return
+	}
 	return
 
 }
@@ -899,9 +940,9 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 	request := &rpc.RequestOptions{
 		Context:     r.Context,
 		Method:      "GET",
-		AppName:     parameters.MicroUser,
+		AppName:     app_param.AppNameNotice,
 		Header:      httpHeader,
-		URI:         "/user/has_not_msg",
+		URI:         "/announce/has_not_msg",
 		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
 		Value:       url.Values{},
 	}

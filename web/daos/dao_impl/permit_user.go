@@ -2,8 +2,12 @@
 package dao_impl
 
 import (
+	"context"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base/cache_act"
 	"github.com/juetun/base-wrapper/lib/utils"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
+	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
@@ -16,8 +20,69 @@ import (
 
 type DaoPermitUserImpl struct {
 	base.ServiceDao
+	ctx context.Context
 }
 
+func (r *DaoPermitUserImpl) GetAdminUserByIds(arg *base.ArgGetByNumberIds) (res map[int64]*models.AdminUser, err error) {
+	res, err = cache_act_local.NewCacheAdminUserAction(
+		cache_act_local.CacheAdminUserActionArg(arg),
+		cache_act_local.CacheAdminUserActionGetByIdsFromDb(r.getAdminUserByIdsFromDb),
+	).LoadBaseOption(
+		cache_act.CacheActionBaseGetCacheKey(r.GetCacheKey),
+		cache_act.CacheActionBaseContext(r.Context),
+		cache_act.CacheActionBaseCtx(r.ctx), ).
+		Action()
+	return
+}
+
+func (r *DaoPermitUserImpl) GetCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
+
+	res = fmt.Sprintf(parameters.CacheKeyAdminUserWithUserHId.Key, id)
+	timeExpire = parameters.CacheKeyAdminUserWithUserHId.Expire
+	var expireTimeRand bool
+	if len(expireTimeRands) > 0 {
+		expireTimeRand = expireTimeRands[0]
+	}
+	if expireTimeRand {
+		randNumber, _ := r.RealRandomNumber(60) //打乱缓存时长，防止缓存同一时间过期导致数据库访问压力变大
+		timeExpire = timeExpire + time.Duration(randNumber)*time.Second
+	}
+	return
+}
+func (r *DaoPermitUserImpl) getAdminUserByIdsFromDb(userHIds ...int64) (resData map[int64]*models.AdminUser, err error) {
+	resData = make(map[int64]*models.AdminUser, len(userHIds))
+
+	defer func() {
+		if err == nil {
+			return
+		}
+		logContent := map[string]interface{}{
+			"userHIds": userHIds,
+			"err":      err.Error(),
+		}
+		r.Context.Error(logContent, "DaoPermitUserImplGetAdminUserByIdsFromDb")
+	}()
+
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminUser
+		var res []*models.AdminUser
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("`user_hid` IN (?)", userHIds).
+			Find(&res).
+			Error
+		if actRes.Err != nil {
+			return
+		}
+		for _, item := range res {
+			resData[item.UserHid] = item
+		}
+		return
+	})
+
+	return
+}
 func (r *DaoPermitUserImpl) DeleteAdminUserGroup(userHIds ...int64) (err error) {
 
 	if len(userHIds) == 0 {
@@ -252,5 +317,9 @@ func (r *DaoPermitUserImpl) UpdateDataByUserHIds(data map[string]interface{}, us
 func NewDaoPermitUser(ctx ...*base.Context) (res daos.DaoPermitUser) {
 	p := &DaoPermitUserImpl{}
 	p.SetContext(ctx...)
+	if p.ctx == nil {
+		p.ctx = context.TODO()
+	}
+
 	return p
 }

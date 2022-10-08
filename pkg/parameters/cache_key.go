@@ -6,6 +6,10 @@ import (
 )
 
 var (
+	CacheKeyAdminUserWithUserHId = redis_pkg.CacheProperty{ //管理员用户存储
+		Key:    "p:adu:%s",
+		Expire: 30 * 24 * time.Hour,
+	}
 	CacheKeyHelp = redis_pkg.CacheProperty{
 		Key:    "p:hp:%s",
 		Expire: 30 * 24 * time.Hour,

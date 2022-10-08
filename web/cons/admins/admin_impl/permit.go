@@ -457,7 +457,7 @@ func (r *ControllerPermit) Menu(c *gin.Context) {
 		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
-	if haveErr := r.ParametersAccept(ctx, &arg, base.ControllerGetParamTypeBind); haveErr {
+	if r.ParametersAccept(ctx, &arg) {
 		return
 	}
 

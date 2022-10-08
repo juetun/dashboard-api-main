@@ -2,7 +2,6 @@
 package parameters
 
 const (
-	MicroUser = "api-user" // 用户操作对象
 
 	SystemPlatform = "platform"
 	SystemBackend  = "backend"

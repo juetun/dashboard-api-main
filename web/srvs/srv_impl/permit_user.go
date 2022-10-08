@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -16,6 +15,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+	"github.com/juetun/library/common/app_param"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +40,11 @@ func (r *SrvPermitUserImpl) GetUserAdminGroupIdByUserHid(userHid int64) (groupId
 		GetGroupByUserId(userHid); err != nil {
 		return
 	}
-	groupId = make([]int64, 0, len(groups))
+	var l = len(groups)
+	if l == 0 {
+		return
+	}
+	groupId = make([]int64, 0, l)
 	for _, group := range groups {
 		if group.IsSuperAdmin == models.IsAdminGroupYes ||
 			group.SuperAdmin == models.IsSuperAdminYes { // 如果是超级管理员

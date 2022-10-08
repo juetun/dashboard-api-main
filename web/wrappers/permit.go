@@ -899,7 +899,12 @@ func (r *ArgAdminUser) Default(c *base.Context) (err error) {
 		}
 	}
 	if r.CannotUse > 0 {
-		if _, ok := models.AdminUserCanNotUseMap[r.CannotUse]; !ok {
+		if r.CannotUse > 100 {
+			err = fmt.Errorf("can_not_use数据格式错误")
+			return
+		}
+		mapCanUse, _ := models.SliceAdminUserCanNotUse.GetMapAsKeyUint8()
+		if _, ok := mapCanUse[uint8(r.CannotUse)]; !ok {
 			err = fmt.Errorf("can_not_use数据格式错误")
 			return
 		}
@@ -927,10 +932,10 @@ type ArgPermitMenu struct {
 	ArgGetImportByMenuIdSingle          // 通用参数逻辑处理 用于获取当前菜单下的接口列表
 	ParentId                   int64    `json:"parent_id"` // 上级菜单ID
 	PathType                   string   `json:"path_type" form:"path_type"`
-	PathTypes                  []string `json:"-" form:"-"`
 	Module                     string   `json:"module" form:"module"` // 系统ID
 	IsSuperAdmin               bool     `json:"-" form:"-"`           // 是否为超级管理员
 	GroupId                    []int64  `json:"-" form:"-"`
+	PathTypes                  []string `json:"-" form:"-"`
 }
 
 // Default 初始化默认值
