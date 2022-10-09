@@ -522,8 +522,12 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int64]*models.AdminMenu, err error) {
 	ll := len(list)
 	menuIds := make([]int64, 0, ll)
+	var mapMenuIds = make(map[int64]bool, ll)
 	for _, value := range list {
-		menuIds = append(menuIds, value.MenuId)
+		if _, ok := mapMenuIds[value.MenuId]; !ok {
+			menuIds = append(menuIds, value.MenuId)
+			mapMenuIds[value.MenuId] = true
+		}
 	}
 	var adminMenu []*models.AdminMenu
 	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).

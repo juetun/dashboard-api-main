@@ -144,7 +144,7 @@ func (r *DaoPermitImpl) getAdminMenuImportByMenuAndImportIds(menuId int, iIds ..
 func (r *DaoPermitImpl) fetchDb(arg *wrappers.ArgImportList) (actRes *base.ActErrorHandlerResult) {
 	var m *models.AdminImport
 	actRes = r.GetDefaultActErrorHandlerResult(m)
-	db := actRes.Db
+ 	db := actRes.Db.Table(actRes.Model.TableName())
 	db = db.Scopes(base.ScopesDeletedAt())
 	if arg.AppName != "" {
 		db = db.Where("app_name = ?", arg.AppName)
@@ -752,15 +752,14 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 			"arg": arg,
 			"err": err.Error(),
 		}, "daoPermitGetAdminMenuList")
-
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
 		var m *models.AdminMenu
 		actRes = r.GetDefaultActErrorHandlerResult(m)
-		dba := actRes.Db.Table(actRes.TableName)
 		if arg.SystemId > 0 {
 			var list []*models.AdminMenu
-			if actRes.Err = dba.
+			if actRes.Err = actRes.Db.Table(actRes.TableName).
 				Scopes(base.ScopesDeletedAt()).
 				Order("sort_value desc").
 				Where("id = ?", arg.SystemId).
@@ -775,41 +774,43 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 			m = list[0]
 			arg.Module = m.PermitKey
 		}
-		defer func() {
-			if actRes.Err != nil {
-				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
-			}
-		}()
-		if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
-			dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
-		}
-		if arg.ParentId > 0 {
-			dba = dba.Where("parent_id = ?", arg.ParentId)
-		}
-		if arg.Module != "" {
-			dba = dba.Where("module = ? OR parent_id=?", arg.Module, wrappers.DefaultPermitParentId)
-		}
-		if arg.AppName != "" {
-			dba = dba.Where("app_name = ?", arg.AppName)
-		}
-		if arg.IsMenuShow != -1 {
-			dba = dba.Where("hide_in_menu = ?", arg.IsMenuShow)
-		}
-		if arg.IsDel == -1 || arg.IsDel == 0 {
-			dba = dba.Where("deleted_at IS NULL")
-		} else {
-			dba = dba.Where("deleted_at NOT NULL")
-		}
-		if arg.Id != 0 {
-			dba = dba.Where("id = ?", arg.Id)
-		}
-		actRes.Err = dba.Order("sort_value desc").Find(&res).Error
+		res, actRes.Err = r.getAdminMenuList(arg)
 		return
 	})
-
 	return
 }
 
+func (r *DaoPermitImpl) getAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
+
+	var m *models.AdminMenu
+	actRes := r.GetDefaultActErrorHandlerResult(m)
+	dba := actRes.Db.Table(actRes.TableName)
+	if arg.Label = strings.TrimSpace(arg.Label); arg.Label != "" {
+		dba = dba.Where("label LIKE ?", "%"+arg.Label+"%")
+	}
+	if arg.ParentId > 0 {
+		dba = dba.Where("parent_id = ?", arg.ParentId)
+	}
+	if arg.Module != "" {
+		dba = dba.Where("`module` = ? OR `parent_id`=?", arg.Module, wrappers.DefaultPermitParentId)
+	}
+	if arg.AppName != "" {
+		dba = dba.Where("`app_name` = ?", arg.AppName)
+	}
+	if arg.IsMenuShow != -1 {
+		dba = dba.Where("`hide_in_menu` = ?", arg.IsMenuShow)
+	}
+	if arg.IsDel == -1 || arg.IsDel == 0 {
+		dba = dba.Where("`deleted_at` IS NULL")
+	} else {
+		dba = dba.Where("`deleted_at` NOT NULL")
+	}
+	if arg.Id != 0 {
+		dba = dba.Where("`id` = ?", arg.Id)
+	}
+	err = dba.Find(&res).Error
+	return
+}
 func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int64, dba *gorm.DB, err error) {
 	var m models.AdminGroup
 	if db == nil {

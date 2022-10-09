@@ -35,7 +35,7 @@ func (r *SrvServiceImpl) add(dao daos.DaoService, arg *wrappers.ArgServiceEdit) 
 		Name:       arg.Name,
 		HostConfig: arg.HostConfig,
 		Desc:       arg.Desc,
-		IsStop:     arg.IsStop,
+		IsStop:     uint8(arg.IsStop),
 		CreatedAt:  t,
 		UpdatedAt:  t,
 	}
@@ -135,16 +135,22 @@ func (r *SrvServiceImpl) List(arg *wrappers.ArgServiceList) (res *wrappers.Resul
 	return
 }
 
-func (r *SrvServiceImpl) orgList(dao daos.DaoService, list []models.AdminApp) (res []wrappers.AdminApp, err error) {
-	res = make([]wrappers.AdminApp, 0, len(list))
+func (r *SrvServiceImpl) orgList(dao daos.DaoService, list []models.AdminApp) (res []*wrappers.AdminApp, err error) {
+	res = make([]*wrappers.AdminApp, 0, len(list))
 
-	var dt = wrappers.AdminApp{}
+	var dt *wrappers.AdminApp
 	for _, it := range list {
+		dt = &wrappers.AdminApp{}
 		dt.Id = it.Id
 		dt.UniqueKey = it.UniqueKey
 		dt.Port = it.Port
 		dt.Name = it.Name
 		dt.Desc = it.Desc
+		if it.Desc == "" {
+			dt.DisableExpand = true
+		}
+		dt.IsStopName = it.ParseIsStop()
+
 		dt.IsStop = it.IsStop
 		dt.CreatedAt = it.CreatedAt
 		dt.UpdatedAt = it.UpdatedAt

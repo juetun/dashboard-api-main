@@ -150,7 +150,7 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 	if db == nil {
 		db = r.Context.Db
 	}
-	dba = db.Model(&m).Unscoped().Where("deleted_at IS NULL")
+	dba = db.Table(m.TableName()).Unscoped().Where("deleted_at IS NULL")
 	if arg == nil {
 		return
 	}
@@ -178,14 +178,26 @@ func (r *DaoServiceImpl) fetchGetDb(db *gorm.DB, arg *wrappers.ArgServiceList) (
 	return
 }
 func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (total int64, dba *gorm.DB, err error) {
-	dba = r.fetchGetDb(db, arg)
-	if err = dba.Count(&total).Error; err != nil {
+
+	defer func() {
+		if err == nil {
+			return
+		}
 		r.Context.Error(map[string]interface{}{
 			"arg": arg,
 			"err": err.Error(),
 		}, "DaoServiceImplGetCount")
+	}()
+
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+ 		dba = r.fetchGetDb(db, arg)
+		if actRes.Err = dba.Count(&total).Error; actRes.Err != nil {
+			return
+		}
 		return
-	}
+	})
 	return
 }
 
