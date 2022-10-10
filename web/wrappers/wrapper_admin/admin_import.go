@@ -22,7 +22,7 @@ type (
 		UrlPath    string `json:"url_path" form:"url_path"`
 	}
 	ResultMenuImport struct {
-		*response.Pager
+		response.Pager
 	}
 )
 

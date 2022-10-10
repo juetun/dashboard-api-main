@@ -46,7 +46,7 @@ type (
 		PKey string `json:"p_key" form:"p_key"`
 	}
 	ResultHelpList struct {
-		*response.Pager
+		response.Pager
 	}
 	ArgHelpDetail struct {
 		Id int64 `json:"id" form:"id"`

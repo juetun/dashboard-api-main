@@ -8,8 +8,8 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-errors/errors v1.4.2
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/juetun/base-wrapper v0.0.234
-	github.com/juetun/library v0.0.9
+	github.com/juetun/base-wrapper v0.0.235
+	github.com/juetun/library v0.0.10
 	github.com/microcosm-cc/bluemonday v1.0.19
 	github.com/qiniu/go-sdk/v7 v7.9.6
 	github.com/russross/blackfriday/v2 v2.0.1
@@ -42,13 +42,11 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect

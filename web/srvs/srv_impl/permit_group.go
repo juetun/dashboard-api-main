@@ -40,7 +40,7 @@ func (r *SrvPermitGroupImpl) AdminGroupDelete(arg *wrappers.ArgAdminGroupDelete)
 
 func (r *SrvPermitGroupImpl) AdminGroup(arg *wrappers.ArgAdminGroup) (res *wrappers.ResultAdminGroup, err error) {
 
-	res = &wrappers.ResultAdminGroup{Pager: *response.NewPager(response.PagerBaseQuery(&arg.PageQuery))}
+	res = &wrappers.ResultAdminGroup{Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery))}
 
 	var db *gorm.DB
 	dao := dao_impl.NewDaoPermit(r.Context)

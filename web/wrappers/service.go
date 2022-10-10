@@ -42,7 +42,7 @@ type (
 		IsStop     uint8    `json:"is_stop" form:"is_stop"`
 	}
 	ResultServiceList struct {
-		*response.Pager
+		response.Pager
 	}
 	AdminApp struct {
 		Id            int       `json:"id" gorm:"column:id;primary_key" `

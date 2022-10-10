@@ -130,7 +130,7 @@ type (
 	}
 
 	ResultImportList struct {
-		*response.Pager
+		response.Pager
 	}
 	ArgEditImport struct {
 		Id            int64    `json:"id" form:"id"`
@@ -254,7 +254,7 @@ type (
 	}
 
 	ResultGetImport struct {
-		*response.Pager
+		response.Pager
 	}
 	ArgAdminMenuSearch struct {
 		app_param.RequestUser

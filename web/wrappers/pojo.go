@@ -108,7 +108,7 @@ type ConsoleView struct {
 }
 
 type IndexPostList struct {
- 	*response.Pager
+ 	response.Pager
 	//Paginate    utils.Paginate
 }
 

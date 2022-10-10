@@ -536,7 +536,7 @@ func (r *DaoPermitGroupImpl) DeleteUserGroupCacheByGroupIds(groupIds ...int64) (
 
 	for {
 
-		if list, err = r.GetGroupUserByGroupIds(pager, groupIds...); err != nil {
+		if list, err = r.GetGroupUserByGroupIds(&pager, groupIds...); err != nil {
 			break
 		}
 

@@ -156,7 +156,7 @@ func (r *SrvPermitUserImpl) AdminUserDelete(arg *wrappers.ArgAdminUserDelete) (r
 
 func (r *SrvPermitUserImpl) AdminUser(arg *wrappers.ArgAdminUser) (res *wrappers.ResultAdminUser, err1 error) {
 
-	res = &wrappers.ResultAdminUser{Pager: *response.NewPagerAndDefault(&arg.PageQuery)}
+	res = &wrappers.ResultAdminUser{Pager: response.NewPagerAndDefault(&arg.PageQuery)}
 
 	dao := dao_impl.NewDaoPermitUser(r.Context)
 
