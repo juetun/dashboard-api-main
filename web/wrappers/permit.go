@@ -698,6 +698,7 @@ type ArgMenuSave struct {
 }
 
 func (r *ArgMenuSave) Default(c *base.Context) (err error) {
+	r.PermitKey = strings.TrimSpace(r.PermitKey)//去掉首尾空格
 	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
@@ -717,6 +718,14 @@ func (r *ArgMenuSave) Default(c *base.Context) (err error) {
 	}
 	if utf8.RuneCountInString(r.AdminMenu.Label) > models.AdminMenuNameMaxLength {
 		err = fmt.Errorf("菜单名长度不能超过%d个字符", models.AdminMenuNameMaxLength)
+		return
+	}
+	if r.SortValue >= models.AdminMenuMaxSortValue {
+		err = fmt.Errorf("排序值不能超过%d", models.AdminMenuMaxSortValue)
+		return
+	}
+	if r.PermitKey == "" {
+		err = fmt.Errorf("请输入菜单的KEY")
 		return
 	}
 	return

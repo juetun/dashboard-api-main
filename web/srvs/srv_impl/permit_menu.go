@@ -480,7 +480,9 @@ func (r *SrvPermitMenuImpl) orgAdminMenuObject(value *models.AdminMenu) (res wra
 	if value.OtherValue != "" {
 		_ = json.Unmarshal([]byte(value.OtherValue), &res.ResultAdminMenuSingle.ResultAdminMenuOtherValue)
 	} else {
-		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{Expand: true}
+		res.ResultAdminMenuSingle.ResultAdminMenuOtherValue = wrappers.ResultAdminMenuOtherValue{
+			//Expand: true
+		}
 	}
 
 	return

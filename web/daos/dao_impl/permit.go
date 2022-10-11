@@ -763,6 +763,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 				Scopes(base.ScopesDeletedAt()).
 				Order("sort_value desc").
 				Where("id = ?", arg.SystemId).
+				Order("`sort_value` DESC").
 				Find(&list).Error; actRes.Err != nil {
 				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
 				return
@@ -808,7 +809,10 @@ func (r *DaoPermitImpl) getAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 	if arg.Id != 0 {
 		dba = dba.Where("`id` = ?", arg.Id)
 	}
-	err = dba.Find(&res).Error
+	err = dba.
+		Order("`sort_value` DESC").
+		Find(&res).
+		Error
 	return
 }
 func (r *DaoPermitImpl) GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int64, dba *gorm.DB, err error) {

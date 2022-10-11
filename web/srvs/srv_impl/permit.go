@@ -174,13 +174,11 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	res.Result = true
 	return
 }
-
-func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.ResultMenuSave, err error) {
-	res = &wrappers.ResultMenuSave{}
-	dao := dao_impl.NewDaoPermitMenu(r.Context)
+func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermitMenu daos.DaoPermitMenu, err error) {
+	daoPermitMenu = dao_impl.NewDaoPermitMenu(r.Context)
 
 	var list []*models.AdminMenu
-	if list, err = dao.GetByCondition(map[string]interface{}{
+	if list, err = daoPermitMenu.GetByCondition(map[string]interface{}{
 		"label":     arg.Label,
 		"module":    arg.Module,
 		"parent_id": arg.ParentId,
@@ -190,10 +188,32 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		err = fmt.Errorf("您输入的菜单名已存在")
 		return
 	}
+
+	var resHaveModule []models.AdminMenu
+	if resHaveModule, err = daoPermitMenu.GetMenuByPermitKey(arg.Module, arg.PermitKey); err != nil {
+		return
+	}
+
+	if len(resHaveModule) > 0 {
+		if arg.Id > 0 && arg.Id != resHaveModule[0].Id {
+			err = fmt.Errorf("KEY(%s)已被(MENU_ID:%d)使用,请输入其他的值", arg.PermitKey,resHaveModule[0].Id)
+			return
+		}
+	}
+	return
+}
+
+func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.ResultMenuSave, err error) {
+	res = &wrappers.ResultMenuSave{}
+
+	var daoPermitMenu daos.DaoPermitMenu
+	if daoPermitMenu, err = r.addMenuValidate(arg); err != nil {
+		return
+	}
 	if arg.Id > 0 {
 		var menu *models.AdminMenu
 		var menus []*models.AdminMenu
-		daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
+
 		if menus, err = daoPermitMenu.GetMenu(arg.Id); err != nil {
 			return
 		} else if len(menus) > 0 {
@@ -201,12 +221,12 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		}
 
 		if arg.PermitKey != menu.PermitKey {
-			if err = dao.UpdateMenuByCondition(map[string]interface{}{"module": menu.PermitKey}, map[string]interface{}{"module": arg.PermitKey}); err != nil {
+			if err = daoPermitMenu.UpdateMenuByCondition(map[string]interface{}{"id": menu.Id}, map[string]interface{}{"module": arg.PermitKey}); err != nil {
 				return
 			}
 		} else if arg.Module != menu.Module {
 			// 更新子菜单的 module
-			if err = r.updateChildModule(dao, menu.Id, arg.Module); err != nil {
+			if err = r.updateChildModule(daoPermitMenu, menu.Id, arg.Module); err != nil {
 				return
 			}
 		}
@@ -228,7 +248,7 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		OtherValue:         arg.OtherValue,
 		UpdatedAt:          t,
 	}
-	err = dao.Save(arg.Id, m.ToMapStringInterface())
+	err = daoPermitMenu.Save(arg.Id, m.ToMapStringInterface())
 	res.Result = true
 	return
 }

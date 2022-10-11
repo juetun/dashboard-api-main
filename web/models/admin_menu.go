@@ -33,7 +33,9 @@ const (
 	AdminMenuNameMaxLength = 6
 
 	CommonMenuDefaultHomePage = "首页"
-	CommonMenuDefaultLabel    = "公共接口" // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
+	AdminMenuMaxSortValue     = 1000000000 //首页排序的最大值
+	AdminMenuCommonMaxSortValue =0//公共接口排序值
+	CommonMenuDefaultLabel    = "公共接口"     // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
 )
 
 type AdminMenu struct {
@@ -138,7 +140,7 @@ func (r *AdminMenu) InitDefaultSystemMenu(data *DefaultSystemMenuNeedParams) (re
 			HideInMenu:         AdminMenuHideInMenuNo,
 			IsHomePage:         AdminMenuIsHomePageYes,
 			UrlPath:            "",
-			SortValue:          90000001,
+			SortValue:          AdminMenuMaxSortValue,
 			OtherValue:         "",
 			CreatedAt:          data.CreateTime,
 			UpdatedAt:          data.UpdateTime,
@@ -148,10 +150,10 @@ func (r *AdminMenu) InitDefaultSystemMenu(data *DefaultSystemMenuNeedParams) (re
 			ParentId:           data.ParentSystemId,
 			Label:              CommonMenuDefaultLabel,
 			Icon:               "",
-			ManageImportPermit: 1,
+			ManageImportPermit: AdminMenuManageImportPermitTrue,
 			HideInMenu:         1,
 			UrlPath:            "",
-			SortValue:          90000000,
+			SortValue:          AdminMenuCommonMaxSortValue,
 			OtherValue:         "",
 			CreatedAt:          data.CreateTime,
 			UpdatedAt:          data.UpdateTime,
