@@ -237,18 +237,19 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 		return
 	}
 
-	var list, dt2 []models.AdminMenu
+	var list []models.AdminMenu
 	if list, err = dao.GetAdminMenuList(arg); err != nil {
 		return
 	}
 
+	var  dt2 []models.AdminMenu
 	if dt2, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{}); err != nil {
 		return
 	}
 
 	r.permitTab(dt2, &res.Menu, arg.SystemId, arg.Module)
 
-	r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
+	//r.permitTab(list, &res.Menu, arg.SystemId, arg.Module)
 	r.orgTree(list, arg.SystemId, &res.List, nil)
 	return
 }
@@ -381,10 +382,17 @@ func (r *SrvPermitMenuImpl) getAdminMenuByUserModule(module string, OperatorGrou
 // 2、 判断选中模块（如果未指定，则默认选中一个）
 func (r *SrvPermitMenuImpl) adminMenuWithCheckReadyParameterArg(arg *wrappers.ArgAdminMenuWithCheck) (havePermitSystemList []*models.AdminMenu, err error) {
 
-	// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
-	if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+	// 判断当前用户是否是超级管理员,
+	var getUserArgument = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(arg.UUserHid))
+	if arg.OperatorIsSuperAdmin, err = r.getAdminUserInfo(getUserArgument, arg.UUserHid); err != nil {
 		return
+	}
+	if !arg.OperatorIsSuperAdmin {
+		// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
+		if arg.OperatorGroupId, arg.OperatorIsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+			GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+			return
+		}
 	}
 
 	if arg.SystemId == 0 {

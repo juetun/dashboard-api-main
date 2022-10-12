@@ -21,7 +21,6 @@ func init() {
 		// 权限菜单列表
 		h.GET("/menu", controller.Menu)
 
-
 		h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
 		h.POST("/admin_user_group_add", controller.AdminUserGroupAdd) // 用户组添加管理员
 
@@ -31,7 +30,7 @@ func init() {
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 
 		h.POST("/admin_menu", controller.AdminMenu)               // 菜单列表
-		h.POST("/menu_with_check", controller.AdminMenuWithCheck) // 菜单列表
+		h.POST("/menu_with_check", controller.AdminMenuWithCheck) // 菜单列表 用于设置管理员组权限使用
 		h.GET("/get_menu", controller.GetMenu)                    // 获取菜单信息
 
 		h.POST("/admin_menu_search", controller.AdminMenuSearch)
@@ -45,8 +44,6 @@ func init() {
 		h.POST("/import_list", controller.ImportList)
 		h.POST("/update_import_value", controller.UpdateImportValue)
 		h.DELETE("/delete_import/:id", controller.DeleteImport)
-
-
 
 		// 根据菜单号 获取页面的接口ID
 		h.GET("/get_import_by_menu_id", controller.GetImportByMenuId)

@@ -8,6 +8,7 @@ package srv_impl
 
 import (
 	"encoding/json"
+	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 
 	"github.com/juetun/base-wrapper/lib/common"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -31,7 +32,14 @@ func NewSystemService(context ...*base.Context) (p *SystemService) {
 }
 func (r *SystemService) GetSystemList() (system *models.ZBaseSys, err error) {
 	system = new(models.ZBaseSys)
-
+	var list []*models.ZBaseSys
+	if list, err = dao_impl.NewDaoSystem(r.Context).
+		GetSystemList(); err != nil {
+		return
+	}
+	if len(list) > 0 {
+		system = list[0]
+	}
 	var e error
 	e = r.Context.Db.
 		Table(system.TableName()).

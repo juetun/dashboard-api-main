@@ -761,8 +761,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 			var list []*models.AdminMenu
 			if actRes.Err = actRes.Db.Table(actRes.TableName).
 				Scopes(base.ScopesDeletedAt()).
-				Order("sort_value desc").
-				Where("id = ?", arg.SystemId).
+ 				Where("id = ?", arg.SystemId).
 				Order("`sort_value` DESC").
 				Find(&list).Error; actRes.Err != nil {
 				actRes.Err = base.NewErrorRuntime(actRes.Err, base.ErrorSqlCode)
