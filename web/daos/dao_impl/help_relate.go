@@ -11,6 +11,51 @@ type DaoHelpRelateImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoHelpRelateImpl) UpdateById(id int64, data map[string]interface{}) (err error) {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"err": err.Error(),
+		}, "DaoHelpRelateImplUpdateById")
+	}()
+
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.HelpDocumentRelate
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("id = ?", id).
+			Updates(data).Error
+		return
+	})
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (r *DaoHelpRelateImpl) GetByTopHelp() (res []*models.HelpDocumentRelate, err error) {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"err": err.Error(),
+		}, "DaoHelpRelateImplGetByTopHelp")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.HelpDocumentRelate
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("parent_id = ?", models.HelpDocumentRelateTopPid).
+			Find(&res).Error
+		return
+	})
+	return
+}
+
 func (r *DaoHelpRelateImpl) GetByTopId(bizCode string, topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error) {
 	if len(topIds) == 0 || bizCode == "" {
 		return
@@ -24,7 +69,7 @@ func (r *DaoHelpRelateImpl) GetByTopId(bizCode string, topIds ...int64) (res map
 		actRes.Err = actRes.Db.
 			Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
-			Where("id IN (?) AND biz_code=?", topIds, bizCode).
+			Where("id IN (?) AND biz_code = ?", topIds, bizCode).
 			Find(&list).
 			Error
 		if actRes.Err != nil {

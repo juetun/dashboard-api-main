@@ -124,7 +124,7 @@ func (r *DaoHelpImpl) getWithIdsByIdsFromDb(ids ...int64) (res map[int64]*models
 		actRes = r.GetDefaultActErrorHandlerResult(data)
 		actRes.Err = actRes.Db.Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
-			Where("ids IN (?)", ids).Find(&list).
+			Where("id IN (?)", ids).Find(&list).
 			Error
 		if actRes.Err != nil {
 			return

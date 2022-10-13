@@ -7,5 +7,10 @@ import (
 
 type DaoHelpRelate interface {
 	AddOneHelpRelate(relate *models.HelpDocumentRelate) (err error)
-	GetByTopId(bizCode string,topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error)
+
+	GetByTopId(bizCode string, topIds ...int64) (res map[int64][]*wrapper_admin.ResultHelpTreeItem, err error)
+
+	GetByTopHelp() (res []*models.HelpDocumentRelate, err error)
+
+	UpdateById(id int64, data map[string]interface{}) (err error)
 }

@@ -16,7 +16,7 @@ func (r *ConsoleHelpImpl) HelpTree(c *gin.Context) {
 
 	var (
 		arg wrapper_admin.ArgHelpTree
-		res wrapper_admin.ResultHelpTree
+		res *wrapper_admin.ResultHelpTree
 		err error
 		ctx = base.CreateContext(&r.ControllerBase, c)
 	)

@@ -39,26 +39,59 @@ func (r *SrvHelpImpl) getWithList(arg *wrapper_admin.ArgHelpList, res *wrapper_a
 		if list, err = r.dao.GetListByArg(arg, actRes, pagerObject); err != nil {
 			return
 		}
-		pagerObject.List = list
+
+		pagerObject.List = r.orgHelpList(list, arg)
 		return
 	}
 	err = res.CallGetPagerData(actGetCount, actGetList)
 	return
 }
 
+func (r *SrvHelpImpl) orgHelpList(documents []*models.HelpDocument, arg *wrapper_admin.ArgHelpList) (res []*wrapper_admin.ResultHelpListItem) {
+	res = make([]*wrapper_admin.ResultHelpListItem, 0, len(documents))
+	var dt *wrapper_admin.ResultHelpListItem
+	for _, item := range documents {
+		dt = &wrapper_admin.ResultHelpListItem{}
+		dt.SetHelpDocument(item, arg.TimeNow)
+		res = append(res, dt)
+	}
+	return
+}
+
 func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper_admin.ResultHelpDetail, err error) {
 	res = &wrapper_admin.ResultHelpDetail{}
+
 	var help *models.HelpDocument
-	if help, err = r.getById(arg.Id); err != nil {
-		return
+	if arg.Id > 0 {
+		if help, err = r.getById(arg.Id); err != nil {
+			return
+		}
+	} else if arg.PKey != "" {
+		if help, err = r.getByKey(arg.PKey); err != nil {
+			return
+		}
 	}
 	res.ParseFromHelpDoc(help)
 	return
 }
 
+func (r *SrvHelpImpl) getByKey(PKey string) (res *models.HelpDocument, err error) {
+	var helpMap map[string]*models.HelpDocument
+	if helpMap, err = r.dao.GetByPKey(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(PKey))); err != nil {
+		return
+	}
+	var ok bool
+	if res, ok = helpMap[PKey]; !ok {
+		err = fmt.Errorf("你要查看(或编辑)的帮助信息不存在或已删除")
+		return
+	}
+	return
+}
+
 func (r *SrvHelpImpl) getById(id int64) (res *models.HelpDocument, err error) {
 	var helpMap map[int64]*models.HelpDocument
-	if helpMap, err = r.dao.GetByIds(base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(id))); err != nil {
+	var argNumber = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(id))
+	if helpMap, err = r.dao.GetByIds(argNumber); err != nil {
 		return
 	}
 	var ok bool
@@ -104,6 +137,8 @@ func (r *SrvHelpImpl) HelpEdit(arg *wrapper_admin.ArgHelpEdit) (res *wrapper_adm
 	data := &models.HelpDocument{
 		Id:        arg.Id,
 		PKey:      arg.PKey,
+		Label:     arg.Label,
+		Desc:      arg.Desc,
 		Content:   arg.Content,
 		CreatedAt: arg.TimeNow,
 	}

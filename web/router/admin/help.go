@@ -11,11 +11,12 @@ func init() {
 	app_start.HandleFuncAdminNet = append(app_start.HandleFuncAdminNet, func(r *gin.Engine, urlPrefix string) {
 		router := r.Group(urlPrefix + "/help")
 		impl := admin_impl.NewConsoleHelp()
+
 		router.GET("/list", impl.HelpList)     //帮助文档列表
 		router.GET("/detail", impl.HelpDetail) //帮助内容详情
-		router.POST("/edit", impl.HelpEdit)    //帮助内容详情
+		router.POST("/edit", impl.HelpEdit)    //帮助内容编辑
 
-		router.GET("/trees", impl.HelpTree)    //帮助文档的树结构
-		router.GET("/edit_node", impl.TreeEditNode) //编辑树节点
+		router.GET("/trees", impl.HelpTree)         //帮助文档的树结构
+		router.POST("/edit_node", impl.TreeEditNode) //编辑树节点
 	})
 }

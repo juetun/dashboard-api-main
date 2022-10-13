@@ -2,6 +2,7 @@ package srv_impl
 
 import (
 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
@@ -113,26 +114,27 @@ func (r *SrvHelpRelateImpl) getDataWithBizAndTopId(bizCode string, topId int64) 
 	return
 }
 
-func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res wrapper_admin.ResultHelpTree, err error) {
-	res = []*wrapper_admin.ResultFormPage{}
-	if arg.BizCode == "" {
-		return
-	}
+func (r *SrvHelpRelateImpl) getTopHelp() (res []*models.HelpDocumentRelate, err error) {
+	res, err = r.dao.GetByTopHelp()
+	return
+}
 
-	var (
-		ok      bool
-		dataRes []*wrapper_admin.ResultHelpTreeItem
-	)
-	if dataRes, err = r.getDataWithBizAndTopId(arg.BizCode, arg.TopId); err != nil {
-		return
-	}
-	if len(dataRes) == 0 {
-		res = []*wrapper_admin.ResultFormPage{}
-		return
-	}
-
+func (r *SrvHelpRelateImpl) orgAdminHelpTree(dataRes []*wrapper_admin.ResultHelpTreeItem, arg *wrapper_admin.ArgHelpTree, res *wrapper_admin.ResultHelpTree) (err error) {
+	var ok bool
 	var mapParent = make(map[int64]int64)
-	res = r.setExpand(dataRes, arg.CurrentId, &mapParent)
+	var haveData bool
+
+	for _, item := range dataRes {
+		if item.Id == arg.CurrentId {
+			dataRes = item.Child
+			haveData = true
+			break
+		}
+	}
+	if !haveData {
+		return
+	}
+	res.List = r.setExpand(dataRes, arg, &mapParent)
 	var currentId = arg.CurrentId
 	for {
 		if len(mapParent) == 0 {
@@ -142,9 +144,62 @@ func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res wrappe
 			break
 		}
 		delete(mapParent, currentId)
-		r.setAllParentExpand(res, currentId)
-
+		r.setAllParentExpand(res.List, currentId)
 	}
+	return
+}
+
+func (r *SrvHelpRelateImpl) defaultHelpTreeActive(arg *wrapper_admin.ArgHelpTree, menu []*models.HelpDocumentRelate) (res []*wrapper_admin.ResultHelpTreeItemMenu) {
+	res = make([]*wrapper_admin.ResultHelpTreeItemMenu, 0, len(menu))
+	var dt *wrapper_admin.ResultHelpTreeItemMenu
+	if arg.BizCode == "" {
+		for k, item := range menu {
+			dt = &wrapper_admin.ResultHelpTreeItemMenu{}
+			dt.SetHelpDocumentRelate(item)
+			if k == 0 {
+				dt.Active = true
+				arg.BizCode = item.BizCode
+				arg.CurrentId = item.Id
+			}
+			res = append(res, dt)
+		}
+		return
+	}
+	for _, item := range menu {
+		dt = &wrapper_admin.ResultHelpTreeItemMenu{}
+		dt.SetHelpDocumentRelate(item)
+		if item.BizCode == arg.BizCode {
+			dt.Active = true
+			arg.BizCode = item.BizCode
+			arg.CurrentId = item.Id
+		}
+		res = append(res, dt)
+	}
+	return
+}
+
+func (r *SrvHelpRelateImpl) HelpTree(arg *wrapper_admin.ArgHelpTree) (res *wrapper_admin.ResultHelpTree, err error) {
+	res = wrapper_admin.NewResultHelpTree()
+	var menu []*models.HelpDocumentRelate
+	if menu, err = r.getTopHelp(); err != nil {
+		return
+	} else if len(menu) == 0 {
+		return
+	}
+	//初始化默认值
+	res.Menu = r.defaultHelpTreeActive(arg, menu)
+
+	var (
+		dataRes []*wrapper_admin.ResultHelpTreeItem
+	)
+
+	if dataRes, err = r.getDataWithBizAndTopId(arg.BizCode, arg.TopId); err != nil {
+		return
+	} else if len(dataRes) == 0 {
+		return
+	}
+
+	err = r.orgAdminHelpTree(dataRes, arg, res)
 	return
 }
 
@@ -161,23 +216,16 @@ func (r *SrvHelpRelateImpl) setAllParentExpand(res []*wrapper_admin.ResultFormPa
 	return
 }
 
-func (r *SrvHelpRelateImpl) setExpand(data []*wrapper_admin.ResultHelpTreeItem, currentId int64, mapParent *map[int64]int64) (res []*wrapper_admin.ResultFormPage) {
+func (r *SrvHelpRelateImpl) setExpand(data []*wrapper_admin.ResultHelpTreeItem, arg *wrapper_admin.ArgHelpTree, mapParent *map[int64]int64) (res []*wrapper_admin.ResultFormPage) {
 	var dataItem *wrapper_admin.ResultFormPage
 	res = make([]*wrapper_admin.ResultFormPage, 0, len(data))
 	for _, value := range data {
 		(*mapParent)[value.Id] = value.ParentId
-		dataItem = &wrapper_admin.ResultFormPage{
-			Title:      value.Label,
-			Id:         value.Id,
-			DocKey:     value.DocKey,
-			Display:    value.Display,
-			IsLeafNode: value.IsLeafNode,
-		}
-		if value.Id == currentId {
-			dataItem.Expand = true
-		}
+
+		dataItem = wrapper_admin.NewResultFormPage().
+			SetResultHelpTreeItem(value, arg.CurrentId)
 		if len(value.Child) > 0 {
-			dataItem.Children = r.setExpand(value.Child, currentId, mapParent)
+			dataItem.Children = r.setExpand(value.Child, arg, mapParent)
 		}
 		res = append(res, dataItem)
 	}
@@ -188,17 +236,34 @@ func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (re
 
 	res = &wrapper_admin.ResultTreeEditNode{}
 
-	var data = &models.HelpDocumentRelate{}
-	data.Id = arg.Id
-	data.Display = arg.Display
-	data.ParentId = arg.ParentId
-	data.IsLeafNode = arg.IsLeafNode
-	data.DocKey = arg.DocKey
-	data.Label = arg.Label
-	data.BizCode = arg.BizCode
-	data.CreatedAt = arg.TimeNow
-	data.UpdatedAt = arg.TimeNow
-	if err = r.dao.AddOneHelpRelate(data); err != nil {
+	if arg.Id == 0 {
+		var data = &models.HelpDocumentRelate{
+			Id:         arg.Id,
+			Display:    arg.Display,
+			ParentId:   arg.ParentId,
+			IsLeafNode: arg.IsLeafNode,
+			DocKey:     arg.DocKey,
+			Label:      arg.Label,
+			BizCode:    arg.BizCode,
+			CreatedAt:  arg.TimeNow,
+			UpdatedAt:  arg.TimeNow,
+		}
+		if err = r.dao.AddOneHelpRelate(data); err != nil {
+			return
+		}
+		res.Result = true
+		return
+	}
+	var data = map[string]interface{}{
+		"biz_code":     arg.BizCode,
+		"display":      arg.Display,
+		"parent_id":    arg.ParentId,
+		"label":        arg.Label,
+		"is_leaf_node": arg.IsLeafNode,
+		"doc_key":      arg.DocKey,
+		"updated_at":   arg.TimeNow.Format(utils.DateTimeGeneral),
+	}
+	if err = r.dao.UpdateById(arg.Id, data); err != nil {
 		return
 	}
 	res.Result = true

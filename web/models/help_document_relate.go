@@ -9,7 +9,9 @@ const (
 	HelpDocumentRelateIsLeafNodeNo  uint8 = iota //不是叶子节点
 	HelpDocumentRelateIsLeafNodeYes              //是叶子节点
 )
-
+const (
+	HelpDocumentRelateTopPid = 0
+)
 const (
 	DisplayNo uint8 = iota
 	DisplayYes
