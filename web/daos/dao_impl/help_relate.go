@@ -1,14 +1,71 @@
 package dao_impl
 
 import (
-	"github.com/juetun/base-wrapper/lib/base"
+	"context"
+	"fmt"
+ 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
+	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+	"time"
 )
 
 type DaoHelpRelateImpl struct {
 	base.ServiceDao
+	ctx context.Context
+}
+
+func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*models.HelpDocumentRelate,err error) {
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"err": err.Error(),
+		}, "DaoHelpRelateImplGetByDocKeyFromDb")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.HelpDocumentRelate
+		var data []*models.HelpDocumentRelate
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("doc_key IN (?)", keys).
+			Find(&data).Error
+		return
+	})
+	return
+}
+
+func  (r *DaoHelpRelateImpl)getByDocKeyCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
+
+	res = fmt.Sprintf(parameters.CacheHelpDocRelateByKeyUpdating.Key, id)
+	timeExpire = parameters.CacheHelpDocRelateByKeyUpdating.Expire
+	var expireTimeRand bool
+	if len(expireTimeRands) > 0 {
+		expireTimeRand = expireTimeRands[0]
+	}
+	if expireTimeRand {
+		randNumber, _ := r.RealRandomNumber(60) //打乱缓存时长，防止缓存同一时间过期导致数据库访问压力变大
+		timeExpire = timeExpire + time.Duration(randNumber)*time.Second
+	}
+
+	return
+}
+
+func (r *DaoHelpRelateImpl) GetByDocKeys(arg *base.ArgGetByStringIds) (res map[string]*models.HelpDocumentRelate, err error) {
+	res, err = cache_act_local.NewCacheHelpRelateAction(
+		cache_act_local.CacheHelpRelateActionArg(arg),
+		cache_act_local.CacheHelpRelateActionGetByIdsFromDb(r.getByDocKeyFromDb),
+	).LoadBaseOption(
+		cache_act.CacheActionBaseGetCacheKey(r.getByDocKeyCacheKey),
+		cache_act.CacheActionBaseContext(r.Context),
+		cache_act.CacheActionBaseCtx(r.ctx), ).
+		Action()
+
+	return
 }
 
 func (r *DaoHelpRelateImpl) UpdateById(id int64, data map[string]interface{}) (err error) {
@@ -184,5 +241,8 @@ func (r *DaoHelpRelateImpl) AddOneHelpRelate(relate *models.HelpDocumentRelate) 
 func NewDaoHelpRelate(c ...*base.Context) daos.DaoHelpRelate {
 	p := &DaoHelpRelateImpl{}
 	p.SetContext(c...)
+	if p.ctx == nil {
+		p.ctx = context.TODO()
+	}
 	return p
 }

@@ -1,6 +1,7 @@
 package daos
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 )
@@ -13,4 +14,6 @@ type DaoHelpRelate interface {
 	GetByTopHelp() (res []*models.HelpDocumentRelate, err error)
 
 	UpdateById(id int64, data map[string]interface{}) (err error)
+
+	GetByDocKeys(arg *base.ArgGetByStringIds) (res map[string]*models.HelpDocumentRelate, err error)
 }

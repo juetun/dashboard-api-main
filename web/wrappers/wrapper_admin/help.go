@@ -151,18 +151,22 @@ func (r *ArgTreeEditNode) Default(context *base.Context) (err error) {
 		err = fmt.Errorf("请填写标题")
 		return
 	}
-
-	if r.BizCode == "" {
-		err = fmt.Errorf("请填写业务编码")
-		return
-	}
-
-	if r.IsLeafNode == models.HelpDocumentRelateIsLeafNodeYes { //如果是叶子节点
-		if r.DocKey == "" {
-			err = fmt.Errorf("叶子节点必须填写KEY")
+	if r.IsBizCodeEdit == 0 {
+		if r.BizCode == "" {
+			err = fmt.Errorf("请填写业务编码")
 			return
 		}
+		if r.IsLeafNode == models.HelpDocumentRelateIsLeafNodeYes { //如果是叶子节点
+			if r.DocKey == "" {
+				err = fmt.Errorf("叶子节点必须填写KEY")
+				return
+			}
+		}
+	} else {
+		r.BizCode = r.DocKey
+		r.IsLeafNode = models.HelpDocumentRelateIsLeafNodeNo
 	}
+
 	return
 }
 

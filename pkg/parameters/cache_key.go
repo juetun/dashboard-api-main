@@ -6,6 +6,10 @@ import (
 )
 
 var (
+	CacheHelpDocRelateByKeyUpdating = redis_pkg.CacheProperty{ //店铺变跟资质缓存的缓存Key
+		Key:    "m:help:relate_k:%d",
+		Expire: 12 * time.Hour,
+	}
 	CacheKeyAdminUserWithUserHId = redis_pkg.CacheProperty{ //管理员用户存储
 		Key:    "p:adu:%s",
 		Expire: 30 * 24 * time.Hour,

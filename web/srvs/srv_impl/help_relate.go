@@ -1,6 +1,7 @@
 package srv_impl
 
 import (
+	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -122,18 +123,18 @@ func (r *SrvHelpRelateImpl) getTopHelp() (res []*models.HelpDocumentRelate, err 
 func (r *SrvHelpRelateImpl) orgAdminHelpTree(dataRes []*wrapper_admin.ResultHelpTreeItem, arg *wrapper_admin.ArgHelpTree, res *wrapper_admin.ResultHelpTree) (err error) {
 	var ok bool
 	var mapParent = make(map[int64]int64)
-	var haveData bool
+	//var haveData bool
 
 	for _, item := range dataRes {
 		if item.Id == arg.CurrentId {
 			dataRes = item.Child
-			haveData = true
+			//haveData = true
 			break
 		}
 	}
-	if !haveData {
-		return
-	}
+	//if !haveData {
+	//	return
+	//}
 	res.List = r.setExpand(dataRes, arg, &mapParent)
 	var currentId = arg.CurrentId
 	for {
@@ -160,6 +161,7 @@ func (r *SrvHelpRelateImpl) defaultHelpTreeActive(arg *wrapper_admin.ArgHelpTree
 				dt.Active = true
 				arg.BizCode = item.BizCode
 				arg.CurrentId = item.Id
+				//arg.TopId = item.Id
 			}
 			res = append(res, dt)
 		}
@@ -172,6 +174,7 @@ func (r *SrvHelpRelateImpl) defaultHelpTreeActive(arg *wrapper_admin.ArgHelpTree
 			dt.Active = true
 			arg.BizCode = item.BizCode
 			arg.CurrentId = item.Id
+			//arg.TopId = item.Id
 		}
 		res = append(res, dt)
 	}
@@ -232,10 +235,37 @@ func (r *SrvHelpRelateImpl) setExpand(data []*wrapper_admin.ResultHelpTreeItem, 
 	return
 }
 
+func (r *SrvHelpRelateImpl) validateTreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (err error) {
+
+	//验证KEY是否唯一
+	var (
+		data    *models.HelpDocumentRelate
+		dataMap map[string]*models.HelpDocumentRelate
+		ok      bool
+	)
+	var argString = base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.DocKey))
+	if dataMap, err = r.dao.GetByDocKeys(argString); err != nil {
+		return
+	} else if data, ok = dataMap[arg.DocKey]; !ok {
+		return
+	}
+
+	if data == nil || data.Id == 0 {
+		return
+	}
+	if arg.Id > 0 && arg.Id == data.Id {
+		return
+	}
+	err = fmt.Errorf("KEY(%s)已被(ID:%d)使用", arg.DocKey, data.Id)
+	return
+}
+
 func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (res *wrapper_admin.ResultTreeEditNode, err error) {
 
 	res = &wrapper_admin.ResultTreeEditNode{}
-
+	if err = r.validateTreeEditNode(arg); err != nil {
+		return
+	}
 	if arg.Id == 0 {
 		var data = &models.HelpDocumentRelate{
 			Id:         arg.Id,

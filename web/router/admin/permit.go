@@ -30,7 +30,7 @@ func init() {
 		h.POST("/admin_group_delete", controller.AdminGroupDelete)
 
 		h.POST("/admin_menu", controller.AdminMenu)               // 菜单列表
-		h.POST("/menu_with_check", controller.AdminMenuWithCheck) // 菜单列表 用于设置管理员组权限使用
+		h.POST("/menu_wedit_nodeith_check", controller.AdminMenuWithCheck) // 菜单列表 用于设置管理员组权限使用
 		h.GET("/get_menu", controller.GetMenu)                    // 获取菜单信息
 
 		h.POST("/admin_menu_search", controller.AdminMenuSearch)
