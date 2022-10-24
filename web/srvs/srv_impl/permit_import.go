@@ -4,6 +4,7 @@ package srv_impl
 
 import (
 	"fmt"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"strings"
 	"time"
 
@@ -18,13 +19,50 @@ import (
 	"gorm.io/gorm"
 )
 
-type SrvPermitImport struct {
-	base.ServiceBase
+type (
+	SrvPermitImport struct {
+		base.ServiceBase
+	}
+	userPageImportHandler func(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error)
+)
+
+//用户页面具备的接口权限列表
+func (r *SrvPermitImport) UserPageImport(arg *wrapper_admin.ArgPageImport) (res *wrapper_admin.ResultPageImport, err error) {
+	res = wrapper_admin.NewResultPageImport()
+	var handlers = []userPageImportHandler{
+		r.initUserCommonImport, //页面公共接口权限查询
+		r.initUserPageImport,   //页面接口权限查询
+		r.initUserSubPage,      //子页面查询
+	}
+	for _, item := range handlers {
+		if err = item(arg, res); err != nil {
+			return
+		}
+	}
+	return
+}
+
+//页面公共接口权限查询
+func (r *SrvPermitImport) initUserCommonImport(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
+
+	return
+}
+
+//页面公共接口权限查询
+func (r *SrvPermitImport) initUserPageImport(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
+
+	return
+}
+
+//页面公共接口权限查询
+func (r *SrvPermitImport) initUserSubPage(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
+
+	return
 }
 
 func (r *SrvPermitImport) UpdateImportValue(arg *wrappers.ArgUpdateImportValue) (res *wrappers.ResultUpdateImportValue, err error) {
 	res = &wrappers.ResultUpdateImportValue{}
-	var condition = fmt.Sprintf("id IN (%s)", strings.Join(arg.Ids, ","))
+	var condition = fmt.Sprintf("`id` IN (%s)", strings.Join(arg.Ids, ","))
 	dao := dao_impl.NewDaoPermitImport(r.Context)
 	var data = make(map[string]interface{}, 1)
 	t := time.Now().Format(utils.DateTimeGeneral)

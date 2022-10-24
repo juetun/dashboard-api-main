@@ -4,6 +4,7 @@ package srvs
 import (
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 )
 
 type SrvPermitImport interface {
@@ -26,4 +27,7 @@ type SrvPermitImport interface {
 	GetChildMenu(nowMenuId int64) (menuIds []wrappers.MenuSingle, err error)
 
 	GetChildImport(nowMenuId int64) (importIds []wrappers.ImportSingle, err error)
+
+	//用户页面具备的接口权限
+	UserPageImport(arg *wrapper_admin.ArgPageImport) (res *wrapper_admin.ResultPageImport, err error)
 }

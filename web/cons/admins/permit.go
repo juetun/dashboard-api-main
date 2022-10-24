@@ -13,7 +13,6 @@ import (
 )
 
 type Permit interface {
-
 	// AdminUserGroupRelease 用户所属用户权限组解除
 	AdminUserGroupRelease(c *gin.Context)
 
@@ -47,23 +46,7 @@ type Permit interface {
 
 	MenuDelete(c *gin.Context)
 
-	GetImport(c *gin.Context)
-
-	MenuImport(c *gin.Context)
-
-	MenuImportSet(c *gin.Context)
-
-	ImportList(c *gin.Context)
-
-	UpdateImportValue(c *gin.Context)
-
-	EditImport(c *gin.Context)
-
-	DeleteImport(c *gin.Context)
-
 	MenuSave(c *gin.Context)
-
-	GetImportByMenuId(c *gin.Context)
 
 	// Menu 权限菜单
 	Menu(c *gin.Context)
