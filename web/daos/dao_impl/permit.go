@@ -742,8 +742,8 @@ func (r *DaoPermitImpl) DeleteMenuByIds(ids ...string) (err error) {
 	return
 }
 
-func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
-	res = []models.AdminMenu{}
+func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []*models.AdminMenu, err error) {
+	res = []*models.AdminMenu{}
 	defer func() {
 		if err == nil {
 			return
@@ -780,7 +780,7 @@ func (r *DaoPermitImpl) GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []mode
 	return
 }
 
-func (r *DaoPermitImpl) getAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error) {
+func (r *DaoPermitImpl) getAdminMenuList(arg *wrappers.ArgAdminMenu) (res []*models.AdminMenu, err error) {
 
 	var m *models.AdminMenu
 	actRes := r.GetDefaultActErrorHandlerResult(m)

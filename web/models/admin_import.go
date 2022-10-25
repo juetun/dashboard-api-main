@@ -20,22 +20,25 @@ const (
 	NeedSignNot   = 2
 )
 
-type AdminImport struct {
-	Id            int64      `gorm:"primary_key" json:"id" form:"id"`
-	PermitKey     string     `gorm:"column:permit_key;not null;type:varchar(100);default:'';comment:KEY" json:"permit_key" form:"permit_key"`
-	AppName       string     `gorm:"column:app_name;not null;type:varchar(100);default:'';comment:应用名" json:"app_name" form:"app_name"`
-	AppVersion    string     `gorm:"column:app_version;not null;type:varchar(100);default:'';comment:版本" json:"app_version" form:"app_version"`
-	UrlPath       string     `gorm:"column:url_path;not null;type:varchar(300);default:'';comment:接口地址" json:"url_path" form:"url_path"`
-	RegexpString  string     `gorm:"column:regexp_string;not null;type:varchar(300);default:'';comment:通配地址" json:"regexp_string" form:"regexp_string"`
-	SortValue     int        `gorm:"column:sort_value;not null;type:int(10);default:0;comment:排序值" json:"sort_value" form:"sort_value"`
-	RequestMethod string     `gorm:"column:request_method;not null;type:varchar(100);default:'';comment:接口支持方法" json:"request_method" form:"request_method"`
-	DefaultOpen   uint8      `gorm:"column:default_open;not null;type:tinyint(2);default:1;comment:默认是否开启跟随父界面设置权限1-开启 2-不开启" json:"default_open" form:"default_open"`
-	NeedLogin     uint8      `gorm:"column:need_login;not null;type:tinyint(2);default:1;comment:是否需要登录1-需要 2-不需要" json:"need_login" form:"need_login"`
-	NeedSign      uint8      `gorm:"column:need_sign;not null;type:tinyint(2);default:1;comment:接口是否需要签名验证1-需要 2-不需要" json:"need_sign" form:"need_sign"`
-	CreatedAt     time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	UpdatedAt     time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	DeletedAt     *time.Time `gorm:"column:deleted_at" json:"-"`
-}
+type (
+	AdminImport struct {
+		Id            int64      `gorm:"primary_key" json:"id" form:"id"`
+		PermitKey     string     `gorm:"column:permit_key;not null;type:varchar(100);default:'';comment:KEY" json:"permit_key" form:"permit_key"`
+		AppName       string     `gorm:"column:app_name;not null;type:varchar(100);default:'';comment:应用名" json:"app_name" form:"app_name"`
+		AppVersion    string     `gorm:"column:app_version;not null;type:varchar(100);default:'';comment:版本" json:"app_version" form:"app_version"`
+		UrlPath       string     `gorm:"column:url_path;not null;type:varchar(300);default:'';comment:接口地址" json:"url_path" form:"url_path"`
+		RegexpString  string     `gorm:"column:regexp_string;not null;type:varchar(300);default:'';comment:通配地址" json:"regexp_string" form:"regexp_string"`
+		SortValue     int        `gorm:"column:sort_value;not null;type:int(10);default:0;comment:排序值" json:"sort_value" form:"sort_value"`
+		RequestMethod string     `gorm:"column:request_method;not null;type:varchar(100);default:'';comment:接口支持方法" json:"request_method" form:"request_method"`
+		DefaultOpen   uint8      `gorm:"column:default_open;not null;type:tinyint(2);default:1;comment:默认是否开启跟随父界面设置权限1-开启 2-不开启" json:"default_open" form:"default_open"`
+		NeedLogin     uint8      `gorm:"column:need_login;not null;type:tinyint(2);default:1;comment:是否需要登录1-需要 2-不需要" json:"need_login" form:"need_login"`
+		NeedSign      uint8      `gorm:"column:need_sign;not null;type:tinyint(2);default:1;comment:接口是否需要签名验证1-需要 2-不需要" json:"need_sign" form:"need_sign"`
+		CreatedAt     time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+		UpdatedAt     time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+		DeletedAt     *time.Time `gorm:"column:deleted_at" json:"-"`
+	}
+
+)
 
 func (r *AdminImport) GetTableComment() (res string) {
 	return "接口管理表"

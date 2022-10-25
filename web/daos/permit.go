@@ -60,7 +60,7 @@ type DaoPermit interface {
 
 	DeleteMenuByIds(ids ...string) (err error)
 
-	GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []models.AdminMenu, err error)
+	GetAdminMenuList(arg *wrappers.ArgAdminMenu) (res []*models.AdminMenu, err error)
 
 	GetAdminGroupCount(db *gorm.DB, arg *wrappers.ArgAdminGroup) (total int64, dba *gorm.DB, err error)
 

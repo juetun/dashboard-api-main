@@ -39,4 +39,9 @@ var (
 		Key:    "p:u_gai:%d_%s",
 		Expire: 7 * 24 * time.Hour,
 	}
+
+	CacheMenuImportWithAppKey = redis_pkg.CacheProperty{ //菜单有的接口权限
+		Key:    "p:menu_ipt:%d_%s",
+		Expire: 7 * 24 * time.Hour,
+	}
 )

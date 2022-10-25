@@ -25,8 +25,8 @@ func (r *DaoPermitMenuImpl) GetMenuMap(menuId ...int64) (res map[int64]*models.A
 	return
 }
 
-func (r *DaoPermitMenuImpl) GetAdminMenuByModule(module string) (res models.AdminMenu, err error) {
-	var list []models.AdminMenu
+func (r *DaoPermitMenuImpl) GetAdminMenuByModule(module string) (res *models.AdminMenu, err error) {
+	var list []*models.AdminMenu
 	if list, err = r.GetMenuByPermitKey("", module); err != nil {
 		return
 	}
@@ -41,13 +41,13 @@ func (r *DaoPermitMenuImpl) GetAllSystemList() (res []*models.AdminMenu, err err
 	res, err = r.GetByCondition(map[string]interface{}{"module": wrappers.DefaultPermitModule}, []wrappers.DaoOrderBy{
 		{
 			Column:     "sort_value",
-			SortFormat: "asc",
+			SortFormat: "DESC",
 		},
 	}, 0)
 	return
 }
 
-func (r *DaoPermitMenuImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error) {
+func (r *DaoPermitMenuImpl) GetMenuByPermitKey(module string, permitKey ...string) (res []*models.AdminMenu, err error) {
 
 	defer func() {
 		if err == nil {
@@ -63,7 +63,8 @@ func (r *DaoPermitMenuImpl) GetMenuByPermitKey(module string, permitKey ...strin
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
 		var m *models.AdminMenu
 		actRes = r.GetDefaultActErrorHandlerResult(m)
-		db := actRes.Db.Table(actRes.TableName).Scopes(base.ScopesDeletedAt())
+		db := actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt())
 		lPk := len(permitKey)
 		var f bool
 		if lPk != 0 {
@@ -239,7 +240,7 @@ func (r *DaoPermitMenuImpl) GetMenu(menuId ...int64) (res []*models.AdminMenu, e
 	return
 }
 
-func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error) {
+func (r *DaoPermitMenuImpl) GetMenuByCondition(condition interface{}) (res []*models.AdminMenu, err error) {
 	if condition == nil {
 		return
 	}

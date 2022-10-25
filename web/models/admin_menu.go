@@ -13,7 +13,8 @@ import (
 
 //是否显示或隐藏菜单
 const (
-	AdminMenuHideInMenuTrue = iota + 1
+	AdminMenuHideInMenuBase = iota // hide_in_menu字段 首页的值
+	AdminMenuHideInMenuTrue
 	AdminMenuHideInMenuNo
 )
 
@@ -32,10 +33,10 @@ const (
 	// AdminMenuNameMaxLength 菜单名称最大长度
 	AdminMenuNameMaxLength = 6
 
-	CommonMenuDefaultHomePage = "首页"
-	AdminMenuMaxSortValue     = 1000000000 //首页排序的最大值
-	AdminMenuCommonMaxSortValue =0//公共接口排序值
-	CommonMenuDefaultLabel    = "公共接口"     // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
+	CommonMenuDefaultHomePage   = "首页"
+	AdminMenuMaxSortValue       = 1000000000 //首页排序的最大值
+	AdminMenuCommonMaxSortValue = 0          //公共接口排序值
+	CommonMenuDefaultLabel      = "公共接口"     // 每个子系统的公共接口菜单名称（开启了系统首页就会有此菜单功能）
 )
 
 type AdminMenu struct {
@@ -65,10 +66,27 @@ func (r *AdminMenu) TableName() string {
 	return fmt.Sprintf("%smenu", TablePrefix)
 }
 
+func (r *AdminMenu) GetCommonImportString(module string) (res string) {
+	return fmt.Sprintf("%s_common_import", module, )
+}
+
+func (r *AdminMenu) GetCommonHomePageString(module string) (res string) {
+	return fmt.Sprintf("%s_home_index", module)
+}
+
 func (r *AdminMenu) getPathName() (res string) {
+	switch r.Label {
+	case CommonMenuDefaultLabel: //如果是公共接口
+		res = r.GetCommonImportString(r.Module)
+		return
+	case CommonMenuDefaultHomePage:
+		res = fmt.Sprintf("%s_home_index", r.Module, )
+		return
+	}
 	res, _ = hashid.Encode(r.TableName(), int(r.Id))
 	return
 }
+
 func (r *AdminMenu) ToMapStringInterface() (res map[string]interface{}) {
 
 	var tName string

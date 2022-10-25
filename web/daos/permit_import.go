@@ -9,13 +9,13 @@
 package daos
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_intranet"
 )
 
 type DaoPermitImport interface {
-
 	GetDefaultOpenImportByMenuIds(menuIds ...int64) (res []wrappers.AdminImportWithMenu, err error)
 
 	GetImportByCondition(condition map[string]interface{}) (list []models.AdminImport, err error)
@@ -34,13 +34,14 @@ type DaoPermitImport interface {
 
 	BatchMenuImport(list []*models.AdminMenuImport) (err error)
 
-	GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error)
+	GetImportMenuByImportIds(arg *base.ArgGetByNumberIds) (list map[int64]*models.AdminMenuImport, err error)
 
-	GetChildImportByMenuId(menuIds ...int64) (list []models.AdminMenuImport, err error)
+	//根据菜单ID获取接口列表
+	GetChildImportByMenuId(arg *base.ArgGetByNumberIds) (res map[int64]models.AdminMenuImportCache, err error)
 
 	UpdateByCondition(condition interface{}, data map[string]interface{}) (res bool, err error)
 
 	DeleteByCondition(condition interface{}) (res bool, err error)
 
-	GetMenuImportByMenuIdAndImportIds(menuId int64, importIds ...int64) (res []*models.AdminMenuImport,err error)
+	GetMenuImportByMenuIdAndImportIds(menuId int64, importIds ...int64) (res []*models.AdminMenuImport, err error)
 }

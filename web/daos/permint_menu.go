@@ -6,7 +6,7 @@ import (
 )
 
 type DaoPermitMenu interface {
-	GetMenuByCondition(condition interface{}) (res []models.AdminMenu, err error)
+	GetMenuByCondition(condition interface{}) (res []*models.AdminMenu, err error)
 
 	UpdateMenuByCondition(condition interface{}, data map[string]interface{}) (err error)
 
@@ -25,8 +25,7 @@ type DaoPermitMenu interface {
 
 	Add(data *models.AdminMenu) (err error)
 
+	GetMenuByPermitKey(module string, permitKey ...string) (res []*models.AdminMenu, err error)
 
-	GetMenuByPermitKey(module string, permitKey ...string) (res []models.AdminMenu, err error)
-
-	GetAdminMenuByModule(module string)(res models.AdminMenu,err error)
+	GetAdminMenuByModule(module string) (res *models.AdminMenu, err error)
 }

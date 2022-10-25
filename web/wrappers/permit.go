@@ -262,7 +262,7 @@ type (
 	}
 
 	ResAdminMenuSearch struct {
-		List []models.AdminMenu `json:"list"`
+		List []*models.AdminMenu `json:"list"`
 	}
 	ArgAdminUserAdd struct {
 		app_param.RequestUser

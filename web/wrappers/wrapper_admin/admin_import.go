@@ -15,11 +15,14 @@ const (
 type (
 	ArgPageImport struct {
 		app_param.RequestUser
+		Module   string `json:"module" form:"module"`
+		PageName string `json:"page_name" form:"page_name"`
 	}
 	ResultPageImport struct {
-		CommonImport map[string]uint8 `json:"common_import"` //公共接口列表
-		PageImport   map[string]uint8 `json:"page_import"`   //页面接口列表
-		SubPageMenu  map[string]uint8 `json:"sub_page_menu"` //子页面KEY
+		CommonImport map[string]uint8 `json:"common_import"`  //公共接口列表
+		PageImport   map[string]uint8 `json:"page_import"`    //页面接口列表
+		SubPageMenu  map[string]uint8 `json:"sub_page_menu"`  //子页面KEY
+		IsSuperAdmin bool             `json:"is_super_admin"` //是否超级管理员
 	}
 	ArgMenuImport struct {
 		app_param.RequestUser

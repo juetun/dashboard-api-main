@@ -52,7 +52,7 @@ func (r *PermitServiceImpl) GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.Resu
 }
 func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wrappers.ResAdminMenuSearch, err error) {
 	res = wrappers.ResAdminMenuSearch{
-		List: []models.AdminMenu{},
+		List: []*models.AdminMenu{},
 	}
 	res.List, err = dao_impl.NewDaoPermit(r.Context).
 		GetAdminMenuList(arg)
@@ -113,7 +113,7 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermitMenu, data *m
 		Module:         data.PermitKey,
 		UpdateTime:     data.UpdatedAt,
 		CreateTime:     data.CreatedAt,
-		ParentSystemId: data.ParentId,
+		ParentSystemId: data.Id,
 	})
 	for _, datum := range listData {
 		if err = dao.Add(datum); err != nil {
@@ -189,7 +189,7 @@ func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermi
 		return
 	}
 
-	var resHaveModule []models.AdminMenu
+	var resHaveModule []*models.AdminMenu
 	if resHaveModule, err = daoPermitMenu.GetMenuByPermitKey(arg.Module, arg.PermitKey); err != nil {
 		return
 	}
@@ -257,7 +257,7 @@ func (r *PermitServiceImpl) getChildIds(dao daos.DaoPermitMenu, parentId []strin
 	if len(parentId) == 0 {
 		return
 	}
-	var li []models.AdminMenu
+	var li []*models.AdminMenu
 	if li, err = dao.GetMenuByCondition(fmt.Sprintf("parent_id IN (%s)", strings.Join(parentId, ","))); err != nil {
 		return
 	}
@@ -401,7 +401,7 @@ func (r *PermitServiceImpl) commonImport(module string) (res []int64, err error)
 	if module == "" {
 		return
 	}
-	var da []models.AdminMenu
+	var da []*models.AdminMenu
 	daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
 	if da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
 		"permit_key": module,

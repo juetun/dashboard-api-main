@@ -206,10 +206,10 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 		db = r.fetchGetDb(db, arg)
 	}
 	if page != nil {
-		if arg.PageQuery.Order != "" {
-			db = db.Order(arg.PageQuery.Order)
+		if arg.PageQuery.Order == "" {
+			arg.PageQuery.Order="port ASC"
 		}
-		db = db.Offset(arg.PageQuery.GetOffset()).Limit(page.PageSize)
+ 		db = db.Order(arg.PageQuery.Order).Offset(arg.PageQuery.GetOffset()).Limit(page.PageSize)
 	}
 	if err = db.Find(&list).Error; err != nil {
 		return

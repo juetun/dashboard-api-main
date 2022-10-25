@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
-	"github.com/juetun/library/common/app_param"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -16,6 +15,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
+	"github.com/juetun/library/common/app_param"
 	"gorm.io/gorm"
 )
 
@@ -163,6 +163,7 @@ func (r *SrvPermitGroupImpl) menuImportSetNotDelete(arg *wrappers.ArgMenuImportS
 		}
 		if dtm, ok = mapImport[dt.ImportId]; ok {
 			dt.ImportAppName = dtm.AppName
+			dt.ImportPermitKey = dtm.PermitKey
 			dt.DefaultOpen = dtm.DefaultOpen
 		}
 		dts = append(dts, dt)
@@ -214,6 +215,7 @@ func (r *SrvPermitGroupImpl) menuImportSetUpdate(arg *wrappers.ArgMenuImportSet,
 		}
 		if dtm, ok = mapImport[dt.ImportId]; ok {
 			dt.ImportAppName = dtm.AppName
+			dt.ImportPermitKey = dtm.PermitKey
 		}
 		dts = append(dts, dt)
 	}
@@ -241,12 +243,14 @@ func (r *SrvPermitGroupImpl) menuImportSetDelete(arg *wrappers.ArgMenuImportSet,
 			MenuModule:    menuName,
 			ImportId:      value,
 			ImportAppName: "",
-			CreatedAt:     t,
-			UpdatedAt:     t,
-			DeletedAt:     &t,
+
+			CreatedAt: t,
+			UpdatedAt: t,
+			DeletedAt: &t,
 		}
 		if dtm, ok = mapImport[dt.ImportId]; ok {
 			dt.ImportAppName = dtm.AppName
+			dt.ImportPermitKey = dtm.PermitKey
 			dt.DefaultOpen = dtm.DefaultOpen
 		}
 		dts = append(dts, dt)

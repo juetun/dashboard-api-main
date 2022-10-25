@@ -21,21 +21,52 @@ import (
 
 type (
 	SrvPermitImport struct {
-		base.ServiceBase
+		SrvPermitCommon
 	}
-	userPageImportHandler func(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error)
+	userPageImportHandler func(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error)
+	UserPageImportParam   struct {
+		wrapper_admin.ArgPageImport
+		AdminMenu       models.AdminMenu `json:"admin_menu" form:"-"`
+		IsSupperAdmin   bool             `json:"is_supper_admin" form:"-"`
+		OperatorGroupId []int64          `json:"operator_group_id" form:"-"`
+	}
 )
 
 //用户页面具备的接口权限列表
 func (r *SrvPermitImport) UserPageImport(arg *wrapper_admin.ArgPageImport) (res *wrapper_admin.ResultPageImport, err error) {
 	res = wrapper_admin.NewResultPageImport()
+	var (
+		liAdminMenu []*models.AdminMenu
+		argData     = UserPageImportParam{
+			ArgPageImport: *arg,
+		}
+	)
+
+	//获取用户是否是超级管理员，或用户组ID
+	if err = r.userPermit(&argData); err != nil {
+		return
+	}
+	res.IsSuperAdmin = argData.IsSupperAdmin
+
+	if liAdminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetMenuByPermitKey(arg.Module, arg.PageName); err != nil {
+		return
+	}
+
+	if len(liAdminMenu) == 0 {
+		err = fmt.Errorf("您没有选择要查看权限的菜单")
+		return
+	}
+
+	argData.AdminMenu = *(liAdminMenu[0])
 	var handlers = []userPageImportHandler{
 		r.initUserCommonImport, //页面公共接口权限查询
 		r.initUserPageImport,   //页面接口权限查询
 		r.initUserSubPage,      //子页面查询
 	}
+
 	for _, item := range handlers {
-		if err = item(arg, res); err != nil {
+		if err = item(&argData, res); err != nil {
 			return
 		}
 	}
@@ -43,20 +74,148 @@ func (r *SrvPermitImport) UserPageImport(arg *wrapper_admin.ArgPageImport) (res 
 }
 
 //页面公共接口权限查询
-func (r *SrvPermitImport) initUserCommonImport(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
+func (r *SrvPermitImport) initUserCommonImport(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+	var (
+		adminMenu                = &models.AdminMenu{Module: arg.AdminMenu.Module}
+		moduleCommonImportString = adminMenu.GetCommonImportString(arg.AdminMenu.Module)
+	)
+
+	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
+		GetAdminMenuByModule(moduleCommonImportString); err != nil {
+		return
+	}
+	if adminMenu == nil {
+		err = fmt.Errorf("系统配置(%s)不存在或已删除", arg.AdminMenu.Module)
+	}
+	if arg.IsSupperAdmin { //如果是超管
+		err = r.initUserCommonImportSupperAdmin(adminMenu, res)
+		return
+	}
+	err = r.initUserCommonImportGeneral(adminMenu, arg.OperatorGroupId, res)
+	return
+}
+
+func (r *SrvPermitImport) initUserCommonImportSupperAdmin(adminMenu *models.AdminMenu, res *wrapper_admin.ResultPageImport) (err error) {
+	var (
+		mapImportList map[int64]models.AdminMenuImportCache
+		ok            bool
+		dt            models.AdminMenuImportCache
+		argNumber     = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(adminMenu.Id))
+	)
+	if mapImportList, err = dao_impl.NewDaoPermitImport(r.Context).
+		GetChildImportByMenuId(argNumber); err != nil {
+		return
+	}
+	if dt, ok = mapImportList[adminMenu.Id]; !ok {
+		return
+	}
+
+	for _, item := range dt {
+		res.CommonImport[item.ImportPermitKey] = 1
+	}
+	return
+}
+
+func (r *SrvPermitImport) initUserCommonImportGeneral(adminMenu *models.AdminMenu, groupId []int64, res *wrapper_admin.ResultPageImport) (err error) {
+
+	var (
+		resGroupImport  []*models.AdminUserGroupImport
+		importIds       []int64
+		adminMenuImport map[int64]*models.AdminMenuImport
+	)
+	if resGroupImport, err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		GetMenuIdsByPermitByGroupIds([]int64{adminMenu.Id},
+			groupId); err != nil {
+		return
+	}
+	importIds = make([]int64, 0, len(resGroupImport))
+	for _, item := range resGroupImport {
+		importIds = append(importIds, item.ImportId)
+	}
+	argNumber := base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(importIds...))
+	if adminMenuImport, err = dao_impl.NewDaoPermitImport(r.Context).
+		GetImportMenuByImportIds(argNumber); err != nil {
+		return
+	}
+	for _, item := range adminMenuImport {
+		res.CommonImport[item.ImportPermitKey] = 1
+	}
+	return
+}
+
+func (r *SrvPermitImport) initUserPageImportSupperAdmin(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+	var (
+		mapImportList map[int64]models.AdminMenuImportCache
+		ok            bool
+		dt            models.AdminMenuImportCache
+		argNumber     = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(arg.AdminMenu.Id))
+	)
+	if mapImportList, err = dao_impl.NewDaoPermitImport(r.Context).
+		GetChildImportByMenuId(argNumber); err != nil {
+		return
+	}
+	if dt, ok = mapImportList[arg.AdminMenu.Id]; !ok {
+		return
+	}
+
+	for _, item := range dt {
+		res.PageImport[item.ImportPermitKey] = 1
+	}
+	return
+}
+
+func (r *SrvPermitImport) initUserPageImportGeneral(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+	var (
+		resGroupImport  []*models.AdminUserGroupImport
+		importIds       []int64
+		adminMenuImport map[int64]*models.AdminMenuImport
+	)
+	if resGroupImport, err = dao_impl.NewDaoPermitGroupImport(r.Context).
+		GetMenuIdsByPermitByGroupIds([]int64{arg.AdminMenu.Id},
+			arg.OperatorGroupId); err != nil {
+		return
+	}
+	importIds = make([]int64, 0, len(resGroupImport))
+	for _, item := range resGroupImport {
+		importIds = append(importIds, item.ImportId)
+	}
+	argNumber := base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(importIds...))
+	if adminMenuImport, err = dao_impl.NewDaoPermitImport(r.Context).
+		GetImportMenuByImportIds(argNumber); err != nil {
+		return
+	}
+	for _, item := range adminMenuImport {
+		res.PageImport[item.ImportPermitKey] = 1
+	}
+	return
+}
+
+//页面公共接口权限查询
+func (r *SrvPermitImport) initUserPageImport(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+	if arg.IsSupperAdmin { //如果是超管
+		err = r.initUserPageImportSupperAdmin(arg, res)
+		return
+	}
+	err = r.initUserPageImportGeneral(arg, res)
+	return
+}
+
+func (r *SrvPermitImport) initUserSubPageSupperAdmin(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+
+	return
+}
+func (r *SrvPermitImport) initUserSubPageGeneral(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
 
 	return
 }
 
 //页面公共接口权限查询
-func (r *SrvPermitImport) initUserPageImport(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
-
-	return
-}
-
-//页面公共接口权限查询
-func (r *SrvPermitImport) initUserSubPage(arg *wrapper_admin.ArgPageImport, res *wrapper_admin.ResultPageImport) (err error) {
-
+func (r *SrvPermitImport) initUserSubPage(arg *UserPageImportParam, res *wrapper_admin.ResultPageImport) (err error) {
+	if arg.IsSupperAdmin { //如果是超管
+		err = r.initUserSubPageSupperAdmin(arg, res)
+		return
+	}
+	err = r.initUserSubPageGeneral(arg, res)
 	return
 }
 
@@ -123,9 +282,19 @@ func (r *SrvPermitImport) GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) 
 
 func (r *SrvPermitImport) GetChildImport(nowMenuId int64) (importIds []wrappers.ImportSingle, err error) {
 	importIds = []wrappers.ImportSingle{}
-	dao := dao_impl.NewDaoPermitImport(r.Context)
-	var importList []models.AdminMenuImport
-	if importList, err = dao.GetChildImportByMenuId(nowMenuId); err != nil {
+
+	var (
+		dao        = dao_impl.NewDaoPermitImport(r.Context)
+		importMap  map[int64]models.AdminMenuImportCache
+		importList models.AdminMenuImportCache
+		ok         bool
+		arg        = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(nowMenuId))
+	)
+
+	if importMap, err = dao.GetChildImportByMenuId(arg); err != nil {
+		return
+	}
+	if importList, ok = importMap[nowMenuId]; !ok {
 		return
 	}
 	importIds = make([]wrappers.ImportSingle, 0, len(importList))
@@ -162,7 +331,7 @@ func (r *SrvPermitImport) GetOpList(dao daos.DaoPermit, arg *wrappers.ArgPermitM
 func (r *SrvPermitImport) GetChildMenu(nowMenuId int64) (menuIds []wrappers.MenuSingle, err error) {
 	menuIds = []wrappers.MenuSingle{}
 	dao := dao_impl.NewDaoPermit(r.Context)
-	var res []models.AdminMenu
+	var res []*models.AdminMenu
 	if res, err = dao.GetAdminMenuList(&wrappers.ArgAdminMenu{
 		ParentId: nowMenuId,
 	}); err != nil {
@@ -256,6 +425,23 @@ func (r *SrvPermitImport) SetApiPermit(arg *wrappers.ArgAdminSetPermit) (err err
 	}
 	return
 }
+
+func (r *SrvPermitImport) userPermit(arg *UserPageImportParam) (err error) {
+	// 判断当前用户是否是超级管理员,
+	var getUserArgument = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(arg.UUserHid))
+	if arg.IsSupperAdmin, err = r.GetAdminUserInfo(getUserArgument, arg.UUserHid); err != nil {
+		return
+	}
+	if !arg.IsSupperAdmin { //如果账号不是超管
+		// 判断当前用户是否是超级管理员,如果不是超级管理员，组织所属组权限
+		if arg.OperatorGroupId, arg.IsSupperAdmin, err = NewSrvPermitUserImpl(r.Context).
+			GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (r *SrvPermitImport) getImportId(l int, list []models.AdminImport) (importId []int64) {
 	importId = make([]int64, 0, l)
 	for _, value := range list {
@@ -515,11 +701,11 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 	importId := r.getImportId(l, data)
 	daoImportMenu := dao_impl.NewDaoPermitImport(r.Context)
 
-	var list []models.AdminMenuImport
+	var list map[int64]*models.AdminMenuImport
 	var mapAdminMenu map[int64]*models.AdminMenu
-	var mapAdminMenuGroup map[string]models.AdminMenu
-
-	if list, err = daoImportMenu.GetImportMenuByImportIds(importId...); err != nil {
+	var mapAdminMenuGroup map[string]*models.AdminMenu
+	var argNumber = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(importId...))
+	if list, err = daoImportMenu.GetImportMenuByImportIds(argNumber); err != nil {
 		return
 	} else if mapAdminMenuGroup, mapAdminMenu, err = r.getImportMenuGroupMap(dao, list); err != nil {
 		return
@@ -532,7 +718,7 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 		ok  bool
 		ll  = len(list)
 	)
-	var dtt models.AdminMenu
+	var dtt *models.AdminMenu
 	for _, value := range list {
 		if _, ok = res[value.ImportId]; !ok {
 			res[value.ImportId] = make([]wrappers.AdminImportListMenu, 0, ll)
@@ -557,7 +743,7 @@ func (r *SrvPermitImport) getImportMenuGroup(dao daos.DaoPermit, l int, data []m
 	return
 }
 
-func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []models.AdminMenuImport) (mapAdminMenuModule map[string]models.AdminMenu, mapAdminMenu map[int64]*models.AdminMenu, err error) {
+func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list map[int64]*models.AdminMenuImport) (mapAdminMenuModule map[string]*models.AdminMenu, mapAdminMenu map[int64]*models.AdminMenu, err error) {
 	ll := len(list)
 	menuIds := make([]int64, 0, ll)
 	var mapMenuIds = make(map[int64]bool, ll)
@@ -579,7 +765,7 @@ func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []model
 		m          = make(map[int64]int64, len(adminMenu))
 		modules    = make([]string, 0, len(adminMenu))
 		modulesMap = make(map[string]string, len(adminMenu))
-		dta        []models.AdminMenu
+		dta        []*models.AdminMenu
 	)
 
 	for _, value := range adminMenu {
@@ -593,7 +779,7 @@ func (r *SrvPermitImport) getImportMenuGroupMap(dao daos.DaoPermit, list []model
 		return
 	}
 
-	mapAdminMenuModule = make(map[string]models.AdminMenu, len(dta))
+	mapAdminMenuModule = make(map[string]*models.AdminMenu, len(dta))
 
 	for _, value := range dta {
 		mapAdminMenuModule[value.PermitKey] = value

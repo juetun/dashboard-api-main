@@ -24,6 +24,7 @@ type DaoPermitUserImpl struct {
 }
 
 func (r *DaoPermitUserImpl) GetAdminUserByIds(arg *base.ArgGetByNumberIds) (res map[int64]*models.AdminUser, err error) {
+	res = map[int64]*models.AdminUser{}
 	res, err = cache_act_local.NewCacheAdminUserAction(
 		cache_act_local.CacheAdminUserActionArg(arg),
 		cache_act_local.CacheAdminUserActionGetByIdsFromDb(r.getAdminUserByIdsFromDb),

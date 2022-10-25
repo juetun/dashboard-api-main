@@ -9,9 +9,14 @@
 package dao_impl
 
 import (
+	"context"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/dashboard-api-main/pkg/parameters"
+	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"strings"
+	"time"
 
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -21,6 +26,7 @@ import (
 
 type DaoPermitImportImpl struct {
 	base.ServiceDao
+	ctx context.Context
 }
 
 func (r *DaoPermitImportImpl) GetMenuImportByMenuIdAndImportIds(menuId int64, importIds ...int64) (res []*models.AdminMenuImport, err error) {
@@ -252,38 +258,63 @@ func (r *DaoPermitImportImpl) UpdateByCondition(condition interface{}, data map[
 	return
 }
 
-func (r *DaoPermitImportImpl) GetChildImportByMenuId(menuIds ...int64) (list []models.AdminMenuImport, err error) {
-
-	list = []models.AdminMenuImport{}
-	if len(menuIds) == 0 {
+func (r *DaoPermitImportImpl) getChildImportByMenuIdFromDb(menuIds ...int64) (resData map[int64]models.AdminMenuImportCache, err error) {
+	var l = len(menuIds)
+	resData = make(map[int64]models.AdminMenuImportCache, l)
+	if l == 0 {
 		return
 	}
-	defer func() {
-		if err == nil {
-			return
-		}
-		r.Context.Error(map[string]interface{}{
-			"menuIds": menuIds,
-			"err":     err.Error(),
-		}, "DaoPermitImportGetChildImportByMenuId")
-		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
-	}()
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
-		var m models.AdminMenuImport
-		actRes = r.GetDefaultActErrorHandlerResult(&m)
-		actRes.Err = actRes.Db.Table(actRes.TableName).
+		var m *models.AdminMenuImport
+		var list []*models.AdminMenuImport
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		if actRes.Err = actRes.Db.Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
 			Where("menu_id IN (?)", menuIds).
 			Find(&list).
-			Error
+			Error; actRes.Err != nil {
+			return
+		}
+
+		for _, item := range list {
+			if _, ok := resData[item.MenuId]; !ok {
+				resData[item.MenuId] = make([]*models.AdminMenuImport, 0, l)
+			}
+			resData[item.MenuId] = append(resData[item.MenuId], item)
+		}
 		return
 	})
+
 	return
 }
 
-func (r *DaoPermitImportImpl) GetImportMenuByImportIds(iIds ...int64) (list []models.AdminMenuImport, err error) {
-	list = []models.AdminMenuImport{}
-	if len(iIds) == 0 {
+func (r *DaoPermitImportImpl) GetChildImportByMenuId(arg *base.ArgGetByNumberIds) (res map[int64]models.AdminMenuImportCache, err error) {
+	res = map[int64]models.AdminMenuImportCache{}
+	if len(arg.Ids) == 0 {
+		return
+	}
+	res, err = cache_act_local.NewMenuImportAction(
+		cache_act_local.CacheMenuImportActionArg(arg),
+		cache_act_local.CacheMenuImportActionGetByIdsFromDb(r.getChildImportByMenuIdFromDb),
+	).LoadBaseOption(
+		cache_act.CacheActionBaseGetCacheKey(r.GetMenuImportCacheKey),
+		cache_act.CacheActionBaseContext(r.Context),
+		cache_act.CacheActionBaseCtx(r.ctx), ).
+		Action()
+
+	return
+}
+
+func (r *DaoPermitImportImpl) GetMenuImportCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration) {
+	res = fmt.Sprintf(parameters.CacheMenuImportWithAppKey.Key, productId)
+	expire = parameters.CacheMenuImportWithAppKey.Expire
+	return
+}
+
+func (r *DaoPermitImportImpl) getImportByImportIdFromDb(importIds ...int64) (resData map[int64]*models.AdminMenuImport, err error) {
+	var l = len(importIds)
+	resData = make(map[int64]*models.AdminMenuImport, l)
+	if l == 0 {
 		return
 	}
 	defer func() {
@@ -291,24 +322,52 @@ func (r *DaoPermitImportImpl) GetImportMenuByImportIds(iIds ...int64) (list []mo
 			return
 		}
 		r.Context.Error(map[string]interface{}{
-			"iIds": iIds,
-			"err":  err.Error(),
-		}, "DaoPermitImportGetImportMenuByImportIds")
+			"importIds": importIds,
+			"err":       err.Error(),
+		}, "DaoPermitImportGetImportByImportIdFromDb")
 		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
 	}()
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
 		var m models.AdminMenuImport
+		var list []*models.AdminMenuImport
 		actRes = r.GetDefaultActErrorHandlerResult(&m)
-		actRes.Err = actRes.Db.Table(actRes.TableName).
+		if actRes.Err = actRes.Db.Table(actRes.TableName).
 			Scopes(base.ScopesDeletedAt()).
-			Where("import_id IN (?)", iIds).
+			Where("import_id IN (?)", importIds).
 			Find(&list).
-			Error;
+			Error; actRes.Err != nil {
+			return
+		}
+		for _, item := range list {
+			resData[item.ImportId] = item
+		}
 		return
 	})
+	return
+}
+
+func (r *DaoPermitImportImpl) GetImportMenuByImportIds(arg *base.ArgGetByNumberIds) (list map[int64]*models.AdminMenuImport, err error) {
+	list = map[int64]*models.AdminMenuImport{}
+	if list, err = cache_act_local.NewMenuImportByImportIdAction(
+		cache_act_local.CacheMenuImportByImportIdActionArg(arg),
+		cache_act_local.CacheMenuImportByImportIdActionGetByIdsFromDb(r.getImportByImportIdFromDb),
+	).LoadBaseOption(
+		cache_act.CacheActionBaseGetCacheKey(r.GetMenuImportCacheKey),
+		cache_act.CacheActionBaseContext(r.Context),
+		cache_act.CacheActionBaseCtx(r.ctx), ).
+		Action(); err != nil {
+		return
+	}
 
 	return
 }
+
+func (r *DaoPermitImportImpl) GetImportMenuByImportIdsCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration) {
+	res = fmt.Sprintf(parameters.CacheMenuImportWithAppKey.Key, productId)
+	expire = parameters.CacheMenuImportWithAppKey.Expire
+	return
+}
+
 func (r *DaoPermitImportImpl) UpdateMenuImport(condition string, data map[string]interface{}) (err error) {
 	defer func() {
 		if err == nil {
@@ -462,6 +521,7 @@ func (r *DaoPermitImportImpl) GetDefaultOpenImportByMenuIds(menuId ...int64) (re
 func NewDaoPermitImport(c ...*base.Context) (res daos.DaoPermitImport) {
 	p := &DaoPermitImportImpl{}
 	p.SetContext(c...)
+	p.ctx = context.TODO()
 	res = p
 	return
 }
