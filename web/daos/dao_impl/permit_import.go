@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -444,7 +445,10 @@ func (r *DaoPermitImportImpl) DeleteImportByIds(id ...int64) (err error) {
 			Scopes(base.ScopesDeletedAt()).
 			Unscoped().
 			Where("id IN(?)", id).
-			Delete(&models.AdminImport{}).
+			Updates(map[string]interface{}{
+				"deleted_at": time.Now().Format(utils.DateTimeGeneral),
+			}).
+			//Delete(&models.AdminImport{}).
 			Error
 		return
 	})
@@ -455,7 +459,6 @@ func (r *DaoPermitImportImpl) DeleteImportByIds(id ...int64) (err error) {
 		DeleteGroupImportWithMenuId(id...); err != nil {
 		return
 	}
-
 	return
 }
 

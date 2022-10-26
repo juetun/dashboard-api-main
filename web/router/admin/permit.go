@@ -27,8 +27,8 @@ func importRoute(r *gin.Engine, urlPrefix string) {
 	h.POST("/user_page_import", controller.UserPageImport) //页面的接口权限列表
 	h.POST("/get_import", controller.GetImport)            // 获取接口列表
 	h.POST("/menu_import", controller.MenuImport)          // 获取接口列表
-	h.POST("/edit_import", controller.EditImport)
-	h.POST("/menu_import_set", controller.MenuImportSet) // 界面接口设置
+	h.POST("/edit_import", controller.EditImport)          //接口编辑和添加
+	h.POST("/menu_import_set", controller.MenuImportSet)   // 界面接口设置
 	h.POST("/import_list", controller.ImportList)
 	h.POST("/update_import_value", controller.UpdateImportValue)
 	h.DELETE("/delete_import/:id", controller.DeleteImport)

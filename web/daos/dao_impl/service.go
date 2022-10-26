@@ -23,6 +23,78 @@ type DaoServiceImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoServiceImpl) GetByUniqueKey(args *base.ArgGetByStringIds) (res map[string]*models.AdminApp, err error) {
+	if len(args.Ids) == 0 {
+		return
+	}
+	res = make(map[string]*models.AdminApp, len(args.Ids))
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"args": args,
+			"err":  err.Error(),
+		}, "daoServiceImplGetByUniqueKey")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		var list []*models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("unique_key IN(?)", args.Ids).
+			Find(&list).
+			Error
+		if actRes.Err != nil {
+			return
+		}
+
+		for _, item := range list {
+			res[item.UniqueKey] = item
+		}
+		return
+	})
+
+	return
+}
+
+func (r *DaoServiceImpl) GetByPort(portArgNumber *base.ArgGetByNumberIds) (res map[int64]*models.AdminApp, err error) {
+	if len(portArgNumber.Ids) == 0 {
+		return
+	}
+	res = make(map[int64]*models.AdminApp, len(portArgNumber.Ids))
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"portArgNumber": portArgNumber,
+			"err":           err.Error(),
+		}, "daoServiceImplGetByPort")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.AdminApp
+		var list []*models.AdminApp
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		actRes.Err = actRes.Db.Table(actRes.TableName).
+			Where("port IN(?)", portArgNumber.Ids).
+			Find(&list).
+			Error
+		if actRes.Err != nil {
+			return
+		}
+
+		for _, item := range list {
+			res[int64(item.Port)] = item
+		}
+		return
+	})
+
+	return
+}
+
 func (r *DaoServiceImpl) GetByKeys(keys ...string) (res []models.AdminApp, err error) {
 	res = make([]models.AdminApp, 0, len(keys))
 	defer func() {
@@ -192,7 +264,7 @@ func (r *DaoServiceImpl) GetCount(db *gorm.DB, arg *wrappers.ArgServiceList) (to
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
 		var m *models.AdminApp
 		actRes = r.GetDefaultActErrorHandlerResult(m)
- 		dba = r.fetchGetDb(db, arg)
+		dba = r.fetchGetDb(db, arg)
 		if actRes.Err = dba.Count(&total).Error; actRes.Err != nil {
 			return
 		}
@@ -207,9 +279,9 @@ func (r *DaoServiceImpl) GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page
 	}
 	if page != nil {
 		if arg.PageQuery.Order == "" {
-			arg.PageQuery.Order="port ASC"
+			arg.PageQuery.Order = "port ASC"
 		}
- 		db = db.Order(arg.PageQuery.Order).Offset(arg.PageQuery.GetOffset()).Limit(page.PageSize)
+		db = db.Order(arg.PageQuery.Order).Offset(arg.PageQuery.GetOffset()).Limit(page.PageSize)
 	}
 	if err = db.Find(&list).Error; err != nil {
 		return

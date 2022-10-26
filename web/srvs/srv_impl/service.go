@@ -83,9 +83,63 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 	res = true
 	return
 }
+
+func (r *SrvServiceImpl) validateUniqueKey(dao daos.DaoService, arg *wrappers.ArgServiceEdit) (err error) {
+	var (
+		argNumber = base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.UniqueKey))
+		mapApp    map[string]*models.AdminApp
+		dt        *models.AdminApp
+	)
+	if mapApp, err = dao.GetByUniqueKey(argNumber); err != nil {
+		return
+	}
+	dt, _ = mapApp[arg.UniqueKey]
+	if dt != nil {
+		if arg.Id == 0 {
+			err = fmt.Errorf("唯一KEY(%s)已被使用(%s)", dt.UniqueKey, dt.Name)
+			return
+		} else if arg.Id != dt.Id {
+			err = fmt.Errorf("唯一KEY(%s)已被使用(%s)", dt.UniqueKey, dt.Name)
+			return
+		}
+	}
+	return
+}
+
+func (r *SrvServiceImpl) validatePortUse(dao daos.DaoService, arg *wrappers.ArgServiceEdit) (err error) {
+	var (
+		argNumber  = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(int64(arg.Port)))
+		mapPortApp map[int64]*models.AdminApp
+		dt         *models.AdminApp
+	)
+	if mapPortApp, err = dao.GetByPort(argNumber); err != nil {
+		return
+	}
+	dt, _ = mapPortApp[int64(arg.Port)]
+	if dt != nil {
+		if arg.Id == 0 {
+			err = fmt.Errorf("端口(%d)已被使用(%s)", dt.Port, dt.Name)
+			return
+		} else if arg.Id != dt.Id {
+			err = fmt.Errorf("端口(%d)已被使用(%s)", dt.Port, dt.Name)
+			return
+		}
+	}
+	return
+}
+
 func (r *SrvServiceImpl) Edit(arg *wrappers.ArgServiceEdit) (res *wrappers.ResultServiceEdit, err error) {
 	res = &wrappers.ResultServiceEdit{}
-	dao := dao_impl.NewDaoServiceImpl(r.Context)
+	var (
+		dao = dao_impl.NewDaoServiceImpl(r.Context)
+	)
+	if err = r.validatePortUse(dao, arg); err != nil {
+		return
+	}
+
+	if err = r.validateUniqueKey(dao, arg); err != nil {
+		return
+	}
 	if arg.Id == 0 { // 如果是添加
 		res.Result, err = r.add(dao, arg)
 		return

@@ -538,6 +538,12 @@ func (r *SrvPermitImport) orgImportData(item string, arg *wrappers.ArgEditImport
 }
 func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers.ResultEditImport, err error) {
 	res = &wrappers.ResultEditImport{Result: false}
+	defer func() {
+		if err != nil {
+			return
+		}
+		res.Result = true
+	}()
 	var (
 		dao        = dao_impl.NewDaoPermit(r.Context)
 		daoImport  = dao_impl.NewDaoPermitImport(r.Context)
@@ -572,7 +578,7 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 			return
 		}
 	}
-	var mAi models.AdminImport
+	var mAi = &models.AdminImport{}
 	mAi.SetRequestMethods(arg.RequestMethod)
 	data := map[string]interface{}{
 		`app_name`:       arg.AppName,
@@ -589,7 +595,6 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 		return
 	}
 
-	var m = models.AdminImport{Id: arg.Id}
 	var dt []models.AdminImport
 	if dt, err = dao.GetAdminImportById(arg.Id); err != nil {
 		return
@@ -599,15 +604,16 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 		err = fmt.Errorf("您编辑的接口信息不存在或已删除")
 		return
 	}
-
 	if dt[0].PermitKey == "" {
-		data["permit_key"] = m.GetPathName()
+		data["permit_key"] = dt[0].GetPathName()
+		if err = daoImport.UpdateMenuImport(fmt.Sprintf("import_id=%d", dt[0].Id), map[string]interface{}{"import_permit_key": data["permit_key"]}); err != nil {
+			return
+		}
 	}
 	// 如果更新了app_name
 	if dt[0].AppName != arg.AppName {
-		if err = dao_impl.NewDaoPermitImport(r.Context).
-			UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
-				map[string]interface{}{"import_app_name": arg.AppName}); err != nil {
+		if err = daoImport.UpdateMenuImport(fmt.Sprintf("import_id = %d ", dt[0].Id),
+			map[string]interface{}{"import_app_name": arg.AppName}); err != nil {
 			return
 		}
 
@@ -615,7 +621,6 @@ func (r *SrvPermitImport) EditImport(arg *wrappers.ArgEditImport) (res *wrappers
 	if _, err = dao.UpdateAdminImport(map[string]interface{}{"id": arg.Id}, data); err != nil {
 		return
 	}
-	res.Result = true
 	return
 }
 

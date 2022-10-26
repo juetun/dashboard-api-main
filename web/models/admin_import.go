@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juetun/base-wrapper/lib/utils/hashid"
 	"github.com/juetun/dashboard-api-main/pkg/route_match"
 	"gorm.io/gorm"
 )
@@ -37,7 +36,6 @@ type (
 		UpdatedAt     time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 		DeletedAt     *time.Time `gorm:"column:deleted_at" json:"-"`
 	}
-
 )
 
 func (r *AdminImport) GetTableComment() (res string) {
@@ -55,23 +53,64 @@ func (r *AdminImport) TableName() string {
 	return fmt.Sprintf("%simport", TablePrefix)
 }
 
+// Capitalize 字符首字母大写
+func (r *AdminImport) capitalize(str string) string {
+	var upperStr string
+	vv := []rune(str) // 后文有介绍
+	for i := 0; i < len(vv); i++ {
+		if i == 0 {
+			if vv[i] >= 97 && vv[i] <= 122 { // 后文有介绍
+				vv[i] -= 32 // string的码表相差32位
+				upperStr += string(vv[i])
+			} else {
+				return str
+			}
+		} else {
+			upperStr += string(vv[i])
+		}
+	}
+	return upperStr
+}
+
 func (r *AdminImport) GetPathName() (res string) {
-	res, _ = hashid.Encode(r.TableName(), int(r.Id))
+
+	pk := fmt.Sprintf("%s/%s", r.AppName, r.UrlPath)
+	pk = strings.Replace(pk, "\\", "/", -1)
+	pkSlice := strings.Split(pk, "/")
+	var data = make([]string, 0, len(pkSlice))
+	for _, item := range pkSlice {
+		//data = append(data, r.capitalize(item))
+		data = append(data, item)
+	}
+	res = strings.Join(pkSlice, "#")
+	//res, _ = hashid.Encode(r.TableName(), int(r.Id))
 	return
 }
 
 func (r *AdminImport) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
-		tx.Table(r.TableName()).
-			Where("id=?", r.Id).
-			Update("permit_key", r.GetPathName())
+		var data = &AdminImport{}
+		if err = tx.Model(r).Where("id=?", r.Id).Find(data).Error; err != nil {
+			return
+		}
+		if data.Id > 0 {
+			err = tx.Table(r.TableName()).
+				Where("id=?", r.Id).
+				Update("permit_key", data.GetPathName()).Error
+		}
 	}
 	return
 }
 
 func (r *AdminImport) AfterCreate(tx *gorm.DB) (err error) {
 	if r.PermitKey == "" {
-		tx.Model(r).Where("id=?", r.Id).Update("permit_key", r.GetPathName())
+		var data = &AdminImport{}
+		if err = tx.Model(r).Where("id=?", r.Id).Find(data).Error; err != nil {
+			return
+		}
+		if data.Id > 0 {
+			err = tx.Model(r).Where("id=?", r.Id).Update("permit_key", data.GetPathName()).Error
+		}
 	}
 	return
 }

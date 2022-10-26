@@ -10,6 +10,7 @@ import (
 
 // https://github.com/izghua/go-blog
 func main() {
+
 	app_start.NewPlugins().Use(
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		PluginOss,
@@ -19,6 +20,7 @@ func main() {
 			return
 		},
 	).LoadPlugins() // 加载插件动作
+
 	// 启动GIN服务
 	_ = app_start.NewWebApplication(
 		middlewares.SignHttp(), // 添加签名中间件

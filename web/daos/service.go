@@ -9,6 +9,7 @@
 package daos
 
 import (
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
@@ -24,4 +25,8 @@ type DaoService interface {
 	GetList(db *gorm.DB, arg *wrappers.ArgServiceList, page *response.Pager) (list []models.AdminApp, err error)
 
 	GetImportMenuByModule(module string) (res []wrappers.ImportMenu, err error)
+
+	GetByPort(portArgNumber *base.ArgGetByNumberIds) (res map[int64]*models.AdminApp, err error)
+
+	GetByUniqueKey(ids *base.ArgGetByStringIds) (res map[string]*models.AdminApp,err error)
 }
