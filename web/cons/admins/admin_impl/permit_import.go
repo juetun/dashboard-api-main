@@ -15,8 +15,8 @@ type AdminConPermitImportImpl struct {
 
 func (r *AdminConPermitImportImpl) UserPageImport(c *gin.Context) {
 	var (
-		res *wrapper_admin.ResultPageImport
 		arg wrapper_admin.ArgPageImport
+		res *wrapper_admin.ResultPageImport
 		err error
 		ctx = base.CreateContext(&r.ControllerBase, c)
 	)

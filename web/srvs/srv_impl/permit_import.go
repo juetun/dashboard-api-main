@@ -54,7 +54,7 @@ func (r *SrvPermitImport) UserPageImport(arg *wrapper_admin.ArgPageImport) (res 
 	}
 
 	if len(liAdminMenu) == 0 {
-		err = fmt.Errorf("您没有选择要查看权限的菜单")
+		err = fmt.Errorf("您选择的菜单未配置(%s)", arg.PageName)
 		return
 	}
 
