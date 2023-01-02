@@ -151,8 +151,6 @@ github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHm
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juetun/base-wrapper v0.0.237 h1:LcyTymeFNZh7/iCKNp2vyCB9kIwxMtlg7lD7k9zSp6Y=
 github.com/juetun/base-wrapper v0.0.237/go.mod h1:MKfPNJqQYfMvjOKdaufvNV0Ey0rjFTXdp/c7qgxHHWs=
-github.com/juetun/library v0.0.10 h1:mJ1MCP/K8BNgWjbcpRRsTQMccSZl51CIxo+rDwQEy4o=
-github.com/juetun/library v0.0.10/go.mod h1:PS99CYzPKcwTFfLS3Yd6htlbX+D6GGFAG/bLw1wi2yk=
 github.com/juetun/library v0.0.26 h1:gbIMzC1XMahqC8frmztaP0nMEweSW79fGhYNc90HFlA=
 github.com/juetun/library v0.0.26/go.mod h1:PS99CYzPKcwTFfLS3Yd6htlbX+D6GGFAG/bLw1wi2yk=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
