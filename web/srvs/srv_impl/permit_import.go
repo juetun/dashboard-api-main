@@ -96,6 +96,9 @@ func (r *SrvPermitImport) initUserCommonImport(arg *UserPageImportParam, res *wr
 }
 
 func (r *SrvPermitImport) initUserCommonImportSupperAdmin(adminMenu *models.AdminMenu, res *wrapper_admin.ResultPageImport) (err error) {
+	if adminMenu == nil {
+		return
+	}
 	var (
 		mapImportList map[int64]models.AdminMenuImportCache
 		ok            bool
