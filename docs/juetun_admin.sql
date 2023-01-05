@@ -11,7 +11,7 @@
  Target Server Version : 50716
  File Encoding         : 65001
 
- Date: 03/01/2023 21:55:46
+ Date: 05/01/2023 11:13:35
 */
 
 SET NAMES utf8mb4;
@@ -204,7 +204,7 @@ CREATE TABLE `admin_menu`  (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `permit_key`(`permit_key`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 89 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表数据' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '菜单表数据' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of admin_menu
@@ -266,18 +266,29 @@ INSERT INTO `admin_menu` VALUES (72, 'ad_scene', 'system', 71, '广告场景', '
 INSERT INTO `admin_menu` VALUES (73, 'ad_list', 'system', 71, '广告数据', 'md-microphone', 2, 0, 1, '', '', '', 0, '2023-01-03 17:43:50', '2023-01-03 17:42:44', NULL);
 INSERT INTO `admin_menu` VALUES (74, 'ad_scene_edit', 'system', 72, '广告场景编辑', '', 1, 2, 1, '', '', '', 0, '2023-01-03 17:52:32', '2023-01-03 17:52:32', NULL);
 INSERT INTO `admin_menu` VALUES (75, 'ad_data_edit', 'system', 73, '广告数据编辑', '', 1, 2, 1, '', '', '', 0, '2023-01-03 21:31:00', '2023-01-03 21:31:00', NULL);
-INSERT INTO `admin_menu` VALUES (76, 'mall_manager', 'system', 49, '商品管理', 'ios-contacts', 2, 0, 1, '', '', '', 90000000, '2023-01-03 21:50:55', '2023-01-03 21:45:04', NULL);
-INSERT INTO `admin_menu` VALUES (78, 'spu_list', 'system', 76, 'SPU管理', '', 2, 0, 1, '', '', '', 10000, '2023-01-03 21:47:51', '2023-01-03 21:46:08', NULL);
-INSERT INTO `admin_menu` VALUES (79, 'freight', 'system', 76, '物流管理', '', 2, 2, 1, '', '', '', 0, '2023-01-03 21:46:35', '2023-01-03 21:46:35', NULL);
-INSERT INTO `admin_menu` VALUES (80, 'gift_list', 'system', 76, '赠品管理', '', 2, 0, 1, '', '', '', 8000, '2023-01-03 21:48:14', '2023-01-03 21:47:03', NULL);
-INSERT INTO `admin_menu` VALUES (81, 'sku_list', 'system', 76, 'SKU管理', '', 2, 0, 1, '', '', '', 9000, '2023-01-03 21:48:02', '2023-01-03 21:47:38', NULL);
-INSERT INTO `admin_menu` VALUES (82, 'activity', 'system', 83, '平台活动', '', 2, 0, 1, '', '', '', 0, '2023-01-03 21:50:37', '2023-01-03 21:49:04', NULL);
-INSERT INTO `admin_menu` VALUES (83, 'marketing', 'system', 49, '营销管理', 'ios-contacts', 2, 0, 1, '', '', '', 80000000, '2023-01-03 21:51:02', '2023-01-03 21:50:00', NULL);
-INSERT INTO `admin_menu` VALUES (84, 'coupon_list', 'system', 83, '优惠券列表', '', 2, 2, 1, '', '', '', 0, '2023-01-03 21:51:25', '2023-01-03 21:51:25', NULL);
-INSERT INTO `admin_menu` VALUES (85, 'order_manager', 'system', 49, '订单管理', 'ios-contacts', 2, 0, 1, '', '', '', 85000000, '2023-01-03 21:52:35', '2023-01-03 21:52:22', NULL);
-INSERT INTO `admin_menu` VALUES (86, 'shop_order', 'system', 85, '店铺管理', '', 2, 2, 1, '', '', '', 0, '2023-01-03 21:52:57', '2023-01-03 21:52:57', NULL);
-INSERT INTO `admin_menu` VALUES (87, 'user_order', 'system', 85, '用户订单', '', 2, 2, 1, '', '', '', 0, '2023-01-03 21:53:10', '2023-01-03 21:53:10', NULL);
-INSERT INTO `admin_menu` VALUES (88, 'order_static', 'system', 83, '订单统计', '', 2, 2, 1, '', '', '', 0, '2023-01-03 21:54:22', '2023-01-03 21:54:22', NULL);
+INSERT INTO `admin_menu` VALUES (76, 'mall_manager', 'system', 49, '电商管理', 'ios-pulse', 2, 0, 1, '', '', '', 90000000, '2023-01-05 10:43:50', '2023-01-03 21:45:04', NULL);
+INSERT INTO `admin_menu` VALUES (78, 'spu_list', 'system', 76, 'SPU管理', 'md-reorder', 2, 0, 1, '', '', '', 10000, '2023-01-05 10:51:04', '2023-01-03 21:46:08', NULL);
+INSERT INTO `admin_menu` VALUES (79, 'freight', 'system', 76, '物流管理', 'ios-pin', 2, 0, 1, '', '', '', 7000, '2023-01-05 10:51:50', '2023-01-03 21:46:35', NULL);
+INSERT INTO `admin_menu` VALUES (80, 'gift_list', 'system', 76, '赠品管理', 'ios-rose', 2, 0, 1, '', '', '', 8000, '2023-01-05 10:51:36', '2023-01-03 21:47:03', NULL);
+INSERT INTO `admin_menu` VALUES (81, 'sku_list', 'system', 76, 'SKU管理', 'ios-reorder', 2, 0, 1, '', '', '', 9000, '2023-01-05 10:51:19', '2023-01-03 21:47:38', NULL);
+INSERT INTO `admin_menu` VALUES (82, 'system_activity', 'system', 83, '平台活动', 'ios-bonfire', 2, 0, 1, '', '', '', 9000, '2023-01-05 10:48:54', '2023-01-03 21:49:04', NULL);
+INSERT INTO `admin_menu` VALUES (83, 'marketing', 'system', 49, '营销管理', 'md-stats', 2, 0, 1, '', '', '', 80000000, '2023-01-05 10:44:16', '2023-01-03 21:50:00', NULL);
+INSERT INTO `admin_menu` VALUES (84, 'coupon_list', 'system', 83, '优惠券列表', 'ios-card', 2, 0, 1, '', '', '', 8000, '2023-01-05 10:49:29', '2023-01-03 21:51:25', NULL);
+INSERT INTO `admin_menu` VALUES (85, 'order_manager', 'system', 49, '订单管理', 'md-list', 2, 0, 1, '', '', '', 85000000, '2023-01-05 10:43:05', '2023-01-03 21:52:22', NULL);
+INSERT INTO `admin_menu` VALUES (86, 'shop_order', 'system', 85, '店铺订单', 'md-home', 2, 0, 1, '', '', '', 90000, '2023-01-05 10:42:38', '2023-01-03 21:52:57', NULL);
+INSERT INTO `admin_menu` VALUES (87, 'user_order', 'system', 85, '用户订单', 'ios-people', 2, 0, 1, '', '', '', 80000, '2023-01-05 10:44:59', '2023-01-03 21:53:10', NULL);
+INSERT INTO `admin_menu` VALUES (88, 'order_static', 'system', 83, '订单统计', 'ios-podium', 2, 0, 1, '', '', '', 7000, '2023-01-05 10:49:56', '2023-01-03 21:54:22', NULL);
+INSERT INTO `admin_menu` VALUES (89, 'brand_and_category', 'system', 76, '品牌与类目', 'md-pricetags', 2, 0, 1, '', '', '', 6000, '2023-01-05 10:52:22', '2023-01-05 09:35:59', NULL);
+INSERT INTO `admin_menu` VALUES (90, 'brand_list', 'system', 89, '品牌管理', 'md-document', 2, 0, 1, '', '', '', 80000, '2023-01-05 10:54:08', '2023-01-05 09:36:21', NULL);
+INSERT INTO `admin_menu` VALUES (91, 'shop_list', 'system', 89, '店铺管理', 'md-appstore', 2, 0, 1, '', '', '', 60000, '2023-01-05 10:52:57', '2023-01-05 09:37:27', NULL);
+INSERT INTO `admin_menu` VALUES (92, 'order_detail', 'system', 87, '订单详情', '', 1, 2, 1, '', '', '', 0, '2023-01-05 09:40:52', '2023-01-05 09:40:52', NULL);
+INSERT INTO `admin_menu` VALUES (93, 'order_comment', 'system', 85, '评论管理', 'ios-chatbubbles', 2, 0, 1, '', '', '', 50000, '2023-01-05 10:47:20', '2023-01-05 09:41:30', NULL);
+INSERT INTO `admin_menu` VALUES (94, 'after_sale', 'system', 85, '售后服务', 'md-heart', 2, 0, 1, '', '', '', 30000, '2023-01-05 10:48:06', '2023-01-05 09:41:51', NULL);
+INSERT INTO `admin_menu` VALUES (95, 'refund', 'system', 85, '退款单', 'ios-redo', 2, 0, 1, '', '', '', 70000, '2023-01-05 10:45:36', '2023-01-05 09:42:14', NULL);
+INSERT INTO `admin_menu` VALUES (96, 'shop_msg', 'system', 91, '店铺信息', '', 1, 2, 1, '', '', '', 0, '2023-01-05 09:42:52', '2023-01-05 09:42:52', NULL);
+INSERT INTO `admin_menu` VALUES (97, 'shop_brand_edit', 'system', 90, '品牌编辑', '', 1, 0, 1, '', '', '', 0, '2023-01-05 09:52:50', '2023-01-05 09:43:59', NULL);
+INSERT INTO `admin_menu` VALUES (98, 'shop_notice', 'system', 83, '平台公告', 'md-notifications', 2, 0, 1, '', '', '', 5000, '2023-01-05 10:50:18', '2023-01-05 09:44:49', NULL);
+INSERT INTO `admin_menu` VALUES (99, 'settle', 'system', 85, '结算单', 'md-card', 2, 0, 1, '', '', '', 60000, '2023-01-05 10:46:38', '2023-01-05 09:46:11', NULL);
 
 -- ----------------------------
 -- Table structure for admin_menu_import
