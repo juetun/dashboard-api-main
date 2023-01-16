@@ -453,6 +453,8 @@ github.com/juetun/library v0.0.44 h1:Sk6VxOnhnkgpSAIcPiPOLyYULcmGlT+vA8Bx147mo4c
 github.com/juetun/library v0.0.44/go.mod h1:+qaLkdRqoGeNvyCiu/KL5MImRyI2dzHFh4mnR/nvEyE=
 github.com/juetun/library v0.0.45 h1:dIk4TOfAu60VbI+rM6iMte5a8xU9CKkHtu+Fzzf8wiI=
 github.com/juetun/library v0.0.45/go.mod h1:+qaLkdRqoGeNvyCiu/KL5MImRyI2dzHFh4mnR/nvEyE=
+github.com/juetun/library v0.0.47 h1:jMjmOL0gc3tfSbXwnZrX7eEnTK9TIrQX8Tue8a6BFls=
+github.com/juetun/library v0.0.47/go.mod h1:/r1qoUg3LS1cA/mdLYasLRFnjbKTedfWg54ix/pgaTE=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213/go.mod h1:vNUNkEQ1e29fT/6vq2aBdFsgNPmy8qMdSay1npru+Sw=

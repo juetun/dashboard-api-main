@@ -880,7 +880,7 @@ func (r *DaoPermitImpl) GetPermitMenuByIds(module []string, menuIds ...int64) (r
 		var m *models.AdminMenu
 		actRes = r.GetDefaultActErrorHandlerResult(m)
 		db := actRes.Db.
-			Table(actRes.TableName)
+			Table(actRes.TableName).Scopes(base.ScopesDeletedAt())
 		var haveWhere bool
 		// 兼容超级管理员和普通管理员
 		if len(menuIds) != 0 {
