@@ -153,6 +153,8 @@ github.com/juetun/base-wrapper v0.0.250 h1:dQooO2gp9Gu2F07WYmUtnfV0wF1CzcJ4L7miH
 github.com/juetun/base-wrapper v0.0.250/go.mod h1:MKfPNJqQYfMvjOKdaufvNV0Ey0rjFTXdp/c7qgxHHWs=
 github.com/juetun/library v0.0.59 h1:ODoa44GQCTlxNvetgWvgyvrYo8RzDDMbT95ofAVqSAg=
 github.com/juetun/library v0.0.59/go.mod h1:/r1qoUg3LS1cA/mdLYasLRFnjbKTedfWg54ix/pgaTE=
+github.com/juetun/library v0.0.63 h1:6Nlg9DPbRiX5rZI36l5DxImUGIntJrlHmpPapq1jv9o=
+github.com/juetun/library v0.0.63/go.mod h1:FTFqEvi/kmQPNpLepu4oedMfHzHLBE49pmw0E5Ur8TA=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
