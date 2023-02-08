@@ -151,8 +151,8 @@ github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHm
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juetun/base-wrapper v0.0.253 h1:bMsr6VX6YTmJmolxUV1NqSncBteIt05iPzvTzXr5uQY=
 github.com/juetun/base-wrapper v0.0.253/go.mod h1:MKfPNJqQYfMvjOKdaufvNV0Ey0rjFTXdp/c7qgxHHWs=
-github.com/juetun/library v0.0.63 h1:6Nlg9DPbRiX5rZI36l5DxImUGIntJrlHmpPapq1jv9o=
-github.com/juetun/library v0.0.63/go.mod h1:FTFqEvi/kmQPNpLepu4oedMfHzHLBE49pmw0E5Ur8TA=
+github.com/juetun/library v0.0.72 h1:uYGLXUdT49q5buNuFeJLTfNZpcv6xFxtCLboeHLINn4=
+github.com/juetun/library v0.0.72/go.mod h1:ta72TEvT0fN00Hdmo+STXJLnUUuBpXCs3OiK6Dvi04E=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
