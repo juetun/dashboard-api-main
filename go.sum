@@ -149,10 +149,12 @@ github.com/json-iterator/go v1.1.10/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/juetun/base-wrapper v0.0.253 h1:bMsr6VX6YTmJmolxUV1NqSncBteIt05iPzvTzXr5uQY=
-github.com/juetun/base-wrapper v0.0.253/go.mod h1:MKfPNJqQYfMvjOKdaufvNV0Ey0rjFTXdp/c7qgxHHWs=
-github.com/juetun/library v0.0.72 h1:uYGLXUdT49q5buNuFeJLTfNZpcv6xFxtCLboeHLINn4=
-github.com/juetun/library v0.0.72/go.mod h1:ta72TEvT0fN00Hdmo+STXJLnUUuBpXCs3OiK6Dvi04E=
+github.com/juetun/base-wrapper v0.0.254 h1:sY0IpixYKjXq5SbLU/WJ/5ESC6yEvhcvRTKCc1pmUok=
+github.com/juetun/base-wrapper v0.0.254/go.mod h1:MKfPNJqQYfMvjOKdaufvNV0Ey0rjFTXdp/c7qgxHHWs=
+github.com/juetun/library v0.0.95 h1:1rVd74O/AY3gEtH3KYufci+5rrFsStlIiM/zCZtHcko=
+github.com/juetun/library v0.0.95/go.mod h1:qI2O2CFgGPaYUY3J8U0AvGDb97bEHYLhgsU1elS61nQ=
+github.com/juetun/library v0.0.97 h1:S1sIKvA/n3DK39x2YFCYxSLtk1p/V8vHX6DUjspcR3Y=
+github.com/juetun/library v0.0.97/go.mod h1:qI2O2CFgGPaYUY3J8U0AvGDb97bEHYLhgsU1elS61nQ=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
