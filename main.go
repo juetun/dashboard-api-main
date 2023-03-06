@@ -6,6 +6,7 @@ import (
 	"github.com/juetun/base-wrapper/lib/app/middlewares"
 	. "github.com/juetun/base-wrapper/lib/plugins"      // 组件目录
 	_ "github.com/juetun/dashboard-api-main/web/router" // 加载路由信息
+	"github.com/juetun/library/common/plugins_lib"
 )
 
 // https://github.com/izghua/go-blog
@@ -15,6 +16,7 @@ func main() {
 		PluginJwt, // 加载用户验证插件,必须放在Redis插件后
 		PluginOss,
 		PluginAppMap,
+		plugins_lib.PluginWebMap,
 		func(arg *app_start.PluginsOperate) (err error) {
 			middlewares.MiddleWareComponent = append(middlewares.MiddleWareComponent, middlewares.CrossOriginResourceSharing())
 			return
