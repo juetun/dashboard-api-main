@@ -168,6 +168,8 @@ github.com/juetun/base-wrapper v0.0.263 h1:JKJjcSTHfZxCPXflm1GBVPFaN42kJY7EmZkpI
 github.com/juetun/base-wrapper v0.0.263/go.mod h1:kUhEJVNK4Uzr98rHq94olIyTWjMW+FRkbf60O7doaac=
 github.com/juetun/library v0.0.148 h1:MSR1ZOgnwdWx43eY7n2bFv7U4Ub8hvxP4CNU+g8EbzQ=
 github.com/juetun/library v0.0.148/go.mod h1:0prKIL2D3REknugIxLc+uwvhJ1Edh0Jgrt/1rfcDnz4=
+github.com/juetun/library v0.0.149 h1:/KUNQv4ZnV5Q44qEGz/hucPoqt58VJa8iVGx9cJDxrM=
+github.com/juetun/library v0.0.149/go.mod h1:0prKIL2D3REknugIxLc+uwvhJ1Edh0Jgrt/1rfcDnz4=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
