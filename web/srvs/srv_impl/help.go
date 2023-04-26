@@ -85,7 +85,14 @@ func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper
 			return
 		}
 	}
+
+	if res.Content, err = NewSrvHelpRelate(r.Context).
+		GetDescMedia(help.Content, &arg.GetDataTypeCommon); err != nil {
+		return
+	}
+
 	res.ParseFromHelpDoc(help)
+
 	return
 }
 

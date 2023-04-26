@@ -73,14 +73,15 @@ type (
 		UpdatedAt string `json:"updated_at"`
 	}
 	ArgHelpDetail struct {
-		Id   int64  `json:"id" form:"id"`
-		PKey string `json:"p_key" form:"p_key"`
+		Id                int64                  `json:"id" form:"id"`
+		PKey              string                 `json:"p_key" form:"p_key"`
+		GetDataTypeCommon base.GetDataTypeCommon `json:"-" form:"-"`
 	}
 
 	ResultHelpDetail struct {
 		Id      int64  `json:"id"`
 		Label   string `json:"label"`
-		Desc    string `json:"desc"`
+		Desc    string `json:"desc,omitempty"`
 		PKey    string `json:"p_key"`
 		Content string `json:"content"`
 	}
@@ -102,11 +103,6 @@ type (
 func (r *ResultHelpTreeItem) ParseFromHelpDocumentRelateCache(cache *models.HelpDocumentRelateCache) {
 	r.Active = false
 
-}
-
-func NewResultHelpTreeItem() (res *ResultHelpTreeItem) {
-	res = &ResultHelpTreeItem{}
-	return
 }
 
 func (r *ResultHelpTreeItemMenu) SetHelpDocumentRelate(relate *models.HelpDocumentRelate) {
@@ -193,7 +189,6 @@ func (r *ResultHelpDetail) ParseFromHelpDoc(document *models.HelpDocument) {
 		r.Label = document.Label
 	}
 	r.Desc = document.Desc
-	r.Content = document.Content
 	return
 }
 
