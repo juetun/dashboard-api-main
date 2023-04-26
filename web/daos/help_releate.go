@@ -17,5 +17,8 @@ type DaoHelpRelate interface {
 
 	GetByDocKeys(arg *base.ArgGetByStringIds) (res map[string]*models.HelpDocumentRelate, err error)
 
+	//注:此处的参数ID无须传值，只是传是否刷新缓存使用
 	GetAllHelpRelate(arg *base.ArgGetByStringIds) (res models.HelpDocumentRelateCaches, err error)
+
+	GetByIdFromDb(id ...int64) (res []*models.HelpDocumentRelate, err error)
 }

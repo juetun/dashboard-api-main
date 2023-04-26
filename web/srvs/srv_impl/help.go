@@ -119,8 +119,7 @@ func (r *SrvHelpImpl) getById(id int64) (res *models.HelpDocument, err error) {
 	return
 }
 
-func (r *SrvHelpImpl) validatePk(arg *wrapper_admin.ArgHelpEdit, helpMap map[string]*models.HelpDocument) (err error) {
-	var help *models.HelpDocument
+func (r *SrvHelpImpl) validatePk(arg *wrapper_admin.ArgHelpEdit, helpMap map[string]*models.HelpDocument) (help *models.HelpDocument, err error) {
 	var ok bool
 
 	if help, ok = helpMap[arg.PKey]; !ok { //如果没查到数据
@@ -139,18 +138,24 @@ func (r *SrvHelpImpl) validatePk(arg *wrapper_admin.ArgHelpEdit, helpMap map[str
 
 func (r *SrvHelpImpl) HelpEdit(arg *wrapper_admin.ArgHelpEdit) (res *wrapper_admin.ResultHelpEdit, err error) {
 	res = &wrapper_admin.ResultHelpEdit{}
-	var help map[string]*models.HelpDocument
+	var (
+		help map[string]*models.HelpDocument
+	)
 	if help, err = r.dao.GetByPKey(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.PKey))); err != nil {
 		return
 	}
-	//判断key的唯一性
-	if err = r.validatePk(arg, help); err != nil {
+
+	//判断key的唯一性 (去重)
+	if _, err = r.validatePk(arg, help); err != nil {
 		return
 	}
 
-	if _, err = r.getById(arg.Id); err != nil {
-		return
+	if arg.Id != 0 {
+		if _, err = r.getById(arg.Id); err != nil {
+			return
+		}
 	}
+
 	data := &models.HelpDocument{
 		Id:        arg.Id,
 		PKey:      arg.PKey,

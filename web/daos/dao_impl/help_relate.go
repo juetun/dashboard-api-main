@@ -18,6 +18,27 @@ type DaoHelpRelateImpl struct {
 	ctx context.Context
 }
 
+func (r *DaoHelpRelateImpl) GetByIdFromDb(ids ...int64) (res []*models.HelpDocumentRelate, err error) {
+	var l = len(ids)
+	res = make([]*models.HelpDocumentRelate, 0, l)
+	if l == 0 {
+		return
+	}
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.HelpDocumentRelate
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		if actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Where("id IN (?)", ids).
+			Find(&res).Error; actRes.Err != nil {
+			return
+		}
+		return
+	})
+
+	return
+}
+
 func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*models.HelpDocumentRelate, err error) {
 	var l = len(keys)
 	res = make(map[string]*models.HelpDocumentRelate, l)
@@ -173,6 +194,7 @@ func (r *DaoHelpRelateImpl) getAllHelpRelateFromDb(ids ...string) (res map[strin
 		actRes = r.GetDefaultActErrorHandlerResult(m)
 		if actRes.Err = actRes.Db.Select("id,biz_code,display,parent_id,label,is_leaf_node,doc_key").
 			Table(actRes.TableName).
+			Where("display = ?", models.DisplayYes).
 			Scopes(base.ScopesDeletedAt()).
 			Find(&list).
 			Error; actRes.Err != nil {

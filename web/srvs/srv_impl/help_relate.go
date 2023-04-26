@@ -10,6 +10,8 @@ import (
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_outernet"
+	"github.com/juetun/library/common/app_param/upload_operate"
+	"strings"
 )
 
 type SrvHelpRelateImpl struct {
@@ -79,15 +81,91 @@ func (r *SrvHelpRelateImpl) orgResultHelpTreeItem(arg *wrapper_outernet.ArgTree,
 		return
 	}
 	if helpDocument, ok = resData[docKey]; !ok {
- 		res.NotExists = true
+		res.NotExists = true
 		res.ErrorMsg = "帮助信息不存在或已移除"
 	} else {
-		res.DocContent = helpDocument.Content
+		if res.DocContent, err = r.GetDescMedia(helpDocument.Content, &arg.GetDataTypeCommon); err != nil {
+			return
+		}
 	}
 	res.Menu = dataList
 	return
 }
 
+type (
+	MapMediaDetailReplace struct { //替换
+		Video map[string]string `json:"video"`
+		Img   map[string]string `json:"img"`
+		//File  map[string]string `json:"file"`
+	}
+)
+
+func (r *SrvHelpRelateImpl) GetDescMedia(desc string, argCommon *base.GetDataTypeCommon) (resDesc string, err error) {
+	var (
+		keysDescImg, keysDescVideo map[string]string
+		argUploadGetInfo           = &upload_operate.ArgUploadGetInfo{}
+		mapKeysReplace             = &MapMediaDetailReplace{
+			Video: make(map[string]string, 100),
+			Img:   make(map[string]string, 100),
+		}
+		resUpload *upload_operate.ResultMapUploadInfo
+	)
+	if keysDescImg, keysDescVideo, err = upload_operate.ParseTextEditorContent(desc); err != nil {
+		return
+	}
+	r.collectFileAndVideo(mapKeysReplace, argUploadGetInfo, keysDescImg, keysDescVideo)
+	if resUpload, err = upload_operate.NewDaoUpload(r.Context).
+		GetUploadByKeys(argUploadGetInfo, argCommon); err != nil {
+		return
+	}
+	resDesc = r.description(resUpload, desc, mapKeysReplace)
+
+	return
+}
+
+func (r *SrvHelpRelateImpl) description(uploadInfo *upload_operate.ResultMapUploadInfo, description string, mapKeysReplace *MapMediaDetailReplace, ) (res string) {
+	var (
+		uploadImage *upload_operate.UploadFile
+		uploadVideo *upload_operate.UploadVideo
+		ok          bool
+		html        string
+	)
+	res = description
+	for key, value := range mapKeysReplace.Img {
+		if uploadImage, ok = uploadInfo.File[key]; !ok { //图片地址替换
+			continue
+		}
+		html, _ = uploadImage.GetEditorHtml(value)
+		//html = strings.ReplaceAll(html, "%", "%%")
+		description = strings.Replace(description, value, html, -1)
+	}
+	for key, value := range mapKeysReplace.Video {
+		if uploadVideo, ok = uploadInfo.Video[key]; ok { //视频文件替换
+			continue
+		}
+		html, _ = uploadVideo.GetEditorHtml(key)
+		description = strings.Replace(description, value, html, -1)
+	}
+	res = description
+	return
+}
+
+func (r *SrvHelpRelateImpl) collectFileAndVideo(mapKeysReplace *MapMediaDetailReplace, argUploadGetInfo *upload_operate.ArgUploadGetInfo, keysDescImg, keysDescVideo map[string]string) {
+
+	for key, value := range keysDescImg {
+		if _, ok := mapKeysReplace.Img[key]; !ok {
+			mapKeysReplace.Img[key] = value
+			argUploadGetInfo.File = append(argUploadGetInfo.File, key)
+		}
+	}
+	for key, value := range keysDescVideo {
+		if _, ok := mapKeysReplace.Video[key]; !ok {
+			mapKeysReplace.Video[key] = value
+			argUploadGetInfo.VideoKeys = append(argUploadGetInfo.VideoKeys, key)
+		}
+	}
+	return
+}
 func (r *SrvHelpRelateImpl) defaultDataList(haveSelectIdMap *map[int64]bool, haveDocKey string, dataList []*wrapper_outernet.ResultFormPage) (parentIsActive bool) {
 	for key, item := range dataList {
 		if haveDocKey == "" { //如果默认选定
@@ -330,6 +408,40 @@ func (r *SrvHelpRelateImpl) validateTreeEditNode(arg *wrapper_admin.ArgTreeEditN
 	return
 }
 
+func (r *SrvHelpRelateImpl) validateParentAllParentId(arg *wrapper_admin.ArgTreeEditNode) (err error) {
+	var parentIdMap = make(map[int64]bool, 20)
+	if arg.ParentId != 0 {
+		if err = r.getRelateById(arg.ParentId, &parentIdMap); err != nil {
+			return
+		}
+		//如果当前参数ID和当前数据的所有父级关系ID存在交集，则直接报参数异常
+		if _, ok := parentIdMap[arg.Id]; ok {
+			err = fmt.Errorf("您传递的参数存在cricle。参数异常")
+			return
+		}
+	}
+	return
+}
+
+func (r *SrvHelpRelateImpl) getRelateById(id int64, parentIdMap *map[int64]bool) (err error) {
+	var (
+		relates []*models.HelpDocumentRelate
+		relate  *models.HelpDocumentRelate
+	)
+	(*parentIdMap)[id] = true
+	if relates, err = r.dao.GetByIdFromDb([]int64{id}...); err != nil {
+		return
+	} else if len(relates) > 0 {
+		relate = relates[0]
+	}
+
+	if relate != nil && relate.Id != 0 && relate.ParentId != 0 {
+		if err = r.getRelateById(relate.ParentId, parentIdMap); err != nil {
+			return
+		}
+	}
+	return
+}
 func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (res *wrapper_admin.ResultTreeEditNode, err error) {
 
 	res = &wrapper_admin.ResultTreeEditNode{}
@@ -352,6 +464,11 @@ func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (re
 			return
 		}
 		res.Result = true
+		return
+	}
+
+	//验证当前菜单的所有
+	if err = r.validateParentAllParentId(arg); err != nil {
 		return
 	}
 	var data = map[string]interface{}{

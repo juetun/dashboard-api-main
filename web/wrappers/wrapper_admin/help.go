@@ -161,6 +161,10 @@ func (r *ArgTreeEditNode) Default(context *base.Context) (err error) {
 		err = fmt.Errorf("请填写标题")
 		return
 	}
+	if r.ParentId != 0 && r.ParentId == r.Id {
+		err = fmt.Errorf("上下级关系异常id:%v,pid:%v", r.Id, r.ParentId)
+		return
+	}
 	if r.IsBizCodeEdit == 0 {
 		if r.BizCode == "" {
 			err = fmt.Errorf("请填写业务编码")
@@ -209,6 +213,10 @@ func (r *ArgHelpDetail) Default(c *base.Context) (err error) {
 func (r *ArgHelpEdit) Default(context *base.Context) (err error) {
 	if r.TimeNow.IsZero() {
 		r.TimeNow = base.GetNowTimeNormal()
+	}
+	if r.PKey == "" {
+		err = fmt.Errorf("请选择菜单唯一KEY")
+		return
 	}
 	var maxLength = 150
 	if utils.StringUtf8Length(r.PKey) > maxLength {

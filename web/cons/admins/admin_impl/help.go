@@ -105,7 +105,6 @@ func (r *ConsoleHelpImpl) HelpEdit(c *gin.Context) {
 	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
 		return
 	}
-
 	if res, err = srv_impl.NewSrvHelp(ctx).
 		HelpEdit(&arg); err != nil {
 		r.ResponseError(c, err, base.ErrorParameterCode)
