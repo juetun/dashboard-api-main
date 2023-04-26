@@ -445,9 +445,22 @@ func (r *SrvHelpRelateImpl) getRelateById(id int64, parentIdMap *map[int64]bool)
 func (r *SrvHelpRelateImpl) TreeEditNode(arg *wrapper_admin.ArgTreeEditNode) (res *wrapper_admin.ResultTreeEditNode, err error) {
 
 	res = &wrapper_admin.ResultTreeEditNode{}
+
 	if err = r.validateTreeEditNode(arg); err != nil {
 		return
 	}
+
+	defer func() {
+
+		if res.Result { //刷新缓存
+			go func() {
+				//刷新关系缓存
+				var arg = base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionRefreshCache(base.RefreshCacheYes))
+				_, _ = r.dao.GetAllHelpRelate(arg)
+			}()
+		}
+	}()
+
 	if arg.Id == 0 {
 		var data = &models.HelpDocumentRelate{
 			Id:         arg.Id,
