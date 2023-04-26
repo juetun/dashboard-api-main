@@ -22,6 +22,10 @@ var (
 		Key:    "p:hp_id:%s",
 		Expire: 12 * time.Hour,
 	}
+	CacheKeyAllHelpRelate = redis_pkg.CacheProperty{
+		Key:    "p:hp_all:%s",
+		Expire: 12 * time.Hour,
+	}
 	//接口按照appname缓存的key
 	CacheKeyImportWithAppKey = redis_pkg.CacheProperty{
 		Key:    "p:app_c:%s",

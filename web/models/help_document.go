@@ -31,3 +31,7 @@ func (r *HelpDocument) DefaultBeforeAdd() (err error) {
 func (r *HelpDocument) TableName() string {
 	return fmt.Sprintf("%shelp_document", TablePrefix)
 }
+
+func (r *HelpDocument) Default() {
+	
+}

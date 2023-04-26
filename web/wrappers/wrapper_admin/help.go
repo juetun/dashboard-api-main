@@ -99,6 +99,16 @@ type (
 	}
 )
 
+func (r *ResultHelpTreeItem) ParseFromHelpDocumentRelateCache(cache *models.HelpDocumentRelateCache) {
+	r.Active = false
+
+}
+
+func NewResultHelpTreeItem() (res *ResultHelpTreeItem) {
+	res = &ResultHelpTreeItem{}
+	return
+}
+
 func (r *ResultHelpTreeItemMenu) SetHelpDocumentRelate(relate *models.HelpDocumentRelate) {
 	r.HelpDocumentRelate = *relate
 }
@@ -172,8 +182,12 @@ func (r *ArgTreeEditNode) Default(context *base.Context) (err error) {
 
 func (r *ResultHelpDetail) ParseFromHelpDoc(document *models.HelpDocument) {
 	r.Id = document.Id
-	r.PKey = document.PKey
-	r.Label = document.Label
+	if document.PKey != "" {
+		r.PKey = document.PKey
+	}
+	if document.Label != "" {
+		r.Label = document.Label
+	}
 	r.Desc = document.Desc
 	r.Content = document.Content
 	return

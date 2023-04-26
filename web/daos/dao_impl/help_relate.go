@@ -3,7 +3,7 @@ package dao_impl
 import (
 	"context"
 	"fmt"
- 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -18,7 +18,9 @@ type DaoHelpRelateImpl struct {
 	ctx context.Context
 }
 
-func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*models.HelpDocumentRelate,err error) {
+func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*models.HelpDocumentRelate, err error) {
+	var l = len(keys)
+	res = make(map[string]*models.HelpDocumentRelate, l)
 	defer func() {
 		if err == nil {
 			return
@@ -27,19 +29,29 @@ func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*m
 			"err": err.Error(),
 		}, "DaoHelpRelateImplGetByDocKeyFromDb")
 	}()
+	if l == 0 {
+		return
+	}
 	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
 		var m *models.HelpDocumentRelate
-		var data []*models.HelpDocumentRelate
+		var data = make([]*models.HelpDocumentRelate, 0, l)
 		actRes = r.GetDefaultActErrorHandlerResult(m)
-		actRes.Err = actRes.Db.Table(actRes.TableName).
+		if actRes.Err = actRes.Db.Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
 			Where("doc_key IN (?)", keys).
-			Find(&data).Error
+			Find(&data).Error; actRes.Err != nil {
+			return
+		}
+		for _, item := range data {
+			res [item.DocKey] = item
+		}
 		return
 	})
+
 	return
 }
 
-func  (r *DaoHelpRelateImpl)getByDocKeyCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
+func (r *DaoHelpRelateImpl) getByDocKeyCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
 
 	res = fmt.Sprintf(parameters.CacheHelpDocRelateByKeyUpdating.Key, id)
 	timeExpire = parameters.CacheHelpDocRelateByKeyUpdating.Expire
@@ -110,6 +122,68 @@ func (r *DaoHelpRelateImpl) GetByTopHelp() (res []*models.HelpDocumentRelate, er
 			Find(&res).Error
 		return
 	})
+	return
+}
+
+func (r *DaoHelpRelateImpl) GetAllHelpRelate(arg *base.ArgGetByStringIds) (res models.HelpDocumentRelateCaches, err error) {
+	res = models.HelpDocumentRelateCaches{}
+	keyName := "GetAllHelpRelate"
+	arg.Ids = []string{keyName}
+	var (
+		resData map[string]models.HelpDocumentRelateCaches
+	)
+	if resData, err = cache_act_local.NewCacheAllHelpRelateAction(
+		cache_act_local.CacheAllHelpRelateActionArg(arg),
+		cache_act_local.CacheAllHelpRelateActionGetByIdsFromDb(r.getAllHelpRelateFromDb),
+	).LoadBaseOption(
+		cache_act.CacheActionBaseGetCacheKey(r.getAllHelpRelateCacheKey),
+		cache_act.CacheActionBaseContext(r.Context),
+		cache_act.CacheActionBaseCtx(r.ctx), ).
+		Action(); err != nil {
+		return
+	}
+	if tmp, ok := resData[keyName]; ok {
+		res = tmp
+	}
+	return
+}
+
+func (r *DaoHelpRelateImpl) getAllHelpRelateCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
+
+	res = fmt.Sprintf(parameters.CacheKeyAllHelpRelate.Key, id)
+	timeExpire = parameters.CacheKeyAllHelpRelate.Expire
+	var expireTimeRand bool
+	if len(expireTimeRands) > 0 {
+		expireTimeRand = expireTimeRands[0]
+	}
+	if expireTimeRand {
+		randNumber, _ := r.RealRandomNumber(60) //打乱缓存时长，防止缓存同一时间过期导致数据库访问压力变大
+		timeExpire = timeExpire + time.Duration(randNumber)*time.Second
+	}
+
+	return
+}
+
+func (r *DaoHelpRelateImpl) getAllHelpRelateFromDb(ids ...string) (res map[string]models.HelpDocumentRelateCaches, err error) {
+	keyName := "GetAllHelpRelate"
+	res = make(map[string]models.HelpDocumentRelateCaches, len(ids))
+	var list []*models.HelpDocumentRelateCache
+	var actHandler = func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.HelpDocumentRelate
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		if actRes.Err = actRes.Db.Select("id,biz_code,display,parent_id,label,is_leaf_node,doc_key").
+			Table(actRes.TableName).
+			Scopes(base.ScopesDeletedAt()).
+			Find(&list).
+			Error; actRes.Err != nil {
+			return
+		}
+		res[keyName] = list
+		return
+	}
+	if err = r.ActErrorHandler(actHandler); err != nil {
+		return
+	}
 	return
 }
 

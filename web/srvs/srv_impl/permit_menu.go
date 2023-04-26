@@ -953,7 +953,7 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 	httpHeader.Set(app_obj.HttpUserHid, r.Context.GinContext.GetHeader(app_obj.HttpUserHid))
 	request := &rpc.RequestOptions{
 		Context:     r.Context,
-		Method:      "GET",
+		Method:      http.MethodGet,
 		AppName:     app_param.AppNameNotice,
 		Header:      httpHeader,
 		URI:         "/announce/has_not_msg",

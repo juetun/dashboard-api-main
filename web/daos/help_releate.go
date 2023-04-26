@@ -16,4 +16,6 @@ type DaoHelpRelate interface {
 	UpdateById(id int64, data map[string]interface{}) (err error)
 
 	GetByDocKeys(arg *base.ArgGetByStringIds) (res map[string]*models.HelpDocumentRelate, err error)
+
+	GetAllHelpRelate(arg *base.ArgGetByStringIds) (res models.HelpDocumentRelateCaches, err error)
 }

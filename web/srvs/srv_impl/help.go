@@ -61,6 +61,20 @@ func (r *SrvHelpImpl) orgHelpList(documents []*models.HelpDocument, arg *wrapper
 func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper_admin.ResultHelpDetail, err error) {
 	res = &wrapper_admin.ResultHelpDetail{}
 
+	var (
+		resHelpDocumentRelate map[string]*models.HelpDocumentRelate
+	)
+	if resHelpDocumentRelate, err = dao_impl.NewDaoHelpRelate(r.Context).
+		GetByDocKeys(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.PKey))); err != nil {
+		return
+	}
+	if helpDocumentRelate, ok := resHelpDocumentRelate[arg.PKey]; !ok {
+		err = fmt.Errorf("您要编辑的帮助文档关系信息不存在,或已删除")
+		return
+	} else {
+		res.Label = helpDocumentRelate.Label
+	}
+
 	var help *models.HelpDocument
 	if arg.Id > 0 {
 		if help, err = r.getById(arg.Id); err != nil {
@@ -82,7 +96,10 @@ func (r *SrvHelpImpl) getByKey(PKey string) (res *models.HelpDocument, err error
 	}
 	var ok bool
 	if res, ok = helpMap[PKey]; !ok {
-		err = fmt.Errorf("你要查看(或编辑)的帮助信息不存在或已删除")
+		res = &models.HelpDocument{
+			PKey: PKey,
+		}
+		res.Default()
 		return
 	}
 	return
