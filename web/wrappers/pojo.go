@@ -49,8 +49,6 @@ type LinkStore struct {
 	Order int    `json:"order"`
 }
 
-
-
 type ConsolePostList struct {
 	Post     ConsolePost  `json:"post"`
 	Tags     []ConsoleTag `json:"tags"`
@@ -89,10 +87,10 @@ type ConsoleCate struct {
 }
 
 type ConsoleUser struct {
-	UserHid int64 `json:"id"`
+	UserHid int64  `json:"id"`
 	Name    string `json:"name"`
 	Email   string `json:"email"`
-	Status  int    `json:"status"`
+	Status  int8   `json:"status"`
 }
 
 type ConsoleSystem struct {
@@ -108,7 +106,7 @@ type ConsoleView struct {
 }
 
 type IndexPostList struct {
- 	response.Pager
+	response.Pager
 	//Paginate    utils.Paginate
 }
 
