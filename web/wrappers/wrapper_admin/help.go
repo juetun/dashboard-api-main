@@ -144,17 +144,21 @@ func (r *ArgOperateLog) Default(ctx *base.Context) (err error) {
 	if r.TimeArea, ok = ctx.GinContext.GetPostFormMap("time_area"); !ok {
 		r.TimeArea = ctx.GinContext.QueryMap("time_area")
 	}
-	if r.TimeArea["0"] != "" {
-		if t, err = utils.DateParse(r.TimeArea["0"], utils.DateTimeGeneral); err != nil {
-			return
+	if _, ok := r.TimeArea["0"]; ok {
+		if r.TimeArea["0"] != "" {
+			if t, err = utils.DateParse(r.TimeArea["0"], utils.DateTimeGeneral); err != nil {
+				return
+			}
+			r.StartTime = base.GetNowTimeNormal(t)
 		}
-		r.StartTime = base.GetNowTimeNormal(t)
 	}
-	if r.TimeArea["1"] != "" {
-		if t, err = utils.DateParse(r.TimeArea["1"], utils.DateTimeGeneral); err != nil {
-			return
+	if _, ok := r.TimeArea["1"]; ok {
+		if r.TimeArea["1"] != "" {
+			if t, err = utils.DateParse(r.TimeArea["1"], utils.DateTimeGeneral); err != nil {
+				return
+			}
+			r.OverTime = base.GetNowTimeNormal(t)
 		}
-		r.OverTime = base.GetNowTimeNormal(t)
 	}
 	return
 }
