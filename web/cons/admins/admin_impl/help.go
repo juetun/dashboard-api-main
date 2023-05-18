@@ -12,6 +12,26 @@ type ConsoleHelpImpl struct {
 	base.ControllerBase
 }
 
+func (r *ConsoleHelpImpl) OperateLog(c *gin.Context) {
+	var (
+		arg wrapper_admin.ArgOperateLog
+		res *wrapper_admin.ResultOperateLog
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
+		return
+	}
+
+	if res, err = srv_impl.NewSrvOperate(ctx).
+		OperateLog(&arg); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
+	r.Response(c, base.SuccessCode, res)
+	return
+}
+
 func (r *ConsoleHelpImpl) HelpTree(c *gin.Context) {
 
 	var (

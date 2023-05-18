@@ -15,4 +15,6 @@ type ConsoleHelp interface {
 	HelpTree(c *gin.Context)
 
 	TreeEditNode(c *gin.Context)
+
+	OperateLog(c *gin.Context)
 }

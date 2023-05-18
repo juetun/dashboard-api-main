@@ -6,10 +6,32 @@ import (
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/library/common/app_param"
 	"time"
 )
 
 type (
+	ArgOperateLog struct {
+		app_param.RequestUser
+		response.PageQuery
+		TimeArea  map[string]string `json:"time_area" form:"time_area"`
+		StartTime base.TimeNormal   `json:"-" form:"-"`
+		OverTime  base.TimeNormal   `json:"-" form:"-"`
+	}
+	ResultOperateLog struct {
+		Tabs  base.ModelItemOptions `json:"tabs"`
+		Pager response.Pager        `json:"pager"`
+	}
+	ResultOperateLogItem struct {
+		Id          int64  `json:"id"`
+		UserHid     int64  `json:"user_hid"`
+		NickName    string `json:"nick_name"`
+		Name        string `json:"name"`
+		Avatar      string `json:"avatar"`
+		Module      string `json:"module"`
+		Description string `json:"description"`
+		CreatedAt   string `json:"created_at"`
+	}
 	ArgHelpTree struct {
 		TopId     int64  `json:"top_id" form:"top_id"`
 		BizCode   string `json:"biz_code" form:"biz_code"`
@@ -99,6 +121,43 @@ type (
 		Result bool `json:"result"`
 	}
 )
+
+func (r *ResultOperateLogItem) ParseLog(log *models.OperateLog) (err error) {
+	r.Id = log.Id
+	r.UserHid = log.UserHid
+	if r.Module, err = log.ParseModule(); err != nil {
+		return
+	}
+	r.Description = log.Description
+	r.CreatedAt = log.CreatedAt.Format(utils.DateTimeGeneral)
+	return
+}
+
+func (r *ArgOperateLog) Default(ctx *base.Context) (err error) {
+	if err = r.InitRequestUser(ctx); err != nil {
+		return
+	}
+	var (
+		ok bool
+		t  time.Time
+	)
+	if r.TimeArea, ok = ctx.GinContext.GetPostFormMap("time_area"); !ok {
+		r.TimeArea = ctx.GinContext.QueryMap("time_area")
+	}
+	if r.TimeArea["0"] != "" {
+		if t, err = utils.DateParse(r.TimeArea["0"], utils.DateTimeGeneral); err != nil {
+			return
+		}
+		r.StartTime = base.GetNowTimeNormal(t)
+	}
+	if r.TimeArea["1"] != "" {
+		if t, err = utils.DateParse(r.TimeArea["1"], utils.DateTimeGeneral); err != nil {
+			return
+		}
+		r.OverTime = base.GetNowTimeNormal(t)
+	}
+	return
+}
 
 func (r *ResultHelpTreeItem) ParseFromHelpDocumentRelateCache(cache *models.HelpDocumentRelateCache) {
 	r.Active = false
