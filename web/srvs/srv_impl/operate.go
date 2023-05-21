@@ -44,6 +44,7 @@ func (r *SrvOperateImpl) OperateLog(arg *wrapper_admin.ArgOperateLog) (res *wrap
 }
 
 func (r *SrvOperateImpl) GetResultUserByUid(userId string, ctx *base.Context) (res *app_param.ResultUser, err error) {
+	res = &app_param.ResultUser{List: map[int64]app_param.ResultUserItem{}}
 	var value = url.Values{}
 
 	value.Set("user_hid", userId)
@@ -69,7 +70,10 @@ func (r *SrvOperateImpl) GetResultUserByUid(userId string, ctx *base.Context) (r
 	if err != nil {
 		return
 	}
-	res = data.Data
+	if data.Data != nil {
+		res = data.Data
+	}
+
 	return
 }
 
