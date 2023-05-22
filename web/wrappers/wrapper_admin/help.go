@@ -129,7 +129,7 @@ func (r *ResultOperateLogItem) ParseLog(log *models.OperateLog) (err error) {
 		return
 	}
 	r.Description = log.Description
-	r.CreatedAt = log.CreatedAt.Format(utils.DateTimeGeneral)
+	r.CreatedAt = log.CreatedAt.Format(utils.DateTimeDashboard)
 	return
 }
 
