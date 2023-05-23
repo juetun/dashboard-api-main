@@ -25,8 +25,8 @@ func main() {
 
 	// 启动GIN服务
 	_ = app_start.NewWebApplication(
+		middlewares.HttpHeaderInfo(),
 		middlewares.SignHttp(), // 添加签名中间件
- 		middlewares.HttpHeaderInfo(),
 	).LoadRouter(). // 记载gin 路由配置
 		Run()
 }
