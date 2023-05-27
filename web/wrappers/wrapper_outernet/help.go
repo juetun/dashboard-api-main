@@ -6,6 +6,18 @@ import (
 )
 
 type (
+	ArgData struct {
+		DocKey            string                 `json:"doc_key" form:"doc_key"`
+		GetDataTypeCommon base.GetDataTypeCommon `json:"-" form:"-"`
+	}
+
+	ResultData struct {
+		HavError   bool   `json:"hav_error"`
+		ErrorMsg   string `json:"error_msg"`
+		DocName    string `json:"doc_name"`
+		DocContent string `json:"doc_content"`
+	}
+
 	ArgTree struct {
 		TopId             int64                  `json:"top_id" form:"top_id"`
 		BizCode           string                 `json:"biz_code" form:"biz_code"`
@@ -43,6 +55,11 @@ type (
 		ActiveName string `json:"activeName"`
 	}
 )
+
+func (r *ArgData) Default(ctx *base.Context) (err error) {
+
+	return
+}
 
 func (r *ResultFormPage) ParseFromHelpDocumentRelateCache(data *models.HelpDocumentRelateCache) {
 	r.Id = data.Id

@@ -15,4 +15,6 @@ type SrvHelpRelate interface {
 	GetDescMedia(desc string, argCommon *base.GetDataTypeCommon) (resDesc string, err error)
 
 	Tree(arg *wrapper_outernet.ArgTree) (res *wrapper_outernet.ResultTree, err error)
+
+	Data(arg *wrapper_outernet.ArgData) (res *wrapper_outernet.ResultData,err error)
 }

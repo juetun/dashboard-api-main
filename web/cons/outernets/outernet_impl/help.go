@@ -12,13 +12,34 @@ type ConOuterNetsHelpImpl struct {
 	base.ControllerBase
 }
 
+func (r *ConOuterNetsHelpImpl) Data(c *gin.Context) {
+	var (
+		arg wrapper_outernet.ArgData
+		res *wrapper_outernet.ResultData
+		err error
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+
+	if r.ParametersAccept(ctx, &arg) {
+		return
+	}
+
+	if res, err = srv_impl.NewSrvHelpRelate(ctx).
+		Data(&arg); err != nil {
+		r.ResponseError(c, err, base.ErrorParameterCode)
+		return
+	}
+	r.Response(c, base.SuccessCode, res)
+	return
+}
+
 func (r *ConOuterNetsHelpImpl) Tree(c *gin.Context) {
 
 	var (
 		arg wrapper_outernet.ArgTree
 		res *wrapper_outernet.ResultTree
 		err error
-		ctx  = base.CreateContext(&r.ControllerBase, c)
+		ctx = base.CreateContext(&r.ControllerBase, c)
 	)
 
 	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
@@ -31,7 +52,7 @@ func (r *ConOuterNetsHelpImpl) Tree(c *gin.Context) {
 		return
 	}
 	r.Response(c, base.SuccessCode, res)
- 	return
+	return
 }
 
 func NewConOuterNetsHelp() outernets.ConOuterNetsHelp {

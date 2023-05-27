@@ -20,6 +20,30 @@ type SrvHelpRelateImpl struct {
 	daoHelp daos.DaoHelp
 }
 
+func (r *SrvHelpRelateImpl) Data(arg *wrapper_outernet.ArgData) (res *wrapper_outernet.ResultData, err error) {
+	res = &wrapper_outernet.ResultData{}
+	var (
+		ok           bool
+		resData      map[string]*models.HelpDocument
+		helpDocument *models.HelpDocument
+	)
+	if resData, err = r.daoHelp.
+		GetByPKey(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(arg.DocKey))); err != nil {
+		return
+	}
+	if helpDocument, ok = resData[arg.DocKey]; !ok {
+		res.HavError = true
+		res.ErrorMsg = "帮助信息不存在或已移除"
+		return
+	}
+	res.DocName = helpDocument.Label
+	if res.DocContent, err = r.GetDescMedia(helpDocument.Content, &arg.GetDataTypeCommon); err != nil {
+		return
+	}
+
+	return
+}
+
 func (r *SrvHelpRelateImpl) getMapParentAndList(arg *wrapper_outernet.ArgTree) (haveDocKey string, mapParent map[int64][]*wrapper_outernet.ResultFormPage, dataList []*wrapper_outernet.ResultFormPage, err error) {
 	dataList = []*wrapper_outernet.ResultFormPage{}
 	var (

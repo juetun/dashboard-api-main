@@ -12,5 +12,6 @@ func init() {
 		router := r.Group(urlPrefix + "/help")
 		help := outernet_impl.NewConOuterNetsHelp()
 		router.GET("/tree", help.Tree) //帮助文档树形结构
+		router.GET("/data", help.Data) //帮助文档
 	})
 }
