@@ -9,6 +9,8 @@ import (
 
 type DaoOperateLog interface {
 
+	AddLog(list []*models.OperateLog) (err error)
+
 	GetCount(arg *wrapper_admin.ArgOperateLog) (actResObject *base.ActErrorHandlerResult, count int64, err error)
 
 	GetList(actResObject *base.ActErrorHandlerResult, arg *wrapper_admin.ArgOperateLog, pager *response.Pager) (list []*models.OperateLog, err error)

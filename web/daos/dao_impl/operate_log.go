@@ -13,6 +13,38 @@ type DaoOperateLogImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoOperateLogImpl) AddLog(list []*models.OperateLog) (err error) {
+	var (
+		l    = len(list)
+		data = make([]base.ModelBase, 0, l)
+	)
+	if l == 0 {
+		return
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"list": list,
+			"err":  err.Error(),
+		}, "DaoOperateLogAddLog")
+		err = base.NewErrorRuntime(err, base.ErrorSqlCode)
+	}()
+	for _, item := range list {
+		data = append(data, item)
+	}
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		var m *models.OperateLog
+		actRes = r.GetDefaultActErrorHandlerResult(m)
+		if actRes.Err = r.BatchAdd(actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(data))); actRes.Err != nil {
+			return
+		}
+		return
+	})
+	return
+}
+
 func (r *DaoOperateLogImpl) GetCount(arg *wrapper_admin.ArgOperateLog) (actResObject *base.ActErrorHandlerResult, total int64, err error) {
 	defer func() {
 		if err == nil {

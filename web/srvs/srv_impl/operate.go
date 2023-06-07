@@ -11,6 +11,7 @@ import (
 	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"github.com/juetun/library/common/app_param"
+	"github.com/juetun/library/common/app_param/operate_admin"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -20,6 +21,34 @@ import (
 type SrvOperateImpl struct {
 	base.ServiceBase
 	dao daos.DaoOperateLog
+}
+
+func (r *SrvOperateImpl) AddLogMessage(args *operate_admin.ArgAddAdminLog) (res *operate_admin.ResultAddAdminLog, err error) {
+	res = &operate_admin.ResultAddAdminLog{}
+	var (
+		list     = make([]*models.OperateLog, 0, len(args.Data))
+		dataItem *models.OperateLog
+	)
+	for _, item := range args.Data {
+		dataItem = &models.OperateLog{}
+		dataItem.UserHid = item.UserHid
+		dataItem.Module = item.Module
+		dataItem.Description = item.Description
+		dataItem.CreatedAt = item.CreatedAt
+		list = append(list, dataItem)
+	}
+	if err = r.AddLog(list); err != nil {
+		return
+	}
+	res.Result = true
+	return
+}
+
+func (r *SrvOperateImpl) AddLog(list []*models.OperateLog) (err error) {
+	if err = r.dao.AddLog(list); err != nil {
+		return
+	}
+	return
 }
 
 func (r *SrvOperateImpl) OperateLog(arg *wrapper_admin.ArgOperateLog) (res *wrapper_admin.ResultOperateLog, err error) {
