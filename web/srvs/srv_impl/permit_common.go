@@ -18,7 +18,7 @@ func (r *SrvPermitCommon) GetAdminUserInfo(getUserArgument *base.ArgGetByNumberI
 		return
 	}
 	if dt, ok := adminUserMap[userHid]; !ok {
-		err = fmt.Errorf("当前账号没有管理员权限")
+		err = base.NewErrorRuntime(fmt.Errorf("当前账号没有管理员权限"), base.ErrorHasNotPermit)
 		return
 	} else if dt.FlagAdmin == models.AdminUserFlagAdminYes {
 		isSuperAdmin = true

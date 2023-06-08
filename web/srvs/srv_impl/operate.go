@@ -33,6 +33,8 @@ func (r *SrvOperateImpl) AddLogMessage(args *operate_admin.ArgAddAdminLog) (res 
 		dataItem = &models.OperateLog{}
 		dataItem.UserHid = item.UserHid
 		dataItem.Module = item.Module
+		dataItem.DataType = item.DataType
+		dataItem.DataId = item.DataId
 		dataItem.Description = item.Description
 		dataItem.CreatedAt = item.CreatedAt
 		list = append(list, dataItem)
