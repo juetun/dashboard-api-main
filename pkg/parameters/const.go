@@ -1,8 +1,9 @@
 // Package parameters /**
 package parameters
 
-const (
+import "github.com/juetun/base-wrapper/lib/base"
 
+const (
 	SystemPlatform = "platform"
 	SystemBackend  = "backend"
 	SystemSystem   = "system"
@@ -12,24 +13,27 @@ const (
 )
 
 // 当前支持的系统列表
-var SystemDescMap = map[string]SystemDescription{
-	SystemPlatform: {
-		Key:   SystemPlatform,
-		Label: "汽车",
-	},
-	SystemBackend: {
-		Key:   SystemBackend,
-		Label: "后台",
-	},
-	SystemSystem: {
-		Key:   SystemSystem,
-		Label: "系统管理",
-	},
-	SystemUser: {
-		Key:   SystemUser,
-		Label: "用户后台",
-	},
-}
+var (
+	SliceTrendType = base.ModelItemOptions{}
+	SystemDescMap = map[string]SystemDescription{
+		SystemPlatform: {
+			Key:   SystemPlatform,
+			Label: "汽车",
+		},
+		SystemBackend: {
+			Key:   SystemBackend,
+			Label: "后台",
+		},
+		SystemSystem: {
+			Key:   SystemSystem,
+			Label: "系统管理",
+		},
+		SystemUser: {
+			Key:   SystemUser,
+			Label: "用户后台",
+		},
+	}
+)
 
 type SystemDescription struct {
 	Key   string `json:"key"`
