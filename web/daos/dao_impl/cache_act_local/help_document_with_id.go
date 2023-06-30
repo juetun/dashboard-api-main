@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
- 	"github.com/juetun/base-wrapper/lib/base"
+	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
 	"github.com/juetun/dashboard-api-main/web/models"
 )
@@ -83,7 +83,7 @@ func (r *CacheHelpDocWithIdsAction) Action() (res map[int64]*models.HelpDocument
 
 func (r *CacheHelpDocWithIdsAction) getFromCache(id interface{}) (data *models.HelpDocument, err error) {
 	defer func() {
-		if err != nil {
+		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
 				"productId": id,
 				"err":       err.Error(),

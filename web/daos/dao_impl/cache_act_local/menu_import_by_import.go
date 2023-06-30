@@ -84,7 +84,7 @@ func (r *CacheMenuImportByImportIdAction) Action() (res map[int64]*models.AdminM
 func (r *CacheMenuImportByImportIdAction) getFromCache(id interface{}) (data *models.AdminMenuImport, err error) {
 	data = &models.AdminMenuImport{}
 	defer func() {
-		if err != nil {
+		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
 				"productId": id,
 				"err":       err.Error(),

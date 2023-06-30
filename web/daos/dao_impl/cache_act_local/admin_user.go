@@ -83,12 +83,11 @@ func (r *CacheAdminUserAction) Action() (res map[int64]*models.AdminUser, err er
 
 func (r *CacheAdminUserAction) getFromCache(id interface{}) (data *models.AdminUser, err error) {
 	defer func() {
-		if err != nil {
+		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
 				"productId": id,
 				"err":       err.Error(),
 			}, "CacheActionGetFromCache")
-			err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 			return
 		}
 	}()

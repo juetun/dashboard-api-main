@@ -83,7 +83,7 @@ func (r *CacheHelpRelateAction) Action() (res map[string]*models.HelpDocumentRel
 
 func (r *CacheHelpRelateAction) getFromCache(id interface{}) (data *models.HelpDocumentRelate, err error) {
 	defer func() {
-		if err != nil {
+		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
 				"productId": id,
 				"err":       err.Error(),
