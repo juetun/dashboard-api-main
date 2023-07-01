@@ -82,6 +82,7 @@ func (r *CacheHelpDocAction) Action() (res map[string]*models.HelpDocument, err 
 }
 
 func (r *CacheHelpDocAction) getFromCache(id interface{}) (data *models.HelpDocument, err error) {
+	data = &models.HelpDocument{}
 	defer func() {
 		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
@@ -98,8 +99,7 @@ func (r *CacheHelpDocAction) getFromCache(id interface{}) (data *models.HelpDocu
 		return
 	}
 
-	if errString := cmd.Scan(data).Error(); errString != "" {
-		err = fmt.Errorf(errString)
+	if err = cmd.Scan(data); err != nil {
 		return
 	}
 	return

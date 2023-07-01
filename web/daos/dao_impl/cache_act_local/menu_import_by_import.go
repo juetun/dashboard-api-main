@@ -99,8 +99,7 @@ func (r *CacheMenuImportByImportIdAction) getFromCache(id interface{}) (data *mo
 		return
 	}
 
-	if errString := cmd.Scan(&data).Error(); errString != "" {
-		err = fmt.Errorf(errString)
+	if err = cmd.Scan(&data); err != nil {
 		return
 	}
 	return

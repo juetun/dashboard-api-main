@@ -82,6 +82,7 @@ func (r *CacheAdminUserAction) Action() (res map[int64]*models.AdminUser, err er
 }
 
 func (r *CacheAdminUserAction) getFromCache(id interface{}) (data *models.AdminUser, err error) {
+	data = &models.AdminUser{}
 	defer func() {
 		if err != nil && err != redis.Nil {
 			r.Context.Info(map[string]interface{}{
@@ -97,9 +98,8 @@ func (r *CacheAdminUserAction) getFromCache(id interface{}) (data *models.AdminU
 		return
 	}
 
-	if errString := cmd.Scan(data).Error(); errString != "" {
-		err = fmt.Errorf(errString)
-		return
+	if err = cmd.Scan(data); err != nil {
+ 		return
 	}
 	return
 }

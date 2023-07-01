@@ -68,7 +68,8 @@ type (
 
 func (r *HelpDocumentRelateCaches) UnmarshalBinary(data []byte) (err error) {
 	if len(data) == 0 {
-		*r = []*HelpDocumentRelateCache{}
+		dataNull := make([]*HelpDocumentRelateCache, 0)
+		*r = dataNull
 	}
 	err = json.Unmarshal(data, r)
 	return
