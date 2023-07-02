@@ -206,5 +206,8 @@ func (r *DaoHelpImpl) AddHelpDocument(data *models.HelpDocument) (err error) {
 func NewDaoHelp(c ...*base.Context) daos.DaoHelp {
 	p := &DaoHelpImpl{}
 	p.SetContext(c...)
+	if p.ctx == nil {
+		p.ctx = context.TODO()
+	}
 	return p
 }
