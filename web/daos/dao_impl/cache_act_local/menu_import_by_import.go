@@ -128,7 +128,9 @@ func (r *CacheMenuImportByImportIdAction) getByIdsFromCache(ids ...int64) (res m
 
 func (r *CacheMenuImportByImportIdAction) getByIdsFromAll(ids ...int64) (res map[int64]*models.AdminMenuImport, err error) {
 	var pIds []int64
-	res, pIds, err = r.getByIdsFromCache(ids...)
+	if res, pIds, err = r.getByIdsFromCache(ids...); err != nil {
+		return
+	}
 	if len(pIds) == 0 {
 		return
 	}

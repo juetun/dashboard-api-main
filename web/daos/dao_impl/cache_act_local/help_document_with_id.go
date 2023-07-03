@@ -127,7 +127,9 @@ func (r *CacheHelpDocWithIdsAction) getByIdsFromCache(ids ...int64) (res map[int
 
 func (r *CacheHelpDocWithIdsAction) getByIdsFromAll(ids ...int64) (res map[int64]*models.HelpDocument, err error) {
 	var pIds []int64
-	res, pIds, err = r.getByIdsFromCache(ids...)
+	if res, pIds, err = r.getByIdsFromCache(ids...); err != nil {
+		return
+	}
 	if len(pIds) == 0 {
 		return
 	}

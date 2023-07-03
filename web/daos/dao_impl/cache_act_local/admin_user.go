@@ -127,7 +127,9 @@ func (r *CacheAdminUserAction) getByIdsFromCache(ids ...int64) (res map[int64]*m
 
 func (r *CacheAdminUserAction) getByIdsFromAll(ids ...int64) (res map[int64]*models.AdminUser, err error) {
 	var pIds []int64
-	res, pIds, err = r.getByIdsFromCache(ids...)
+	if res, pIds, err = r.getByIdsFromCache(ids...); err != nil {
+		return
+	}
 	if len(pIds) == 0 {
 		return
 	}

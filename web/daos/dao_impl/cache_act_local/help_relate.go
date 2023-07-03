@@ -127,7 +127,9 @@ func (r *CacheHelpRelateAction) getByIdsFromCache(ids ...string) (res map[string
 
 func (r *CacheHelpRelateAction) getByIdsFromAll(ids ...string) (res map[string]*models.HelpDocumentRelate, err error) {
 	var pIds []string
-	res, pIds, err = r.getByIdsFromCache(ids...)
+	if res, pIds, err = r.getByIdsFromCache(ids...); err != nil {
+		return
+	}
 	if len(pIds) == 0 {
 		return
 	}
