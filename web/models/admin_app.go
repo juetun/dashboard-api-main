@@ -15,6 +15,11 @@ const (
 	AdminAppIsStopNo
 )
 
+const (
+	AdminAppSupportCacheYes uint8 = iota + 1
+	AdminAppSupportCacheNo
+)
+
 var (
 	SliceAdminAppIsStop = base.ModelItemOptions{
 		{
@@ -26,23 +31,34 @@ var (
 			Value: AdminAppIsStopNo,
 		},
 	}
+
+	SliceAdminAppSupportCache = base.ModelItemOptions{
+		{
+			Label: "支持",
+			Value: AdminAppSupportCacheYes,
+		},
+		{
+			Label: "不支持",
+			Value: AdminAppSupportCacheNo,
+		},
+	}
 )
 
 type AdminApp struct {
-	Id        int        `json:"id" gorm:"column:id;primary_key" `
-	UniqueKey string     `json:"unique_key" gorm:"column:unique_key;type:varchar(150);not null;default:'';comment:唯一的KEY"`
-	Hosts     string     `json:"-" gorm:"column:hosts;type:varchar(150);not null;default:'';comment:访问地址"`
-	Port      int        `json:"port"  gorm:"column:port;type:int(7);not null;default:0;"`
-	Name      string     `json:"name" gorm:"column:name;type:varchar(150);not null;default:'';comment:应用名"`
-	Desc      string     `json:"desc" gorm:"column:desc;type:varchar(150);not null;default:'';comment:应用描述"`
-	IsStop    uint8      `json:"is_stop"  gorm:"column:is_stop;type:tinyint(2);not null;default:0;comment:是否禁用1-启用 2-禁用"`
-	CreatedAt time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	UpdatedAt time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
-	DeletedAt *time.Time `gorm:"column:deleted_at" json:"-"`
+	Id           int        `json:"id" gorm:"column:id;primary_key" `
+	UniqueKey    string     `json:"unique_key" gorm:"column:unique_key;type:varchar(150);not null;default:'';comment:唯一的KEY"`
+	Hosts        string     `json:"-" gorm:"column:hosts;type:varchar(150);not null;default:'';comment:访问地址"`
+	Port         int        `json:"port"  gorm:"column:port;type:int(7);not null;default:0;"`
+	Name         string     `json:"name" gorm:"column:name;type:varchar(150);not null;default:'';comment:应用名"`
+	Desc         string     `json:"desc" gorm:"column:desc;type:varchar(150);not null;default:'';comment:应用描述"`
+	IsStop       uint8      `json:"is_stop"  gorm:"column:is_stop;type:tinyint(2);not null;default:1;comment:是否禁用1-启用 2-禁用"`
+	SupportCache uint8      `json:"support_cache"   gorm:"column:support_cache;type:tinyint(2);not null;default:2;comment:是否支持缓存 1-支持 2-不支持"`
+	CreatedAt    time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	UpdatedAt    time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
+	DeletedAt    *time.Time `gorm:"column:deleted_at" json:"-"`
 
 	HostConfig map[string]string `json:"hosts" gorm:"-"`
 }
-
 
 func (r *AdminApp) GetTableComment() (res string) {
 	return "服务管理"
@@ -70,6 +86,17 @@ func (r *AdminApp) MarshalHosts() (err error) {
 	r.Hosts = string(bt)
 	return
 }
+
+func (r *AdminApp) Default() (err error) {
+	if r.SupportCache == 0 {
+		r.SupportCache = AdminAppSupportCacheNo
+	}
+	if r.IsStop == 0 {
+		r.IsStop = AdminAppIsStopYes
+	}
+	return
+}
+
 func (r *AdminApp) AfterUpdate(tx *gorm.DB) (err error) {
 	// if r.GroupCode == "" {
 	// 	tx.Table(r.TableName()).
@@ -97,5 +124,15 @@ func (r *AdminApp) ParseIsStop() (res string) {
 		return
 	}
 	res = fmt.Sprintf("未知类型(%d)", r.IsStop)
+	return
+}
+
+func (r *AdminApp) ParseSupportCache() (res string) {
+	mapIsStop, _ := SliceAdminAppSupportCache.GetMapAsKeyUint8()
+	if dt, ok := mapIsStop[r.SupportCache]; ok {
+		res = dt
+		return
+	}
+	res = fmt.Sprintf("未知类型(%d)", r.SupportCache)
 	return
 }
