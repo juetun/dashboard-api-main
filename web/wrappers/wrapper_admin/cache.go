@@ -6,11 +6,13 @@ import (
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/web/models"
+	"github.com/juetun/library/common/app_param"
 )
 
 type (
 	ArgReloadAppCacheConfig struct {
-
+		app_param.ArgGetCacheParamConfig
+		TimeNow base.TimeNormal `json:"-" form:"-"`
 	}
 	ResultReloadAppCacheConfig struct {
 		Result bool `json:"result"`
@@ -24,13 +26,13 @@ type (
 		Pager response.Pager `json:"pager"`
 	}
 	ResultCacheParamItem struct {
-		Id        int64
-		Key       string
-		Expire    string
-		MicroApp  string
-		Desc      string
-		CreatedAt string
-		UpdatedAt string
+		Id        int64  `json:"id"`
+		Key       string `json:"key"`
+		Expire    string `json:"expire"`
+		MicroApp  string `json:"micro_app"`
+		Desc      string `json:"desc"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
 	}
 	ArgClearCache struct {
 	}
@@ -40,6 +42,7 @@ type (
 )
 
 func (r *ArgReloadAppCacheConfig) Default(ctx *base.Context) (err error) {
+	r.TimeNow = base.GetNowTimeNormal()
 	return
 }
 

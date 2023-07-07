@@ -12,6 +12,27 @@ type DaoCacheParamImpl struct {
 	base.ServiceDao
 }
 
+func (r *DaoCacheParamImpl) BatchAddData(bases ...base.ModelBase) (err error) {
+	if len(bases) == 0 {
+		return
+	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		r.Context.Error(map[string]interface{}{
+			"bases": bases,
+			"err":   err.Error(),
+		}, "DaoCacheParamBatchAddData")
+	}()
+	err = r.ActErrorHandler(func() (actRes *base.ActErrorHandlerResult) {
+		actRes = r.GetDefaultActErrorHandlerResult(bases[0])
+		actRes.Err = r.BatchAdd(actRes.ParseBatchAddDataParameter(base.BatchAddDataParameterData(bases)))
+		return
+	})
+	return
+}
+
 func (r *DaoCacheParamImpl) GetListAsNext(arg *wrapper_admin.ArgCacheParamList, resData *wrapper_admin.ResultCacheParamList) (res []*models.CacheKeyData, err error) {
 
 	res = []*models.CacheKeyData{}

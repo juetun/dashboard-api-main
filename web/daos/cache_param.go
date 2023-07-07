@@ -12,4 +12,6 @@ type DaoCacheParam interface {
 	GetCount(arg *wrapper_admin.ArgCacheParamList, res *wrapper_admin.ResultCacheParamList) (actResObject *base.ActErrorHandlerResult, err error)
 
 	GetList(actResObject *base.ActErrorHandlerResult, arg *wrapper_admin.ArgCacheParamList) (res []*models.CacheKeyData, err error)
+
+	BatchAddData(bases ...base.ModelBase) (err error)
 }
