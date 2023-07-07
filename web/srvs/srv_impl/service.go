@@ -30,14 +30,15 @@ type SrvServiceImpl struct {
 func (r *SrvServiceImpl) add(dao daos.DaoService, arg *wrappers.ArgServiceEdit) (res bool, err error) {
 	t := time.Now()
 	dt := &models.AdminApp{
-		UniqueKey:  arg.UniqueKey,
-		Port:       arg.Port,
-		Name:       arg.Name,
-		HostConfig: arg.HostConfig,
-		Desc:       arg.Desc,
-		IsStop:     uint8(arg.IsStop),
-		CreatedAt:  t,
-		UpdatedAt:  t,
+		UniqueKey:    arg.UniqueKey,
+		Port:         arg.Port,
+		Name:         arg.Name,
+		HostConfig:   arg.HostConfig,
+		Desc:         arg.Desc,
+		IsStop:       uint8(arg.IsStop),
+		SupportCache: arg.SupportCache,
+		CreatedAt:    t,
+		UpdatedAt:    t,
 	}
 	if err = dt.MarshalHosts(); err != nil {
 		return
@@ -68,14 +69,16 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 		return
 	}
 	data := map[string]interface{}{
-		"unique_key": arg.UniqueKey,
-		"port":       arg.Port,
-		"hosts":      apps[0].Hosts,
-		"name":       arg.Name,
-		"desc":       arg.Desc,
-		"is_stop":    arg.IsStop,
-		"updated_at": t.Format(utils.DateGeneral),
+		"unique_key":    arg.UniqueKey,
+		"port":          arg.Port,
+		"hosts":         apps[0].Hosts,
+		"name":          arg.Name,
+		"desc":          arg.Desc,
+		"is_stop":       arg.IsStop,
+		"support_cache": arg.SupportCache,
+		"updated_at":    t.Format(utils.DateGeneral),
 	}
+ 
 	condition := map[string]interface{}{"id": arg.Id}
 	if err = dao.Update(condition, data); err != nil {
 		return
@@ -163,6 +166,9 @@ func (r *SrvServiceImpl) Detail(arg *wrappers.ArgDetail) (res *wrappers.ResultDe
 		return
 	}
 	if err = dt[0].UnmarshalHosts(); err != nil {
+		return
+	}
+	if err = dt[0].Default(); err != nil {
 		return
 	}
 	res.AdminApp = dt[0]

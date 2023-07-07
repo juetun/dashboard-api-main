@@ -59,13 +59,14 @@ type (
 	}
 	// ArgServiceEdit {"id":1,"unique_key":"app-user","port":80,"name":"用户","desc":"","is_stop":1}
 	ArgServiceEdit struct {
-		Name       string            `json:"name" form:"name"`
-		UniqueKey  string            `json:"unique_key" form:"unique_key"`
-		HostConfig map[string]string `json:"hosts" form:"hosts"`
-		Port       int               `json:"port"  form:"port"`
-		Desc       string            `json:"desc" form:"desc"`
-		IsStop     int               `json:"is_stop" form:"is_stop"`
-		Id         int               `json:"id" form:"id"`
+		Name         string            `json:"name" form:"name"`
+		UniqueKey    string            `json:"unique_key" form:"unique_key"`
+		HostConfig   map[string]string `json:"hosts" form:"hosts"`
+		Port         int               `json:"port"  form:"port"`
+		Desc         string            `json:"desc" form:"desc"`
+		IsStop       int               `json:"is_stop" form:"is_stop"`
+		Id           int               `json:"id" form:"id"`
+		SupportCache uint8             `json:"support_cache"  form:"support_cache"`
 	}
 
 	ResultServiceEdit struct {
