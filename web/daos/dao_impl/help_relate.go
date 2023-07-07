@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
@@ -72,10 +73,13 @@ func (r *DaoHelpRelateImpl) getByDocKeyFromDb(keys ...string) (res map[string]*m
 	return
 }
 
-func (r *DaoHelpRelateImpl) getByDocKeyCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
-
-	res = fmt.Sprintf(parameters.CacheHelpDocRelateByKeyUpdating.Key, id)
-	timeExpire = parameters.CacheHelpDocRelateByKeyUpdating.Expire
+func (r *DaoHelpRelateImpl) getByDocKeyCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration, err error) {
+	var CacheHelpDocRelateByKeyUpdating *redis_pkg.CacheProperty
+	if CacheHelpDocRelateByKeyUpdating, err = parameters.GetCacheParamConfig("CacheHelpDocRelateByKeyUpdating"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheHelpDocRelateByKeyUpdating.Key, id)
+	timeExpire = CacheHelpDocRelateByKeyUpdating.Expire
 	var expireTimeRand bool
 	if len(expireTimeRands) > 0 {
 		expireTimeRand = expireTimeRands[0]
@@ -169,10 +173,13 @@ func (r *DaoHelpRelateImpl) GetAllHelpRelate(arg *base.ArgGetByStringIds) (res m
 	return
 }
 
-func (r *DaoHelpRelateImpl) getAllHelpRelateCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
-
-	res = fmt.Sprintf(parameters.CacheKeyAllHelpRelate.Key, id)
-	timeExpire = parameters.CacheKeyAllHelpRelate.Expire
+func (r *DaoHelpRelateImpl) getAllHelpRelateCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration, err error) {
+	var CacheKeyAllHelpRelate *redis_pkg.CacheProperty
+	if CacheKeyAllHelpRelate, err = parameters.GetCacheParamConfig("CacheKeyAllHelpRelate"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyAllHelpRelate.Key, id)
+	timeExpire = CacheKeyAllHelpRelate.Expire
 	var expireTimeRand bool
 	if len(expireTimeRands) > 0 {
 		expireTimeRand = expireTimeRands[0]

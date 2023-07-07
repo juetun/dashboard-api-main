@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
@@ -36,10 +37,13 @@ func (r *DaoPermitUserImpl) GetAdminUserByIds(arg *base.ArgGetByNumberIds) (res 
 	return
 }
 
-func (r *DaoPermitUserImpl) GetCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
-
-	res = fmt.Sprintf(parameters.CacheKeyAdminUserWithUserHId.Key, id)
-	timeExpire = parameters.CacheKeyAdminUserWithUserHId.Expire
+func (r *DaoPermitUserImpl) GetCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration, err error) {
+	var CacheKeyAdminUserWithUserHId *redis_pkg.CacheProperty
+	if CacheKeyAdminUserWithUserHId, err = parameters.GetCacheParamConfig("CacheKeyAdminUserWithUserHId"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyAdminUserWithUserHId.Key, id)
+	timeExpire = CacheKeyAdminUserWithUserHId.Expire
 	var expireTimeRand bool
 	if len(expireTimeRands) > 0 {
 		expireTimeRand = expireTimeRands[0]

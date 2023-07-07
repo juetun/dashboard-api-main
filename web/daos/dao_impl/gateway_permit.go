@@ -2,6 +2,7 @@ package dao_impl
 
 import (
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -15,14 +16,22 @@ type DaoGatewayPermitImpl struct {
 	base.ServiceDao
 }
 
-func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithAppKey(appName string) (key string, duration time.Duration) {
-	key = fmt.Sprintf(parameters.CacheKeyImportWithAppKey.Key, appName)
-	duration = parameters.CacheKeyImportWithAppKey.Expire
+func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithAppKey(appName string) (key string, duration time.Duration, err error) {
+	var CacheKeyImportWithAppKey *redis_pkg.CacheProperty
+	if CacheKeyImportWithAppKey, err = parameters.GetCacheParamConfig("CacheKeyImportWithAppKey"); err != nil {
+		return
+	}
+	key = fmt.Sprintf(CacheKeyImportWithAppKey.Key, appName)
+	duration = CacheKeyImportWithAppKey.Expire
 	return
 }
 
 func (r *DaoGatewayPermitImpl) SetCacheKeyImportWithApp(appName string, data interface{}) (err error) {
-	k, duration := r.GetCacheKeyImportWithAppKey(appName)
+	var k string
+	var duration time.Duration
+	if k, duration, err = r.GetCacheKeyImportWithAppKey(appName); err != nil {
+		return
+	}
 	if err = r.Context.CacheClient.
 		Set(r.Context.GinContext.Request.Context(), k, data, duration).
 		Err(); err != nil {
@@ -36,7 +45,10 @@ func (r *DaoGatewayPermitImpl) SetCacheKeyImportWithApp(appName string, data int
 }
 
 func (r *DaoGatewayPermitImpl) GetCacheKeyImportWithApp(appName string, data interface{}) (isNil bool, err error) {
-	k, _ := r.GetCacheKeyImportWithAppKey(appName)
+	var k string
+	if k, _, err = r.GetCacheKeyImportWithAppKey(appName); err != nil {
+		return
+	}
 	var e error
 	isNil = true
 	if e = r.Context.CacheClient.

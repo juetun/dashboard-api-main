@@ -4,6 +4,7 @@ package dao_impl
 import (
 	"context"
 	"fmt"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"math/rand"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 
 type DaoPermitGroupImpl struct {
 	base.ServiceDao
+	ctx context.Context
 }
 
 func (r *DaoPermitGroupImpl) GetGroupAdminMenuByGroupIds(module string, groupIds ...int64) (res []*models.AdminMenu, err error) {
@@ -333,7 +335,13 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitMenuFromDb(groupId int64, module s
 }
 
 func (r *DaoPermitGroupImpl) setGroupAppPermitImportToCache(groupId int64, appName string, res []wrapper_intranet.AdminUserGroupPermit) (err error) {
-	key, duration := r.getGroupAppPermitImportCacheKey(groupId, appName)
+	var (
+		key      string
+		duration time.Duration
+	)
+	if key, duration, err = r.getGroupAppPermitImportCacheKey(groupId, appName); err != nil {
+		return
+	}
 	defer func() {
 		if err != nil {
 			r.Context.Error(map[string]interface{}{
@@ -354,7 +362,6 @@ func (r *DaoPermitGroupImpl) setGroupAppPermitImportToCache(groupId int64, appNa
 }
 
 func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, appName string, data interface{}) (dataNil bool, err error) {
-	key, _ := r.getGroupAppPermitImportCacheKey(groupId, appName)
 
 	defer func() {
 		if err != nil {
@@ -367,6 +374,10 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, app
 			return
 		}
 	}()
+	var key string
+	if key, _, err = r.getGroupAppPermitImportCacheKey(groupId, appName); err != nil {
+		return
+	}
 
 	ctx := context.TODO()
 	op := r.Context.CacheClient.Get(ctx, key)
@@ -389,11 +400,15 @@ func (r *DaoPermitGroupImpl) getGroupAppPermitImportFromCache(groupId int64, app
 }
 
 // 用户组每个接口权限缓存
-func (r *DaoPermitGroupImpl) getGroupAppPermitImportCacheKey(groupId int64, appName string) (res string, duration time.Duration) {
-	res = fmt.Sprintf(parameters.CacheKeyUserGroupAppImportWithAppKey.Key, groupId, appName)
+func (r *DaoPermitGroupImpl) getGroupAppPermitImportCacheKey(groupId int64, appName string) (res string, duration time.Duration, err error) {
+	var CacheKeyUserGroupAppImportWithAppKey *redis_pkg.CacheProperty
+	if CacheKeyUserGroupAppImportWithAppKey, err = parameters.GetCacheParamConfig("CacheKeyUserGroupAppImportWithAppKey"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyUserGroupAppImportWithAppKey.Key, groupId, appName)
 
 	// 生成一个基础时间加上随机时间的时间值避免缓存数据在同一个时间失效
-	duration = parameters.CacheKeyUserGroupAppImportWithAppKey.Expire + time.Duration(rand.Int63n(100))*time.Minute
+	duration = CacheKeyUserGroupAppImportWithAppKey.Expire + time.Duration(rand.Int63n(100))*time.Minute
 	return
 }
 
@@ -452,16 +467,20 @@ func (r *DaoPermitGroupImpl) GetPermitGroupByUid(userHid int64, refreshCache ...
 }
 
 func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid int64, data interface{}) (dataNil bool, err error) {
-	key, _ := r.getUserPermitGroupCacheKey(userHid)
+	var key string
+	if key, _, err = r.getUserPermitGroupCacheKey(userHid); err != nil {
+		return
+	}
+
 	var e error
-	if e = r.Context.CacheClient.Get(context.TODO(), key).Scan(data); e != nil {
-		if e.Error() == redis.Nil.Error() {
+	if e = r.Context.CacheClient.Get(r.ctx, key).Scan(data); e != nil {
+		if e == redis.Nil {
 			dataNil = true
 			return
 		}
 		r.Context.Error(map[string]interface{}{
 			"userHid": userHid,
-			"err":     err.Error(),
+			"err":     e.Error(),
 		}, "DaoPermitGroupImplGetCacheUserPermitGroup")
 		err = base.NewErrorRuntime(err, base.ErrorRedisCode)
 	}
@@ -469,15 +488,22 @@ func (r *DaoPermitGroupImpl) getCacheUserPermitGroup(userHid int64, data interfa
 }
 
 // 用户权限组缓存
-func (r *DaoPermitGroupImpl) getUserPermitGroupCacheKey(userHid int64) (res string, duration time.Duration) {
-	res = fmt.Sprintf(parameters.CacheKeyUserGroupWithAppKey.Key, userHid)
-	duration = parameters.CacheKeyUserGroupWithAppKey.Expire
+func (r *DaoPermitGroupImpl) getUserPermitGroupCacheKey(userHid int64) (res string, duration time.Duration, err error) {
+	var CacheKeyUserGroupWithAppKey *redis_pkg.CacheProperty
+	if CacheKeyUserGroupWithAppKey, err = parameters.GetCacheParamConfig("CacheKeyUserGroupWithAppKey"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyUserGroupWithAppKey.Key, userHid)
+	duration = CacheKeyUserGroupWithAppKey.Expire
 	return
 }
 
 func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid int64) (err error) {
-	key, _ := r.getUserPermitGroupCacheKey(userHid)
-	if err = r.Context.CacheClient.Del(context.TODO(), key).Err(); err != nil {
+	var key string
+	if key, _, err = r.getUserPermitGroupCacheKey(userHid); err != nil {
+		return
+	}
+	if err = r.Context.CacheClient.Del(r.ctx, key).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"userHid": userHid,
 			"err":     err.Error(),
@@ -488,8 +514,12 @@ func (r *DaoPermitGroupImpl) deleteCacheUserPermitGroupCache(userHid int64) (err
 }
 
 func (r *DaoPermitGroupImpl) setCacheUserPermitGroupCache(userHid int64, res []models.AdminUserGroup) (err error) {
-	key, duration := r.getUserPermitGroupCacheKey(userHid)
-	if err = r.Context.CacheClient.Set(context.TODO(), key, res, duration).Err(); err != nil {
+	var key string
+	var duration time.Duration
+	if key, duration, err = r.getUserPermitGroupCacheKey(userHid); err != nil {
+		return
+	}
+	if err = r.Context.CacheClient.Set(r.ctx, key, res, duration).Err(); err != nil {
 		r.Context.Error(map[string]interface{}{
 			"userHid": userHid,
 			"res":     res,
@@ -655,5 +685,6 @@ func (r *DaoPermitGroupImpl) DeleteAdminGroupByIds(ids ...int64) (err error) {
 func NewDaoPermitGroup(ctx ...*base.Context) (res daos.DaoPermitGroup) {
 	p := &DaoPermitGroupImpl{}
 	p.SetContext(ctx...)
+	p.ctx = context.TODO()
 	return p
 }

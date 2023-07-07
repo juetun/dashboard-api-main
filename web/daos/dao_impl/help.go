@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"github.com/juetun/base-wrapper/lib/common/response"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos"
@@ -152,10 +153,13 @@ func (r *DaoHelpImpl) GetByPKey(arg *base.ArgGetByStringIds) (res map[string]*mo
 
 }
 
-func (r *DaoHelpImpl) getExtCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
-
-	res = fmt.Sprintf(parameters.CacheKeyHelp.Key, id)
-	timeExpire = parameters.CacheKeyHelp.Expire
+func (r *DaoHelpImpl) getExtCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration, err error) {
+	var CacheKeyHelp *redis_pkg.CacheProperty
+	if CacheKeyHelp, err = parameters.GetCacheParamConfig("CacheKeyHelp"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyHelp.Key, id)
+	timeExpire = CacheKeyHelp.Expire
 	var expireTimeRand bool
 	if len(expireTimeRands) > 0 {
 		expireTimeRand = expireTimeRands[0]
@@ -168,10 +172,13 @@ func (r *DaoHelpImpl) getExtCacheKey(id interface{}, expireTimeRands ...bool) (r
 	return
 }
 
-func (r *DaoHelpImpl) getWithIdsCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration) {
-
-	res = fmt.Sprintf(parameters.CacheKeyHelpWithId.Key, id)
-	timeExpire = parameters.CacheKeyHelpWithId.Expire
+func (r *DaoHelpImpl) getWithIdsCacheKey(id interface{}, expireTimeRands ...bool) (res string, timeExpire time.Duration, err error) {
+	var CacheKeyHelpWithId *redis_pkg.CacheProperty
+	if CacheKeyHelpWithId, err = parameters.GetCacheParamConfig("CacheKeyHelpWithId"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheKeyHelpWithId.Key, id)
+	timeExpire = CacheKeyHelpWithId.Expire
 	var expireTimeRand bool
 	if len(expireTimeRands) > 0 {
 		expireTimeRand = expireTimeRands[0]

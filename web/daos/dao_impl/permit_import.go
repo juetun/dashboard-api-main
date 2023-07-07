@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base/cache_act"
+	"github.com/juetun/base-wrapper/lib/common/redis_pkg"
 	"github.com/juetun/base-wrapper/lib/utils"
 	"github.com/juetun/dashboard-api-main/pkg/parameters"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl/cache_act_local"
@@ -306,9 +307,13 @@ func (r *DaoPermitImportImpl) GetChildImportByMenuId(arg *base.ArgGetByNumberIds
 	return
 }
 
-func (r *DaoPermitImportImpl) GetMenuImportCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration) {
-	res = fmt.Sprintf(parameters.CacheMenuImportWithAppKey.Key, productId)
-	expire = parameters.CacheMenuImportWithAppKey.Expire
+func (r *DaoPermitImportImpl) GetMenuImportCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration, err error) {
+	var CacheMenuImportWithAppKey *redis_pkg.CacheProperty
+	if CacheMenuImportWithAppKey, err = parameters.GetCacheParamConfig("CacheMenuImportWithAppKey"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheMenuImportWithAppKey.Key, productId)
+	expire = CacheMenuImportWithAppKey.Expire
 	return
 }
 
@@ -363,9 +368,13 @@ func (r *DaoPermitImportImpl) GetImportMenuByImportIds(arg *base.ArgGetByNumberI
 	return
 }
 
-func (r *DaoPermitImportImpl) GetImportMenuByImportIdsCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration) {
-	res = fmt.Sprintf(parameters.CacheMenuImportWithAppKey.Key, productId)
-	expire = parameters.CacheMenuImportWithAppKey.Expire
+func (r *DaoPermitImportImpl) GetImportMenuByImportIdsCacheKey(productId interface{}, expireTimeRands ...bool) (res string, expire time.Duration, err error) {
+	var CacheMenuImportWithAppKey *redis_pkg.CacheProperty
+	if CacheMenuImportWithAppKey, err = parameters.GetCacheParamConfig("CacheMenuImportWithAppKey"); err != nil {
+		return
+	}
+	res = fmt.Sprintf(CacheMenuImportWithAppKey.Key, productId)
+	expire = CacheMenuImportWithAppKey.Expire
 	return
 }
 

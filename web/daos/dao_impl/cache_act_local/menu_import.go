@@ -94,7 +94,10 @@ func (r *CacheMenuImportAction) getFromCache(id interface{}) (data models.AdminM
 			return
 		}
 	}()
-	key, _ := r.GetCacheKey(id)
+	var key string
+	if key, _, err = r.GetCacheKey(id); err != nil {
+		return
+	}
 	cmd := r.Context.CacheClient.Get(r.Ctx, key)
 	if err = cmd.Err(); err != nil {
 		return
