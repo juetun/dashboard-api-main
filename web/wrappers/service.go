@@ -51,6 +51,7 @@ type (
 		Name          string    `json:"name" gorm:"column:name"`
 		Desc          string    `json:"desc" gorm:"column:desc"`
 		IsStop        uint8     `json:"is_stop" gorm:"column:is_stop"`
+		SupportCache  uint8     `json:"support_cache" gorm:"column:support_cache"`
 		IsStopName    string    `json:"is_stop_name" gorm:"-"`
 		Expanded      bool      `json:"_expanded" gorm:"-"`
 		DisableExpand bool      `json:"_disableExpand" gorm:"-"` //禁用当前行的展开功能

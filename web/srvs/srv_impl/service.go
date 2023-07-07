@@ -78,7 +78,7 @@ func (r *SrvServiceImpl) update(dao daos.DaoService, arg *wrappers.ArgServiceEdi
 		"support_cache": arg.SupportCache,
 		"updated_at":    t.Format(utils.DateGeneral),
 	}
- 
+
 	condition := map[string]interface{}{"id": arg.Id}
 	if err = dao.Update(condition, data); err != nil {
 		return
@@ -206,6 +206,7 @@ func (r *SrvServiceImpl) orgList(dao daos.DaoService, list []models.AdminApp) (r
 		dt.Port = it.Port
 		dt.Name = it.Name
 		dt.Desc = it.Desc
+		dt.SupportCache = it.SupportCache
 		if it.Desc == "" {
 			dt.DisableExpand = true
 		}
