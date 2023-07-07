@@ -91,9 +91,15 @@ func (r *SrvCacheImpl) addAppCacheData(config app_param.ResultGetCacheParamConfi
 func (r *SrvCacheImpl) ReloadAppCacheConfig(arg *wrapper_admin.ArgReloadAppCacheConfig) (res *wrapper_admin.ResultReloadAppCacheConfig, err error) {
 	res = &wrapper_admin.ResultReloadAppCacheConfig{}
 	var config app_param.ResultGetCacheParamConfig
-	if config, err = ReloadAppCacheConfig(r.Context, &arg.ArgGetCacheParamConfig); err != nil {
-		return
+	if arg.MicroApp == app_obj.App.AppName {
+		config, err = NewSrvCacheOperate(r.Context).
+			GetCacheParamConfig(&app_param.ArgGetCacheParamConfig{})
+	} else {
+		if config, err = ReloadAppCacheConfig(r.Context, &arg.ArgGetCacheParamConfig); err != nil {
+			return
+		}
 	}
+
 	if config != nil {
 		if err = r.addAppCacheData(config, arg); err != nil {
 			return
