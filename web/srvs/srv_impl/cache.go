@@ -175,6 +175,9 @@ func (r *SrvCacheImpl) orgHandler(headerInfo *common.HeaderInfo, products []*mod
 
 	for _, value := range products {
 		dt = &wrapper_admin.ResultCacheParamItem{}
+		if err = value.Default(); err != nil {
+			return
+		}
 		dt.ParseWithCacheParamData(value)
 		resTmp = append(resTmp, dt)
 	}

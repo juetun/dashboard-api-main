@@ -21,18 +21,21 @@ type (
 		HeaderInfo common.HeaderInfo
 		response.PageQuery
 		MicroApp string `json:"micro_app" form:"micro_app"`
+		Key      string `json:"key" form:"key"`
 	}
 	ResultCacheParamList struct {
 		Pager response.Pager `json:"pager"`
 	}
 	ResultCacheParamItem struct {
-		Id        int64  `json:"id"`
-		Key       string `json:"key"`
-		Expire    string `json:"expire"`
-		MicroApp  string `json:"micro_app"`
-		Desc      string `json:"desc"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
+		Id                int64  `json:"id"`
+		Key               string `json:"key"`
+		Expire            string `json:"expire"`
+		MicroApp          string `json:"micro_app"`
+		Desc              string `json:"desc"`
+		CacheDataType     uint8  `json:"cache_data_type"`
+		CacheDataTypeName string `json:"cache_data_type_name"`
+		CreatedAt         string `json:"created_at"`
+		UpdatedAt         string `json:"updated_at"`
 	}
 	ArgClearCache struct {
 	}
@@ -52,6 +55,8 @@ func (r *ResultCacheParamItem) ParseWithCacheParamData(data *models.CacheKeyData
 	r.Expire = data.Expire
 	r.MicroApp = data.MicroApp
 	r.Desc = data.Desc
+	r.CacheDataType = data.CacheDataType
+	r.CacheDataTypeName = data.ParseCacheDataType()
 	r.CreatedAt = data.CreatedAt.Format(utils.DateTimeGeneral)
 	r.UpdatedAt = data.UpdatedAt.Format(utils.DateTimeGeneral)
 	return

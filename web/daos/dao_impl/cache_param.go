@@ -98,6 +98,9 @@ func (r *DaoCacheParamImpl) getFetchListDbWithArg(arg *wrapper_admin.ArgCachePar
 	if arg.MicroApp != "" {
 		actRes.Db = actRes.Db.Where("micro_app = ?", arg.MicroApp)
 	}
+	if arg.Key != "" {
+		actRes.Db = actRes.Db.Where("`key` LIKE ?", arg.Key)
+	}
 	return
 }
 
