@@ -72,13 +72,20 @@ func (r *SrvCacheImpl) addAppCacheData(config app_param.ResultGetCacheParamConfi
 	var dataList = make([]base.ModelBase, 0, )
 	var dataItem *models.CacheKeyData
 	for _, item := range config {
+		if err = item.Default(); err != nil {
+			return
+		}
 		dataItem = &models.CacheKeyData{
-			Key:       item.Key,
-			Expire:    item.Expire.String(),
-			MicroApp:  item.MicroApp,
-			Desc:      item.Desc,
-			UpdatedAt: arg.TimeNow,
-			CreatedAt: arg.TimeNow,
+			Key:           item.Key,
+			Expire:        item.Expire.String(),
+			CacheDataType: item.CacheDataType,
+			MicroApp:      item.MicroApp,
+			Desc:          item.Desc,
+			UpdatedAt:     arg.TimeNow,
+			CreatedAt:     arg.TimeNow,
+		}
+		if err = dataItem.Default(); err != nil {
+			return
 		}
 		dataList = append(dataList, dataItem)
 	}
