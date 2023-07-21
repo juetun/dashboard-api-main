@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -41,7 +42,18 @@ type (
 func (r *AdminImport) GetTableComment() (res string) {
 	return "接口管理表"
 }
+func (r *AdminImport) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminImport{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *AdminImport) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *AdminImport) InitRegexpString() (err error) {
 	if r.UrlPath != "" {
 		r.RegexpString, err = route_match.RoutePathToRegexp(r.UrlPath)

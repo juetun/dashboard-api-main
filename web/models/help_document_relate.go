@@ -65,7 +65,18 @@ type (
 	}
 	HelpDocumentRelateCaches []*HelpDocumentRelateCache
 )
+func (r *HelpDocumentRelate) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &HelpDocumentRelate{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *HelpDocumentRelate) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *HelpDocumentRelateCaches) UnmarshalBinary(data []byte) (err error) {
 	if len(data) == 0 {
 		dataNull := make([]*HelpDocumentRelateCache, 0)

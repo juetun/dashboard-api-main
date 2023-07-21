@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -37,6 +38,18 @@ func (r *AdminGroup) TableName() string {
 	return fmt.Sprintf("%sgroup", TablePrefix)
 }
 
+func (r *AdminGroup) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminGroup{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
+
+func (r *AdminGroup) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r AdminGroup) AfterUpdate(tx *gorm.DB) (err error) {
 	if r.GroupCode == "" {
 		var (

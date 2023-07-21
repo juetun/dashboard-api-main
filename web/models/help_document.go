@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
@@ -15,7 +16,18 @@ type HelpDocument struct {
 	UpdatedAt base.TimeNormal  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt *base.TimeNormal `gorm:"column:deleted_at" json:"-"`
 }
+func (r *HelpDocument) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &HelpDocument{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *HelpDocument) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *HelpDocument) GetTableComment() (res string) {
 	res = "帮助文档"
 	return

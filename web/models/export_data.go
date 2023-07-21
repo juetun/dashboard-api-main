@@ -9,6 +9,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	utils2 "github.com/juetun/base-wrapper/lib/utils"
@@ -59,7 +60,18 @@ func (r *ZExportData) HidUpdate() (err error) {
 	}
 	return
 }
+func (r *ZExportData) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &ZExportData{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *ZExportData) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *ZExportData) StartHidInit() {
 	r.Hid = utils2.Guid(r.TableName())
 }

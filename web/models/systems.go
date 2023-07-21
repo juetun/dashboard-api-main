@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
@@ -20,4 +21,16 @@ func (r *ZBaseSys) GetTableComment() (res string) {
 
 func (r *ZBaseSys) TableName() string {
 	return fmt.Sprintf("%sbase_sys", TablePrefix)
+}
+func (r *ZBaseSys) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &ZBaseSys{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
+
+func (r *ZBaseSys) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
 }

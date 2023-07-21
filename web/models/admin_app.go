@@ -136,3 +136,15 @@ func (r *AdminApp) ParseSupportCache() (res string) {
 	res = fmt.Sprintf("未知类型(%d)", r.SupportCache)
 	return
 }
+func (r *AdminApp) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminApp{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
+
+func (r *AdminApp) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}

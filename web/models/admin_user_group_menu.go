@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -31,4 +32,16 @@ func (r *AdminUserGroupMenu) GetTableComment() (res string) {
 
 func (r *AdminUserGroupMenu) TableName() string {
 	return fmt.Sprintf("%suser_group_menu", TablePrefix)
+}
+func (r *AdminUserGroupMenu) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminUserGroupMenu{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
+
+func (r *AdminUserGroupMenu) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
 }

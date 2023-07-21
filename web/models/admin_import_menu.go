@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -25,7 +26,18 @@ type (
 func (r *AdminMenuImport) GetTableComment() (res string) {
 	return "菜单所有的接口"
 }
+func (r *AdminMenuImport) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminMenuImport{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *AdminMenuImport) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *AdminMenuImport) TableName() string {
 	return fmt.Sprintf("%smenu_import", TablePrefix)
 }

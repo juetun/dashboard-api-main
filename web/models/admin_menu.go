@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -73,7 +74,18 @@ func (r *AdminMenu) GetCommonImportString(module string) (res string) {
 func (r *AdminMenu) GetCommonHomePageString(module string) (res string) {
 	return fmt.Sprintf("%s_home_index", module)
 }
+func (r *AdminMenu) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminMenu{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *AdminMenu) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *AdminMenu) getPathName() (res string) {
 	switch r.Label {
 	case CommonMenuDefaultLabel: //如果是公共接口

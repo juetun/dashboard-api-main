@@ -2,6 +2,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -39,7 +40,18 @@ type AdminUserGroup struct {
 func (r *AdminUserGroup) GetTableComment() (res string) {
 	return "用户组用户列表"
 }
+func (r *AdminUserGroup) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminUserGroup{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *AdminUserGroup) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *AdminUserGroup) TableName() string {
  	return fmt.Sprintf("%suser_group", TablePrefix)
 }

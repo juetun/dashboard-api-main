@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 )
@@ -27,7 +28,18 @@ func (r *OperateLog) GetTableComment() (res string) {
 
 	return "客服后台操作日志"
 }
+func (r *OperateLog) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &OperateLog{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
 
+func (r *OperateLog) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
 func (r *OperateLog) ParseModule() (res string, err error) {
 	var mapModule map[string]string
 	if mapModule, err = SliceOperateLogModule.GetMapAsKeyString(); err != nil {

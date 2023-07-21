@@ -3,6 +3,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/juetun/base-wrapper/lib/base"
 	"time"
@@ -63,6 +64,19 @@ func (r *AdminUser) GetTableComment() (res string) {
 	res = "管理员表"
 	return
 }
+func (r *AdminUser) UnmarshalBinary(data []byte) (err error) {
+	if r == nil {
+		r = &AdminUser{}
+	}
+	err = json.Unmarshal(data, r)
+	return
+}
+
+func (r *AdminUser) MarshalBinary() (data []byte, err error) {
+	data, err = json.Marshal(r)
+	return
+}
+
 func (r *AdminUser) ParseFlagAdmin() (res string) {
 	adminUserFlagAdmin, _ := SliceAdminUserFlagAdmin.GetMapAsKeyUint8()
 	if tp, ok := adminUserFlagAdmin[r.FlagAdmin]; ok {
