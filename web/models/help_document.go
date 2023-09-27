@@ -16,6 +16,7 @@ type HelpDocument struct {
 	UpdatedAt base.TimeNormal  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"-" `
 	DeletedAt *base.TimeNormal `gorm:"column:deleted_at" json:"-"`
 }
+
 func (r *HelpDocument) UnmarshalBinary(data []byte) (err error) {
 	if r == nil {
 		r = &HelpDocument{}
@@ -44,6 +45,7 @@ func (r *HelpDocument) TableName() string {
 	return fmt.Sprintf("%shelp_document", TablePrefix)
 }
 
-func (r *HelpDocument) Default() {
-	
+func (r *HelpDocument) Default() (err error) {
+
+	return
 }

@@ -60,6 +60,10 @@ type (
 	AdminUserMap map[int64]*AdminUser
 )
 
+func (r *AdminUser) Default() (err error) {
+	return
+}
+
 func (r *AdminUser) GetTableComment() (res string) {
 	res = "管理员表"
 	return

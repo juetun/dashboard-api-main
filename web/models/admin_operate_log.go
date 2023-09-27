@@ -20,6 +20,10 @@ type OperateLog struct {
 	CreatedAt   base.TimeNormal `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"created_at" `
 }
 
+func (r *OperateLog) Default() (err error) {
+	return
+}
+
 func (r *OperateLog) TableName() (res string) {
 	return fmt.Sprintf("%soperate_log", TablePrefix)
 }

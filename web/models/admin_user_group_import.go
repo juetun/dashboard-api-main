@@ -22,6 +22,10 @@ type AdminUserGroupImport struct {
 	DeletedAt       *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
+func (r *AdminUserGroupImport) Default() (err error) {
+	return
+}
+
 func (r *AdminUserGroupImport) GetTableComment() (res string) {
 	return "用户组所具备的权限"
 }

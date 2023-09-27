@@ -15,6 +15,10 @@ type ZBaseSys struct {
 	RecordNumber string `gorm:"column:record_number;default:'';type:varchar(100) COLLATE utf8mb4_bin;comment:网站备案号" json:"record_number"`
 }
 
+func (r *ZBaseSys) Default() (err error) {
+	return
+}
+
 func (r *ZBaseSys) GetTableComment() (res string) {
 	return "系统设置"
 }

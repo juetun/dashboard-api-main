@@ -65,6 +65,11 @@ type (
 	}
 	HelpDocumentRelateCaches []*HelpDocumentRelateCache
 )
+
+func (r *HelpDocumentRelate) Default() (err error) {
+	return
+}
+
 func (r *HelpDocumentRelate) UnmarshalBinary(data []byte) (err error) {
 	if r == nil {
 		r = &HelpDocumentRelate{}

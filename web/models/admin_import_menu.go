@@ -23,6 +23,10 @@ type (
 	AdminMenuImportCache []*AdminMenuImport
 )
 
+func (r *AdminMenuImport) Default() (err error) {
+	return
+}
+
 func (r *AdminMenuImport) GetTableComment() (res string) {
 	return "菜单所有的接口"
 }

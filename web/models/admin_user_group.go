@@ -37,6 +37,10 @@ type AdminUserGroup struct {
 	DeletedAt    *time.Time      `json:"-" gorm:"column:deleted_at" `
 }
 
+func (r *AdminUserGroup) Default() (err error) {
+	return
+}
+
 func (r *AdminUserGroup) GetTableComment() (res string) {
 	return "用户组用户列表"
 }

@@ -39,6 +39,10 @@ type (
 	}
 )
 
+func (r *AdminImport) Default() (err error) {
+	return
+}
+
 func (r *AdminImport) GetTableComment() (res string) {
 	return "接口管理表"
 }

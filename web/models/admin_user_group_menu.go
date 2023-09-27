@@ -26,6 +26,10 @@ type AdminUserGroupMenu struct {
 	DeletedAt     *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
+func (r *AdminUserGroupMenu) Default() (err error) {
+	return
+}
+
 func (r *AdminUserGroupMenu) GetTableComment() (res string) {
 	return "用户组所具备的权限"
 }

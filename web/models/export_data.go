@@ -31,6 +31,10 @@ type ZExportData struct {
 	CreateUserHid int64  `gorm:"column:create_user_hid;" json:"create_user_hid"`
 }
 
+func (r *ZExportData) Default() (err error) {
+	return
+}
+
 func (r *ZExportData) GetTableComment() (res string) {
 	return "导出任务"
 }

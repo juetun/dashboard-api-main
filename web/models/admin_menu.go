@@ -59,6 +59,10 @@ type AdminMenu struct {
 	DeletedAt          *time.Time `gorm:"column:deleted_at" json:"-"`
 }
 
+func (r *AdminMenu) Default() (err error) {
+	return
+}
+
 func (r *AdminMenu) GetTableComment() (res string) {
 	return "菜单表"
 }
