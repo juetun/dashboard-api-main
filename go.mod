@@ -8,8 +8,8 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-errors/errors v1.4.2
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/juetun/base-wrapper v0.0.338
-	github.com/juetun/library v0.0.632
+	github.com/juetun/base-wrapper v0.0.340
+	github.com/juetun/library v0.0.636
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/qiniu/go-sdk/v7 v7.14.0
 	github.com/russross/blackfriday/v2 v2.1.0
