@@ -158,8 +158,8 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/juetun/base-wrapper v0.0.343 h1:Vqhst9F+rg37FeKjVT0z5Hh3CHR8hL495+UVlJrGvVE=
 github.com/juetun/base-wrapper v0.0.343/go.mod h1:FwZbcn43niNjPWNr8ANi+XXqUjiAC4T/bDHCZrLuT4A=
-github.com/juetun/library v0.0.660 h1:GoNFhgTm+SkaLwgg7vYWRxOvkMFlQwO0J8xGLB2zck0=
-github.com/juetun/library v0.0.660/go.mod h1:mmroEjPtD9cJ2HFPSd51Sy7TqQHHKQwBd64+oafB46k=
+github.com/juetun/library v0.0.661 h1:nq/XbszlQgregZIUTNjS+rul0zbzUbDXT6Oj3rvJCjk=
+github.com/juetun/library v0.0.661/go.mod h1:mmroEjPtD9cJ2HFPSd51Sy7TqQHHKQwBd64+oafB46k=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
