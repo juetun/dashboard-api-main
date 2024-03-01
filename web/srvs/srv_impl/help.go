@@ -109,7 +109,6 @@ func (r *SrvHelpImpl) getByKey(PKey string) (res *models.HelpDocument, err error
 	var helpMap map[string]*models.HelpDocument
 	if helpMap, err = r.dao.GetByPKey(base.NewArgGetByStringIds(
 		base.ArgGetByStringIdsOptionIds(PKey),
-		//base.ArgGetByStringIdsOptionRefreshCache(base.RefreshCacheYes),
 	)); err != nil {
 		return
 	}
