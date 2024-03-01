@@ -8,7 +8,11 @@ import (
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
 	"github.com/juetun/dashboard-api-main/web/srvs"
+	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
+	"github.com/juetun/library/common/app_param/upload_operate"
+	"github.com/juetun/library/common/recommend"
+	"strings"
 )
 
 type SrvHelpImpl struct {
@@ -59,8 +63,10 @@ func (r *SrvHelpImpl) orgHelpList(documents []*models.HelpDocument, arg *wrapper
 }
 
 func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper_admin.ResultHelpDetail, err error) {
-	res = &wrapper_admin.ResultHelpDetail{}
-
+	res = &wrapper_admin.ResultHelpDetail{UploadDataType: recommend.AdDataDataTypeHelpDocument}
+	defer func() {
+		res.UploadDataId = fmt.Sprintf("%v", res.Id)
+	}()
 	var (
 		resHelpDocumentRelate map[string]*models.HelpDocumentRelate
 	)
@@ -72,6 +78,9 @@ func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper
 		err = fmt.Errorf("您要编辑的帮助文档关系信息不存在,或已删除")
 		return
 	} else {
+		if helpDocumentRelate == nil {
+			helpDocumentRelate = &models.HelpDocumentRelate{}
+		}
 		res.Label = helpDocumentRelate.Label
 	}
 
@@ -98,7 +107,10 @@ func (r *SrvHelpImpl) HelpDetail(arg *wrapper_admin.ArgHelpDetail) (res *wrapper
 
 func (r *SrvHelpImpl) getByKey(PKey string) (res *models.HelpDocument, err error) {
 	var helpMap map[string]*models.HelpDocument
-	if helpMap, err = r.dao.GetByPKey(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(PKey))); err != nil {
+	if helpMap, err = r.dao.GetByPKey(base.NewArgGetByStringIds(
+		base.ArgGetByStringIdsOptionIds(PKey),
+		//base.ArgGetByStringIdsOptionRefreshCache(base.RefreshCacheYes),
+	)); err != nil {
 		return
 	}
 	var ok bool
@@ -106,7 +118,7 @@ func (r *SrvHelpImpl) getByKey(PKey string) (res *models.HelpDocument, err error
 		res = &models.HelpDocument{
 			PKey: PKey,
 		}
-		res.Default()
+		err = res.Default()
 		return
 	}
 	return
@@ -177,10 +189,40 @@ func (r *SrvHelpImpl) HelpEdit(arg *wrapper_admin.ArgHelpEdit) (res *wrapper_adm
 	if err = r.dao.AddHelpDocument(data); err != nil {
 		return
 	}
+	go func(helpDoc *models.HelpDocument) {
+		_, _ = dao_impl.NewDaoHelpRelate(r.Context).
+			GetByDocKeys(base.NewArgGetByStringIds(base.ArgGetByStringIdsOptionIds(helpDoc.PKey), base.ArgGetByStringIdsOptionRefreshCache(base.RefreshCacheYes)))
+		_, _ = r.dao.GetByIds(base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(helpDoc.Id), base.ArgGetByNumberIdsOptionRefreshCache(base.RefreshCacheYes)));
+	}(data)
 	res.Result = true
 	return
 }
 
+func (r *SrvHelpImpl) description(uploadInfo *upload_operate.ResultMapUploadInfo, helpDocument *models.HelpDocument, mapKeysReplace *wrappers.MapDetailReplace, ) {
+	var (
+		uploadImage *upload_operate.UploadFile
+		uploadVideo *upload_operate.UploadVideo
+		ok          bool
+		html        string
+	)
+
+	for key, value := range mapKeysReplace.Img {
+		if uploadImage, ok = uploadInfo.File[key]; !ok { //图片地址替换
+			continue
+		}
+		html, _ = uploadImage.GetEditorHtml(value)
+		//html = strings.ReplaceAll(html, "%", "%%")
+		helpDocument.Content = strings.Replace(helpDocument.Content, value, html, -1)
+	}
+	for key, value := range mapKeysReplace.Video {
+		if uploadVideo, ok = uploadInfo.Video[key]; ok { //视频文件替换
+			continue
+		}
+		html, _ = uploadVideo.GetEditorHtml(key)
+		helpDocument.Content = strings.Replace(helpDocument.Content, value, html, -1)
+	}
+	return
+}
 func NewSrvHelp(context ...*base.Context) (res srvs.SrvHelp) {
 	p := &SrvHelpImpl{}
 	p.SetContext(context...)

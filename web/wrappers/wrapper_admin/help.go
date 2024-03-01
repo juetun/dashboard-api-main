@@ -101,11 +101,13 @@ type (
 	}
 
 	ResultHelpDetail struct {
-		Id      int64  `json:"id"`
-		Label   string `json:"label"`
-		Desc    string `json:"desc,omitempty"`
-		PKey    string `json:"p_key"`
-		Content string `json:"content"`
+		Id             int64  `json:"id"`
+		Label          string `json:"label"`
+		Desc           string `json:"desc,omitempty"`
+		PKey           string `json:"p_key"`
+		Content        string `json:"content"`
+		UploadDataType string `json:"upload_data_type"`
+		UploadDataId   string `json:"upload_data_id"`
 	}
 
 	ArgHelpEdit struct {
