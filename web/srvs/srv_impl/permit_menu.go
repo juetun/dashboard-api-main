@@ -479,6 +479,7 @@ func (r *SrvPermitMenuImpl) orgAdminMenuObject(value *models.AdminMenu) (res wra
 		SortValue:          value.SortValue,
 		Module:             value.Module,
 		PermitKey:          value.PermitKey,
+		BadgeKey:           value.BadgeKey,
 		Domain:             value.Domain,
 		ManageImportPermit: value.ManageImportPermit,
 	}

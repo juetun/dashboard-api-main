@@ -43,6 +43,7 @@ const (
 type AdminMenu struct {
 	Id                 int64      `gorm:"column:id;primary_key" json:"id" form:"id"`
 	PermitKey          string     `json:"permit_key" gorm:"column:permit_key;default:'';not null;type:varchar(100);comment:唯一KEy" form:"permit_key"`
+	BadgeKey           string     `json:"badge_key" gorm:"column:badge_key;default:'';not null;type:varchar(100);comment:徽标KEy" form:"badge_key"`
 	ParentId           int64      `json:"parent_id" gorm:"column:parent_id;default:0;not null;type:bigint(20);comment:上级菜单" form:"parent_id"`
 	Module             string     `json:"module" gorm:"column:module;default:'';not null;type:varchar(100);comment:所属模块" form:"module"`
 	Label              string     `json:"label" gorm:"column:label;default:'';not null;type:varchar(20);comment:名称" form:"label"`

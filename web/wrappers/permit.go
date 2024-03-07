@@ -698,7 +698,7 @@ type ArgMenuSave struct {
 }
 
 func (r *ArgMenuSave) Default(c *base.Context) (err error) {
-	r.PermitKey = strings.TrimSpace(r.PermitKey)//去掉首尾空格
+	r.PermitKey = strings.TrimSpace(r.PermitKey) //去掉首尾空格
 	_ = c
 	if r.ParentId == 0 {
 		r.ParentId = DefaultPermitParentId
@@ -839,6 +839,7 @@ type ResultAdminMenuSingle struct {
 	Module             string `json:"module"`
 	Domain             string `json:"domain"`
 	PermitKey          string `json:"permit_key"`
+	BadgeKey           string `json:"badge_key"`
 	ManageImportPermit uint8  `json:"manage_import_permit"`
 	ResultAdminMenuOtherValue
 	IsDel int `json:"is_del"`

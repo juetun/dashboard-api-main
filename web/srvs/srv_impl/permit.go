@@ -196,7 +196,7 @@ func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermi
 
 	if len(resHaveModule) > 0 {
 		if arg.Id > 0 && arg.Id != resHaveModule[0].Id {
-			err = fmt.Errorf("KEY(%s)已被(MENU_ID:%d)使用,请输入其他的值", arg.PermitKey,resHaveModule[0].Id)
+			err = fmt.Errorf("KEY(%s)已被(MENU_ID:%d)使用,请输入其他的值", arg.PermitKey, resHaveModule[0].Id)
 			return
 		}
 	}
@@ -242,6 +242,7 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		HideInMenu:         arg.HideInMenu,
 		Domain:             arg.Domain,
 		IsHomePage:         arg.IsHomePage,
+		BadgeKey:           arg.BadgeKey,
 		ManageImportPermit: arg.ManageImportPermit,
 		UrlPath:            arg.UrlPath,
 		SortValue:          arg.SortValue,
