@@ -177,6 +177,7 @@ type (
 	ResultSystemMenu struct {
 		Id        int64  `gorm:"primary_key" json:"id" form:"id"`
 		PermitKey string `json:"permit_key" gorm:"column:permit_key"`
+		BadgeKey  string `json:"badge_key" gorm:"column:badge_key"`
 		Label     string `json:"label" gorm:"column:label" form:"label"`
 		Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
 		SortValue int    `json:"sort_value,omitempty" gorm:"column:sort_value" form:"sort_value"`
@@ -191,6 +192,7 @@ type (
 		Name      string             `json:"name,omitempty"`
 		Label     string             `json:"label,omitempty"`
 		Meta      PermitMeta         `json:"meta,omitempty"`
+		BadgeKey  string             `json:"badge_key"`
 		Children  []ResultPermitMenu `json:"children"`
 		Component interface{}        `json:"component,omitempty"`
 	}

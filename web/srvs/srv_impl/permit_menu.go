@@ -723,6 +723,7 @@ func (r *SrvPermitMenuImpl) getNowUserSystemList(tmpList []*models.AdminMenu) (s
 		data = wrappers.ResultSystemMenu{}
 		data.Id = item.Id
 		data.PermitKey = item.PermitKey
+		data.BadgeKey = item.BadgeKey
 		data.Label = item.Label
 		data.Icon = item.Icon
 		data.SortValue = item.SortValue
@@ -874,11 +875,12 @@ func (r *SrvPermitMenuImpl) orgResultPermitMenu(item *models.AdminMenu) (res wra
 		f = true
 	}
 	res = wrappers.ResultPermitMenu{
-		Id:     item.Id,
-		Path:   item.UrlPath,
-		Name:   item.PermitKey,
-		Module: item.Module,
-		Label:  item.Label,
+		Id:       item.Id,
+		Path:     item.UrlPath,
+		Name:     item.PermitKey,
+		Module:   item.Module,
+		Label:    item.Label,
+		BadgeKey: item.BadgeKey,
 		Meta: wrappers.PermitMeta{
 			Icon:       item.Icon,
 			Title:      item.Label,
