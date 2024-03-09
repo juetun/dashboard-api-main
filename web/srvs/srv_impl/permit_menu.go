@@ -7,6 +7,7 @@ import (
 	"github.com/juetun/library/common/app_param"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/juetun/base-wrapper/lib/app/app_obj"
@@ -776,9 +777,37 @@ func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *
 		Id:       parentId,
 		Children: []wrappers.ResultPermitMenu{},
 	}
-	r.orgPermit(groupPermit, parentId, &res.ResultPermitMenu, permitMap)
+	var (
+		badgeKeys    = make([]string, 0, 200)
+		mapBadgeKeys map[string]float64
+	)
+	r.orgPermit(groupPermit, parentId, &res.ResultPermitMenu, permitMap, &badgeKeys)
 
+	if mapBadgeKeys, err = r.getTagCount(badgeKeys); err != nil {
+		return
+	}
+	res.ResultPermitMenu = r.setBadgeCount(mapBadgeKeys, res.ResultPermitMenu)
 	res.RoutParentMap = r.orgRoutParentMap(parentId, list, &res.ResultPermitMenu)
+	return
+}
+
+func (r *SrvPermitMenuImpl) setBadgeCount(mapBadgeKeys map[string]float64, resultPermitMenu wrappers.ResultPermitMenu) (result wrappers.ResultPermitMenu) {
+	var (
+		ok    bool
+		count float64
+	)
+	result = resultPermitMenu
+
+	if resultPermitMenu.BadgeKey != "" {
+		if count, ok = mapBadgeKeys[resultPermitMenu.BadgeKey]; ok {
+			result.BadgeCount = count
+		}
+	}
+	result.Children = make([]wrappers.ResultPermitMenu, 0, len(resultPermitMenu.Children))
+	for _, item := range resultPermitMenu.Children {
+		item = r.setBadgeCount(mapBadgeKeys, item)
+		result.Children = append(result.Children, item)
+	}
 	return
 }
 
@@ -817,8 +846,11 @@ func (r *SrvPermitMenuImpl) getGroupMenu(dao daos.DaoPermit, arg *wrappers.ArgPe
 		Id:       parentId,
 		Children: []wrappers.ResultPermitMenu{},
 	}
-
-	r.orgPermit(groupPermit, parentId, &res.ResultPermitMenu, permitMap)
+	var (
+		//获取徽标的徽标KEY
+		badgeKeys = make([]string, 0, 100)
+	)
+	r.orgPermit(groupPermit, parentId, &res.ResultPermitMenu, permitMap, &badgeKeys)
 
 	res.RoutParentMap = r.orgRoutParentMap(parentId, list, &res.ResultPermitMenu)
 	return
@@ -836,27 +868,6 @@ func (r *SrvPermitMenuImpl) orgActiveMenu(arg *wrappers.ArgPermitMenu, res *wrap
 		parentId = res.Menu[0].Id
 		res.Menu[0].Active = true
 	}
-	return
-}
-
-//获取徽标数据
-func (r *SrvPermitMenuImpl) getBadges(list []*models.AdminMenu) (mapBadgeKeys map[string]float64, err error) {
-	var (
-		l         = len(list)
-		badgeKeys []string
-	)
-	mapBadgeKeys = make(map[string]float64, l)
-	badgeKeys = make([]string, 0, l)
-	for _, item := range list {
-		if item.BadgeKey == "" {
-			continue
-		}
-		badgeKeys = append(badgeKeys, item.BadgeKey)
-	}
-
-	//if mapBadgeKeys, err = r.getTagCount(badgeKeys); err != nil {
-	//	return
-	//}
 	return
 }
 
@@ -906,7 +917,7 @@ func (r *SrvPermitMenuImpl) orgResultPermitMenu(item *models.AdminMenu, badgeCou
 	return
 }
 
-func (r *SrvPermitMenuImpl) orgPermit(group map[int64][]wrappers.ResultPermitMenu, pid int64, res *wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu) {
+func (r *SrvPermitMenuImpl) orgPermit(group map[int64][]wrappers.ResultPermitMenu, pid int64, res *wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu, badgeKeys *[]string) {
 
 	if res == nil {
 		res = &wrappers.ResultPermitMenu{}
@@ -922,7 +933,10 @@ func (r *SrvPermitMenuImpl) orgPermit(group map[int64][]wrappers.ResultPermitMen
 		}
 		delete(group, pid)
 		for key, item := range res.Children {
-			r.orgPermit(group, item.Id, &(res.Children[key]), permitMap)
+			if item.BadgeKey != "" {
+				*badgeKeys = append(*badgeKeys, item.BadgeKey)
+			}
+			r.orgPermit(group, item.Id, &(res.Children[key]), permitMap, badgeKeys)
 		}
 		return
 	}
@@ -1005,7 +1019,13 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 }
 
 func (r *SrvPermitMenuImpl) getTagCount(badgeKeys []string) (mapBadgeKeys map[string]float64, err error) {
-	mapBadgeKeys = make(map[string]float64, len(badgeKeys))
+	var (
+		l = len(badgeKeys)
+	)
+	mapBadgeKeys = make(map[string]float64, l)
+	if l == 0 {
+		return
+	}
 	arg := url.Values{}
 	params := rpc.RequestOptions{
 		Context:     r.Context,
@@ -1016,7 +1036,7 @@ func (r *SrvPermitMenuImpl) getTagCount(badgeKeys []string) (mapBadgeKeys map[st
 		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
 		Header:      http.Header{},
 	}
-
+	arg.Set("badge_keys", strings.Join(badgeKeys, ","))
 	req := rpc.NewHttpRpc(&params).
 		Send().GetBody()
 	if err = req.Error; err != nil {
