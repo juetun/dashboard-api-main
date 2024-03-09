@@ -177,7 +177,6 @@ type (
 	ResultSystemMenu struct {
 		Id        int64  `gorm:"primary_key" json:"id" form:"id"`
 		PermitKey string `json:"permit_key" gorm:"column:permit_key"`
-		BadgeKey  string `json:"badge_key" gorm:"column:badge_key"`
 		Label     string `json:"label" gorm:"column:label" form:"label"`
 		Icon      string `json:"icon" gorm:"column:icon" form:"icon"`
 		SortValue int    `json:"sort_value,omitempty" gorm:"column:sort_value" form:"sort_value"`
@@ -186,15 +185,16 @@ type (
 		Active    bool   `json:"active"`
 	}
 	ResultPermitMenu struct {
-		Id        int64              `json:"-"`
-		Path      string             `json:"path,omitempty"`
-		Module    string             `json:"-"`
-		Name      string             `json:"name,omitempty"`
-		Label     string             `json:"label,omitempty"`
-		Meta      PermitMeta         `json:"meta,omitempty"`
-		BadgeKey  string             `json:"badge_key"`
-		Children  []ResultPermitMenu `json:"children"`
-		Component interface{}        `json:"component,omitempty"`
+		Id         int64              `json:"-"`
+		Path       string             `json:"path,omitempty"`
+		Module     string             `json:"-"`
+		Name       string             `json:"name,omitempty"`
+		Label      string             `json:"label,omitempty"`
+		Meta       *PermitMeta        `json:"meta,omitempty"`
+		BadgeKey   string             `json:"badge_key,omitempty"`
+		BadgeCount float64            `json:"badge_count,omitempty"`
+		Children   []ResultPermitMenu `json:"children,omitempty"`
+		Component  interface{}        `json:"component,omitempty"`
 	}
 	AdminMenu struct {
 		ID         int    `json:"id"`
@@ -977,10 +977,10 @@ func (r *ArgPermitMenu) Default(c *base.Context) (err error) {
 }
 
 type PermitMeta struct {
-	PermitKey  string `json:"permitKey"` // 控制权限结构的参数
-	Icon       string `json:"icon"`
-	Title      string `json:"title"`
-	HideInMenu bool   `json:"hideInMenu"`
+	PermitKey  string `json:"permitKey,omitempty"` // 控制权限结构的参数
+	Icon       string `json:"icon,omitempty"`
+	Title      string `json:"title,omitempty"`
+	HideInMenu bool   `json:"hideInMenu,omitempty"`
 }
 type ResultPermitMenuReturn struct {
 	ResultPermitMenu
@@ -1008,6 +1008,21 @@ func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {
 			ImportIds: []ImportSingle{},
 			MenuIds:   []MenuSingle{},
 		},
+	}
+	return
+}
+
+func (r *ResultPermitMenuReturn) SetActive(argParentId int64) (resParentId int64) {
+	if argParentId > 0 {
+		for k, item := range r.Menu {
+			if item.Id == argParentId {
+				resParentId = argParentId
+				r.Menu[k].Active = true
+			}
+		}
+	} else {
+		resParentId = r.Menu[0].Id
+		r.Menu[0].Active = true
 	}
 	return
 }

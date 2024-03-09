@@ -21,6 +21,8 @@ import (
 
 type SrvPermitMenuImpl struct {
 	SrvPermitCommon
+	dao      daos.DaoPermit
+	daoGroup daos.DaoPermitGroup
 }
 
 func (r *SrvPermitMenuImpl) readySuperAdminMenu(arg *wrappers.ArgPermitMenu) (err error) {
@@ -170,29 +172,30 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 		arg.SuperAdminFlag = arg.IsSuperAdmin
 	}
 
-	//如果不是超级管理员
-	if !arg.IsSuperAdmin {
-
-		// 如果不是超级管理员 返回当前用户所属用户组
-		if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-			GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
-			return
-		} else {
-			res.IsSuperAdmin = arg.IsSuperAdmin
-			arg.SuperAdminFlag = arg.IsSuperAdmin
-		}
-		if !arg.IsSuperAdmin { //普通管理员
-			if err = r.generalAdminister(handlers, arg, res); err != nil {
-				return
-			}
+	//如果超级管理员
+	if arg.IsSuperAdmin {
+		//如果是超级管理员
+		if err = r.superAdminister(handlers, arg, res); err != nil {
 			return
 		}
-	}
-
-	//如果是超级管理员
-	if err = r.superAdminister(handlers, arg, res); err != nil {
 		return
 	}
+
+	// 如果不是超级管理员 返回当前用户所属用户组
+	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+		return
+	}
+	res.IsSuperAdmin = arg.IsSuperAdmin
+	arg.SuperAdminFlag = arg.IsSuperAdmin
+
+	if !arg.IsSuperAdmin { //普通管理员
+		if err = r.generalAdminister(handlers, arg, res); err != nil {
+			return
+		}
+		return
+	}
+
 	return
 
 }
@@ -222,7 +225,6 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 	res = wrappers.NewResultAdminMenu()
 	var (
 		havePermitSystemList []*models.AdminMenu
-		dao                  = dao_impl.NewDaoPermit(r.Context)
 	)
 
 	//初始化判断用户是否为超管，不为超管，则获取用户所在的权限组
@@ -236,7 +238,7 @@ func (r *SrvPermitMenuImpl) AdminMenu(arg *wrappers.ArgAdminMenu) (res *wrappers
 	}
 
 	var list []*models.AdminMenu
-	if list, err = dao.GetAdminMenuList(arg); err != nil {
+	if list, err = r.dao.GetAdminMenuList(arg); err != nil {
 		return
 	}
 
@@ -341,8 +343,7 @@ func (r *SrvPermitMenuImpl) getAdminMenuByUserModuleSupperAdmin(module string, n
 
 func (r *SrvPermitMenuImpl) getAdminMenuByUserModuleGeneral(module string, OperatorGroupId []int64, needHaveSystemData bool) (havePermitSystemList []*models.AdminMenu, systemId int64, moduleResult string, err error) {
 	if !needHaveSystemData {
-		if havePermitSystemList, err = dao_impl.NewDaoPermitGroup(r.Context).
-			GetGroupAdminMenuByGroupIds(module, OperatorGroupId...); err != nil {
+		if havePermitSystemList, err = r.daoGroup.GetGroupAdminMenuByGroupIds(module, OperatorGroupId...); err != nil {
 			return
 		}
 		for _, item := range havePermitSystemList {
@@ -354,8 +355,7 @@ func (r *SrvPermitMenuImpl) getAdminMenuByUserModuleGeneral(module string, Opera
 		}
 	}
 	var data []*models.AdminMenu
-	if data, err = dao_impl.NewDaoPermitGroup(r.Context).
-		GetGroupAdminMenuByGroupIds(module); err != nil {
+	if data, err = r.daoGroup.GetGroupAdminMenuByGroupIds(module); err != nil {
 		return
 	}
 
@@ -411,7 +411,6 @@ func (r *SrvPermitMenuImpl) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithChe
 		List: make([]wrappers.AdminMenuObject, 0, 20),
 		Menu: make([]wrappers.ResultSystemAdminMenu, 0, 30),
 	}
-	dao := dao_impl.NewDaoPermit(r.Context)
 
 	var (
 		havePermitSystemList []*models.AdminMenu
@@ -421,7 +420,7 @@ func (r *SrvPermitMenuImpl) AdminMenuWithCheck(arg *wrappers.ArgAdminMenuWithChe
 		return
 	}
 
-	if list, err = dao.GetAdminMenuList(&arg.ArgAdminMenu); err != nil {
+	if list, err = r.dao.GetAdminMenuList(&arg.ArgAdminMenu); err != nil {
 		return
 	}
 
@@ -601,7 +600,7 @@ func (r *SrvPermitMenuImpl) getDefaultAccessPage(adminGroupId []int64, isSuperAd
 	}
 	menuIds, _ := r.pickMenuIds(adminMenu)
 	var listGroupMenu []*models.AdminUserGroupMenu
-	if listGroupMenu, err = dao_impl.NewDaoPermitGroup(r.Context).
+	if listGroupMenu, err = r.daoGroup.
 		GetAdminMenuByGidAndMenuIds(menuIds, adminGroupId); err != nil {
 		logContent["err"] = "GetAdminMenuByGroupIdAndMenuIds"
 		return
@@ -628,7 +627,7 @@ func (r *SrvPermitMenuImpl) pickMenuIds(adminMenu []*models.AdminMenu) (menuIds 
 
 func (r *SrvPermitMenuImpl) orgNowGeneralAdminMenu(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn, logContent map[string]interface{}, param *wrappers.ArgGetImportByMenuId) (err error) {
 	var childMenus []*models.AdminUserGroupMenu
-	if childMenus, err = dao_impl.NewDaoPermitGroup(r.Context).
+	if childMenus, err = r.daoGroup.
 		GetAdminMenuByGidAndMenuIds([]int64{
 			arg.NowMenuId,
 		},
@@ -673,7 +672,6 @@ func (r *SrvPermitMenuImpl) orgNowSuperAdminMenu(arg *wrappers.ArgPermitMenu, re
 
 // 非超级管理员
 func (r *SrvPermitMenuImpl) getGeneralPermitMenuListUser(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-	dao := dao_impl.NewDaoPermit(r.Context)
 
 	// 获取接口权限列表
 	//if res.OpList, err = NewSrvPermitImport(r.Context).
@@ -686,7 +684,7 @@ func (r *SrvPermitMenuImpl) getGeneralPermitMenuListUser(arg *wrappers.ArgPermit
 		return
 	}
 
-	if err = r.getGroupMenu(dao, arg, res, menuIds...); err != nil {
+	if err = r.getGroupMenu(r.dao, arg, res, menuIds...); err != nil {
 		return
 	}
 	return
@@ -723,7 +721,6 @@ func (r *SrvPermitMenuImpl) getNowUserSystemList(tmpList []*models.AdminMenu) (s
 		data = wrappers.ResultSystemMenu{}
 		data.Id = item.Id
 		data.PermitKey = item.PermitKey
-		data.BadgeKey = item.BadgeKey
 		data.Label = item.Label
 		data.Icon = item.Icon
 		data.SortValue = item.SortValue
@@ -737,8 +734,6 @@ func (r *SrvPermitMenuImpl) getNowUserSystemList(tmpList []*models.AdminMenu) (s
 
 // 超级管理员
 func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error) {
-
-	dao := dao_impl.NewDaoPermit(r.Context)
 
 	var (
 		groupPermit          map[int64][]wrappers.ResultPermitMenu
@@ -755,12 +750,14 @@ func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *
 
 	current = []string{arg.Module}
 
-	if list, err = dao.GetPermitMenuByIds(current); err != nil {
+	if list, err = r.dao.GetPermitMenuByIds(current); err != nil {
 		return
 	}
-	groupPermit, permitMap = r.groupPermit(list)
+	if groupPermit, permitMap, err = r.groupPermit(list); err != nil {
+		return
+	}
 
-	if systemMenuList, err = dao.GetPermitMenuByIds([]string{wrappers.DefaultPermitModule}); err != nil {
+	if systemMenuList, err = r.dao.GetPermitMenuByIds([]string{wrappers.DefaultPermitModule}); err != nil {
 		return
 	}
 
@@ -773,19 +770,7 @@ func (r *SrvPermitMenuImpl) getGroupMenuAdmin(arg *wrappers.ArgPermitMenu, res *
 		err = fmt.Errorf("您没有操作权限,请刷新或联系管理员(1)")
 		return
 	}
-
-	var parentId int64
-	if arg.ParentId > 0 {
-		for k, item := range res.Menu {
-			if item.Id == arg.ParentId {
-				parentId = arg.ParentId
-				res.Menu[k].Active = true
-			}
-		}
-	} else {
-		parentId = res.Menu[0].Id
-		res.Menu[0].Active = true
-	}
+	parentId := res.SetActive(arg.ParentId)
 
 	res.ResultPermitMenu = wrappers.ResultPermitMenu{
 		Id:       parentId,
@@ -821,7 +806,9 @@ func (r *SrvPermitMenuImpl) getGroupMenu(dao daos.DaoPermit, arg *wrappers.ArgPe
 	if list, err = dao.GetPermitMenuByIds([]string{arg.Module}, menuIds...); err != nil {
 		return
 	} else {
-		groupPermit, permitMap = r.groupPermit(list)
+		if groupPermit, permitMap, err = r.groupPermit(list); err != nil {
+			return
+		}
 	}
 
 	parentId := r.orgActiveMenu(arg, res)
@@ -851,37 +838,64 @@ func (r *SrvPermitMenuImpl) orgActiveMenu(arg *wrappers.ArgPermitMenu, res *wrap
 	}
 	return
 }
-func (r *SrvPermitMenuImpl) groupPermit(list []*models.AdminMenu) (groupPermit map[int64][]wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu) {
+
+//获取徽标数据
+func (r *SrvPermitMenuImpl) getBadges(list []*models.AdminMenu) (mapBadgeKeys map[string]float64, err error) {
+	var (
+		l         = len(list)
+		badgeKeys []string
+	)
+	mapBadgeKeys = make(map[string]float64, l)
+	badgeKeys = make([]string, 0, l)
+	for _, item := range list {
+		if item.BadgeKey == "" {
+			continue
+		}
+		badgeKeys = append(badgeKeys, item.BadgeKey)
+	}
+
+	//if mapBadgeKeys, err = r.getTagCount(badgeKeys); err != nil {
+	//	return
+	//}
+	return
+}
+
+func (r *SrvPermitMenuImpl) groupPermit(list []*models.AdminMenu) (groupPermit map[int64][]wrappers.ResultPermitMenu, permitMap map[int64]wrappers.ResultPermitMenu, err error) {
 	l := len(list)
 	groupPermit = make(map[int64][]wrappers.ResultPermitMenu, l)
 	permitMap = make(map[int64]wrappers.ResultPermitMenu, l)
 
-	var data wrappers.ResultPermitMenu
-
+	var (
+		data  wrappers.ResultPermitMenu
+		ok    bool
+		count float64
+	)
 	for _, item := range list {
-		if _, ok := groupPermit[item.ParentId]; !ok {
+		if _, ok = groupPermit[item.ParentId]; !ok {
 			groupPermit[item.ParentId] = make([]wrappers.ResultPermitMenu, 0, l)
 		}
-		data = r.orgResultPermitMenu(item)
+
+		data = r.orgResultPermitMenu(item, count)
+		data.BadgeKey = item.BadgeKey
 		permitMap[item.Id] = data
 		groupPermit[item.ParentId] = append(groupPermit[item.ParentId], data)
 	}
 	return
 }
 
-func (r *SrvPermitMenuImpl) orgResultPermitMenu(item *models.AdminMenu) (res wrappers.ResultPermitMenu) {
+func (r *SrvPermitMenuImpl) orgResultPermitMenu(item *models.AdminMenu, badgeCount float64) (res wrappers.ResultPermitMenu) {
 	var f = false
 	if item.HideInMenu == models.AdminMenuHideInMenuTrue {
 		f = true
 	}
 	res = wrappers.ResultPermitMenu{
-		Id:       item.Id,
-		Path:     item.UrlPath,
-		Name:     item.PermitKey,
-		Module:   item.Module,
-		Label:    item.Label,
-		BadgeKey: item.BadgeKey,
-		Meta: wrappers.PermitMeta{
+		Id:         item.Id,
+		Path:       item.UrlPath,
+		Name:       item.PermitKey,
+		Module:     item.Module,
+		Label:      item.Label,
+		BadgeCount: badgeCount,
+		Meta: &wrappers.PermitMeta{
 			Icon:       item.Icon,
 			Title:      item.Label,
 			PermitKey:  item.PermitKey,
@@ -990,6 +1004,45 @@ func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error
 	return
 }
 
+func (r *SrvPermitMenuImpl) getTagCount(badgeKeys []string) (mapBadgeKeys map[string]float64, err error) {
+	mapBadgeKeys = make(map[string]float64, len(badgeKeys))
+	arg := url.Values{}
+	params := rpc.RequestOptions{
+		Context:     r.Context,
+		Method:      http.MethodPost,
+		AppName:     app_param.AppNameTag,
+		URI:         "/permit/get_plat_tag_count",
+		Value:       arg,
+		PathVersion: app_obj.App.AppRouterPrefix.Intranet,
+		Header:      http.Header{},
+	}
+
+	req := rpc.NewHttpRpc(&params).
+		Send().GetBody()
+	if err = req.Error; err != nil {
+		return
+	}
+	var body []byte
+	if body = req.Body; len(body) == 0 {
+		return
+	}
+
+	var resResult struct {
+		Code int                `json:"code"`
+		Data map[string]float64 `json:"data"`
+		Msg  string             `json:"message"`
+	}
+	if err = json.Unmarshal(body, &resResult); err != nil {
+		return
+	}
+	if resResult.Code > 0 {
+		err = fmt.Errorf(resResult.Msg)
+		return
+	}
+	mapBadgeKeys = resResult.Data
+
+	return
+}
 func (r *SrvPermitMenuImpl) orgRoutParentMap(parentId int64, list []*models.AdminMenu, dataChild *wrappers.ResultPermitMenu) (returnData map[string][]string) {
 	_ = dataChild
 	l := len(list)
@@ -1075,14 +1128,15 @@ func (r *SrvPermitMenuImpl) initParentId(arg *wrappers.ArgPermitMenu) (err error
 
 // 获取当前用户组能够使用的系统列表
 func (r *SrvPermitMenuImpl) getUserCanUseSystemWithGroupIds(groupIds []int64) (res []*models.AdminMenu, err error) {
-	dao := dao_impl.NewDaoPermitGroup(r.Context)
 
-	res, err = dao.GetGroupSystemByGroupId(wrappers.DefaultPermitModule, groupIds...)
+	res, err = r.daoGroup.GetGroupSystemByGroupId(wrappers.DefaultPermitModule, groupIds...)
 	return
 }
 
 func NewSrvPermitMenu(ctx ...*base.Context) (res srvs.SrvPermitMenu) {
 	p := &SrvPermitMenuImpl{}
 	p.SetContext(ctx...)
+	p.dao = dao_impl.NewDaoPermit(p.Context)
+	p.daoGroup = dao_impl.NewDaoPermitGroup(p.Context)
 	return p
 }

@@ -68,6 +68,8 @@ func (r *AdminMenu) GetTableComment() (res string) {
 	return "菜单表"
 }
 
+
+
 func (r *AdminMenu) TableName() string {
 	return fmt.Sprintf("%smenu", TablePrefix)
 }
