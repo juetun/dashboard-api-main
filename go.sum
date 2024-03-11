@@ -162,6 +162,8 @@ github.com/juetun/library v0.0.730 h1:PnDSBwt9wo4TPNEYbNobF2cRdureD5z0L26dd6cHUc
 github.com/juetun/library v0.0.730/go.mod h1:/YnIvTs5sIbectlCc4udNUurAPs++NOWRO3K5JDlW2c=
 github.com/juetun/library v0.0.732 h1:z85fd1IMG3gd7DUYVidcE37ZGRn9tngb+Ag9kLC8DeM=
 github.com/juetun/library v0.0.732/go.mod h1:/YnIvTs5sIbectlCc4udNUurAPs++NOWRO3K5JDlW2c=
+github.com/juetun/library v0.0.734 h1:dxWpbwvXu+6/KOWU2Z5kjKqv5EYzpwPxJkwqiL6edGw=
+github.com/juetun/library v0.0.734/go.mod h1:/YnIvTs5sIbectlCc4udNUurAPs++NOWRO3K5JDlW2c=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZXnvk=
