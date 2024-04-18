@@ -160,13 +160,18 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 
 	res = wrappers.NewResultPermitMenuReturn()
 
-	var handlers = map[string]MenuHandler{
-		"getNotReadMessage": r.getNotReadMessage, // 获取用户未读消息数),
-	}
+	var (
+		handlers = map[string]MenuHandler{
+			"getNotReadMessage": r.getNotReadMessage, // 获取用户未读消息数),
+		}
+		e error
+	)
 
 	// 判断当前用户是否是超级管理员,
 	var getUserArgument = base.NewArgGetByNumberIds(base.ArgGetByNumberIdsOptionIds(arg.UUserHid))
-	if arg.IsSuperAdmin, err = r.GetAdminUserInfo(getUserArgument, arg.UUserHid); err != nil {
+	if arg.IsSuperAdmin, e = r.GetAdminUserInfo(getUserArgument, arg.UUserHid); e != nil {
+		res.ShowError = true
+		res.ErrorMsg = e.Error()
 		return
 	} else {
 		res.IsSuperAdmin = arg.IsSuperAdmin
@@ -176,22 +181,33 @@ func (r *SrvPermitMenuImpl) Menu(arg *wrappers.ArgPermitMenu) (res *wrappers.Res
 	//如果超级管理员
 	if arg.IsSuperAdmin {
 		//如果是超级管理员
-		if err = r.superAdminister(handlers, arg, res); err != nil {
+		if e = r.superAdminister(handlers, arg, res); e != nil {
+			res.ShowError = true
+			res.ErrorMsg = e.Error()
 			return
 		}
 		return
 	}
 
 	// 如果不是超级管理员 返回当前用户所属用户组
-	if arg.GroupId, arg.IsSuperAdmin, err = NewSrvPermitUserImpl(r.Context).
-		GetUserAdminGroupIdByUserHid(arg.UUserHid); err != nil {
+	if arg.GroupId, arg.IsSuperAdmin, e = NewSrvPermitUserImpl(r.Context).
+		GetUserAdminGroupIdByUserHid(arg.UUserHid); e != nil {
+		res.ShowError = true
+		res.ErrorMsg = e.Error()
+		return
+	}
+	if len(arg.GroupId) == 0 {
+		res.ShowError = true
+		res.ErrorMsg = "您没有后台权限"
 		return
 	}
 	res.IsSuperAdmin = arg.IsSuperAdmin
 	arg.SuperAdminFlag = arg.IsSuperAdmin
 
 	if !arg.IsSuperAdmin { //普通管理员
-		if err = r.generalAdminister(handlers, arg, res); err != nil {
+		if e = r.generalAdminister(handlers, arg, res); e != nil {
+			res.ShowError = true
+			res.ErrorMsg = e.Error()
 			return
 		}
 		return

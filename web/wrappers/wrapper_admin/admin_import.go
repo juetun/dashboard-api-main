@@ -23,6 +23,8 @@ type (
 		PageImport   map[string]uint8 `json:"page_import"`    //页面接口列表
 		SubPageMenu  map[string]uint8 `json:"sub_page_menu"`  //子页面KEY
 		IsSuperAdmin bool             `json:"is_super_admin"` //是否超级管理员
+		ShowError    bool             `json:"show_error"`
+		ErrorMsg     string           `json:"error_msg"`
 	}
 	ArgMenuImport struct {
 		app_param.RequestUser

@@ -993,6 +993,8 @@ type ResultPermitMenuReturn struct {
 	Menu          []ResultSystemMenu  `json:"menu,omitempty"` // 一级系统权限列表 用户从当前系统跳转到其他管理系统
 	//OpList           map[string][]OpOne      `json:"-"`         // 获取接口权限列表
 	NowImportAndMenu ResultGetImportByMenuId `json:"import_and_menu"` // 当前菜单下有的菜单和接口列表
+	ShowError        bool                    `json:"show_error"`
+	ErrorMsg         string                  `json:"error_msg"`
 }
 
 func NewResultPermitMenuReturn() (res *ResultPermitMenuReturn) {

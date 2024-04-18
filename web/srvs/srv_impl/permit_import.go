@@ -78,20 +78,32 @@ func (r *SrvPermitImport) initUserCommonImport(arg *UserPageImportParam, res *wr
 	var (
 		adminMenu                = &models.AdminMenu{Module: arg.AdminMenu.Module}
 		moduleCommonImportString = adminMenu.GetCommonImportString(arg.AdminMenu.Module)
+		e                        error
 	)
 
-	if adminMenu, err = dao_impl.NewDaoPermitMenu(r.Context).
-		GetAdminMenuByModule(moduleCommonImportString); err != nil {
+	if adminMenu, e = dao_impl.NewDaoPermitMenu(r.Context).
+		GetAdminMenuByModule(moduleCommonImportString); e != nil {
+		res.ShowError = true
+		res.ErrorMsg = fmt.Sprintf("系统配置(%s)不存在或已删除", arg.AdminMenu.Module)
 		return
 	}
 	if adminMenu == nil {
-		err = fmt.Errorf("系统配置(%s)不存在或已删除", arg.AdminMenu.Module)
-	}
-	if arg.IsSupperAdmin { //如果是超管
-		err = r.initUserCommonImportSupperAdmin(adminMenu, res)
+		res.ShowError = true
+		res.ErrorMsg = fmt.Sprintf("系统配置(%s)不存在或已删除", arg.AdminMenu.Module)
 		return
 	}
-	err = r.initUserCommonImportGeneral(adminMenu, arg.OperatorGroupId, res)
+	if arg.IsSupperAdmin { //如果是超管
+		if e = r.initUserCommonImportSupperAdmin(adminMenu, res); e != nil {
+			res.ShowError = true
+			res.ErrorMsg = e.Error()
+		}
+		return
+	}
+	if e = r.initUserCommonImportGeneral(adminMenu, arg.OperatorGroupId, res); e != nil {
+		res.ShowError = true
+		res.ErrorMsg = e.Error()
+		return
+	}
 	return
 }
 
@@ -120,7 +132,9 @@ func (r *SrvPermitImport) initUserCommonImportSupperAdmin(adminMenu *models.Admi
 }
 
 func (r *SrvPermitImport) initUserCommonImportGeneral(adminMenu *models.AdminMenu, groupId []int64, res *wrapper_admin.ResultPageImport) (err error) {
-
+	if adminMenu == nil {
+		return
+	}
 	var (
 		resGroupImport  []*models.AdminUserGroupImport
 		importIds       []int64
