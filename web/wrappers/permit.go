@@ -30,6 +30,17 @@ const (
 )
 
 type (
+	ArgGetSystem struct {
+		app_param.RequestUser
+		response.PageQuery
+	}
+	ResultGetSystem struct {
+		response.Pager
+	}
+	ResultGetSystemItem struct {
+		Value string `json:"value"`
+		Label string `json:"label"`
+	}
 	ArgGetImportByMenuIdSingle struct {
 		NowMenuId       int64  `json:"now_menu_id" form:"now_menu_id"`
 		NowModule       string `json:"now_module" form:"now_module"`
@@ -341,6 +352,19 @@ type (
 		IsAdminGroup uint8  `json:"is_admin_group" form:"is_admin_group"`
 	}
 )
+
+func (r *ResultGetSystemItem) ParseMenu(menu *models.AdminMenu) (err error) {
+	r.Value = menu.PermitKey
+	r.Label = menu.Label
+	return
+}
+
+func (r *ArgGetSystem) Default(ctx *base.Context) (err error) {
+	if err = r.InitRequestUser(ctx); err != nil {
+		return
+	}
+	return
+}
 
 func (r *ArgDeleteImport) Default(ctx *base.Context) (err error) {
 	return
@@ -697,6 +721,7 @@ type ResultMenuAdd struct {
 type ArgMenuSave struct {
 	app_param.RequestUser
 	models.AdminMenu
+	TimeNow base.TimeNormal `json:"-" form:"-"`
 }
 
 func (r *ArgMenuSave) Default(c *base.Context) (err error) {
@@ -730,6 +755,7 @@ func (r *ArgMenuSave) Default(c *base.Context) (err error) {
 		err = fmt.Errorf("请输入菜单的KEY")
 		return
 	}
+	r.TimeNow = base.GetNowTimeNormal()
 	return
 }
 

@@ -43,6 +43,8 @@ func permitRoute(r *gin.Engine, urlPrefix string) {
 	h := r.Group(urlPrefix + "/permit")
 	// 权限菜单列表
 	h.GET("/menu", controller.Menu)
+	h.GET("get_system",controller.GetSystem)
+
 
 	h.POST("/admin_user_group_release", controller.AdminUserGroupRelease)
 	h.POST("/admin_user_group_add", controller.AdminUserGroupAdd) // 用户组添加管理员

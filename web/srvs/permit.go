@@ -27,6 +27,7 @@ type PermitService interface {
 	AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wrappers.ResAdminMenuSearch, err error)
 
 	GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error)
+	GetSystem(arg *wrappers.ArgGetSystem) (res *wrappers.ResultGetSystem, err error)
 
 	// GetImportByMenuId(arg *wrappers.ArgGetImportByMenuId) (res wrappers.ResultGetImportByMenuId, err error)
 }

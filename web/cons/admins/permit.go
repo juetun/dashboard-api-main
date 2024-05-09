@@ -51,6 +51,8 @@ type Permit interface {
 	// Menu 权限菜单
 	Menu(c *gin.Context)
 
+	GetSystem(c *gin.Context)
+
 	// GetAppConfig 获取应用配置
 	GetAppConfig(c *gin.Context)
 }

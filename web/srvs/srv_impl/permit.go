@@ -10,6 +10,7 @@ package srv_impl
 
 import (
 	"fmt"
+	"github.com/juetun/dashboard-api-main/web/srvs"
 	"strings"
 	"time"
 
@@ -18,20 +19,45 @@ import (
 	"github.com/juetun/dashboard-api-main/web/daos"
 	"github.com/juetun/dashboard-api-main/web/daos/dao_impl"
 	"github.com/juetun/dashboard-api-main/web/models"
-	"github.com/juetun/dashboard-api-main/web/srvs"
 	"github.com/juetun/dashboard-api-main/web/wrappers"
 	"github.com/juetun/dashboard-api-main/web/wrappers/wrapper_admin"
 	"gorm.io/gorm"
 )
 
-type PermitServiceImpl struct {
-	base.ServiceBase
-}
+type (
+	PermitServiceImpl struct {
+		base.ServiceBase
+		dao daos.DaoPermitMenu
+	}
+	MenuHandler        func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error)
+	ArgGetUserGroupIds struct {
+		UserId string `json:"user_id"`
+		Dao    daos.DaoPermit
+	}
+)
 
-func NewPermitServiceImpl(context ...*base.Context) srvs.PermitService {
-	p := &PermitServiceImpl{}
-	p.SetContext(context...)
-	return p
+func (r *PermitServiceImpl) GetSystem(arg *wrappers.ArgGetSystem) (res *wrappers.ResultGetSystem, err error) {
+	res = &wrappers.ResultGetSystem{Pager: response.NewPager(response.PagerBaseQuery(&arg.PageQuery))}
+ 	var listSystem []*models.AdminMenu
+	if listSystem, err = r.dao.GetAllSystemList(); err != nil {
+		return
+	}
+
+	var (
+		listSystemValues = make([]*wrappers.ResultGetSystemItem, 0, len(listSystem))
+		dataItem         *wrappers.ResultGetSystemItem
+	)
+
+	for _, item := range listSystem {
+
+		dataItem = &wrappers.ResultGetSystemItem{}
+		if err = dataItem.ParseMenu(item); err != nil {
+			return
+		}
+		listSystemValues = append(listSystemValues, dataItem)
+	}
+	res.Pager.List = listSystemValues
+	return
 }
 
 func (r *PermitServiceImpl) GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.ResultGetMenu, err error) {
@@ -39,8 +65,9 @@ func (r *PermitServiceImpl) GetMenu(arg *wrappers.ArgGetMenu) (res wrappers.Resu
 	if arg.MenuId == 0 {
 		return
 	}
+
 	var li []*models.AdminMenu
-	daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
+	daoPermitMenu := r.dao
 	if li, err = daoPermitMenu.GetMenu(arg.MenuId); err != nil {
 		return
 	}
@@ -61,10 +88,9 @@ func (r *PermitServiceImpl) AdminMenuSearch(arg *wrappers.ArgAdminMenu) (res wra
 
 func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.ResultMenuAdd, err error) {
 	res = &wrappers.ResultMenuAdd{}
-	dao := dao_impl.NewDaoPermitMenu(r.Context)
 	t := time.Now()
 	var list []*models.AdminMenu
-	if list, err = dao.GetByCondition(map[string]interface{}{
+	if list, err = r.dao.GetByCondition(map[string]interface{}{
 		"label":     arg.Label,
 		"module":    arg.Module,
 		"parent_id": arg.ParentId,
@@ -91,13 +117,13 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 		UpdatedAt:          t,
 	}
 
-	if err = dao.Add(&data); err != nil {
+	if err = r.dao.Add(&data); err != nil {
 		return
 	}
 
 	// 如果是添加系统
 	if arg.Module == wrappers.DefaultPermitModule {
-		if err = r.addSystemDefaultMenu(dao, &data); err != nil {
+		if err = r.addSystemDefaultMenu(&data); err != nil {
 			return
 		}
 	}
@@ -106,7 +132,7 @@ func (r *PermitServiceImpl) MenuAdd(arg *wrappers.ArgMenuAdd) (res *wrappers.Res
 	return
 }
 
-func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermitMenu, data *models.AdminMenu) (err error) {
+func (r *PermitServiceImpl) addSystemDefaultMenu(data *models.AdminMenu) (err error) {
 	var adminMenu models.AdminMenu
 
 	listData := adminMenu.InitDefaultSystemMenu(&models.DefaultSystemMenuNeedParams{
@@ -116,7 +142,7 @@ func (r *PermitServiceImpl) addSystemDefaultMenu(dao daos.DaoPermitMenu, data *m
 		ParentSystemId: data.Id,
 	})
 	for _, datum := range listData {
-		if err = dao.Add(datum); err != nil {
+		if err = r.dao.Add(datum); err != nil {
 			return
 		}
 	}
@@ -174,11 +200,9 @@ func (r *PermitServiceImpl) MenuDelete(arg *wrappers.ArgMenuDelete) (res *wrappe
 	res.Result = true
 	return
 }
-func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermitMenu daos.DaoPermitMenu, err error) {
-	daoPermitMenu = dao_impl.NewDaoPermitMenu(r.Context)
-
+func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (err error) {
 	var list []*models.AdminMenu
-	if list, err = daoPermitMenu.GetByCondition(map[string]interface{}{
+	if list, err = r.dao.GetByCondition(map[string]interface{}{
 		"label":     arg.Label,
 		"module":    arg.Module,
 		"parent_id": arg.ParentId,
@@ -190,7 +214,7 @@ func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermi
 	}
 
 	var resHaveModule []*models.AdminMenu
-	if resHaveModule, err = daoPermitMenu.GetMenuByPermitKey(arg.Module, arg.PermitKey); err != nil {
+	if resHaveModule, err = r.dao.GetMenuByPermitKey(arg.Module, arg.PermitKey); err != nil {
 		return
 	}
 
@@ -206,33 +230,31 @@ func (r *PermitServiceImpl) addMenuValidate(arg *wrappers.ArgMenuSave) (daoPermi
 func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.ResultMenuSave, err error) {
 	res = &wrappers.ResultMenuSave{}
 
-	var daoPermitMenu daos.DaoPermitMenu
-	if daoPermitMenu, err = r.addMenuValidate(arg); err != nil {
+	if err = r.addMenuValidate(arg); err != nil {
 		return
 	}
 	if arg.Id > 0 {
 		var menu *models.AdminMenu
 		var menus []*models.AdminMenu
 
-		if menus, err = daoPermitMenu.GetMenu(arg.Id); err != nil {
+		if menus, err = r.dao.GetMenu(arg.Id); err != nil {
 			return
 		} else if len(menus) > 0 {
 			menu = menus[0]
 		}
-
-		if arg.PermitKey != menu.PermitKey {
-			if err = daoPermitMenu.UpdateMenuByCondition(map[string]interface{}{"id": menu.Id}, map[string]interface{}{"module": arg.PermitKey}); err != nil {
-				return
-			}
-		} else if arg.Module != menu.Module {
-			// 更新子菜单的 module
-			if err = r.updateChildModule(daoPermitMenu, menu.Id, arg.Module); err != nil {
-				return
+		if menu != nil {
+			if arg.PermitKey != menu.PermitKey {
+				if err = r.dao.UpdateMenuByCondition(map[string]interface{}{"id": menu.Id}, map[string]interface{}{"module": arg.PermitKey}); err != nil {
+					return
+				}
+			} else if arg.Module != menu.Module {
+				// 更新子菜单的 module
+				if err = r.updateChildModule(menu.Id, arg.Module); err != nil {
+					return
+				}
 			}
 		}
-
 	}
-	t := time.Now()
 	var m = models.AdminMenu{
 		Module:             arg.Module,
 		PermitKey:          arg.PermitKey,
@@ -247,9 +269,11 @@ func (r *PermitServiceImpl) MenuSave(arg *wrappers.ArgMenuSave) (res *wrappers.R
 		UrlPath:            arg.UrlPath,
 		SortValue:          arg.SortValue,
 		OtherValue:         arg.OtherValue,
-		UpdatedAt:          t,
+		UpdatedAt:          arg.TimeNow.Time,
 	}
-	err = daoPermitMenu.Save(arg.Id, m.ToMapStringInterface())
+	if err = r.dao.Save(arg.Id, m.ToMapStringInterface()); err != nil {
+		return
+	}
 	res.Result = true
 	return
 }
@@ -274,17 +298,17 @@ func (r *PermitServiceImpl) getChildIds(dao daos.DaoPermitMenu, parentId []strin
 	}
 	return
 }
-func (r *PermitServiceImpl) updateChildModule(dao daos.DaoPermitMenu, parentId int64, module string) (err error) {
+
+func (r *PermitServiceImpl) updateChildModule(parentId int64, module string) (err error) {
 
 	ids := make([]string, 0, 20)
 	pidString := fmt.Sprintf("%d", parentId)
 	ids = append(ids, pidString)
 
-	daoMenu := dao_impl.NewDaoPermitMenu(r.Context)
-	if err = r.getChildIds(daoMenu, []string{pidString}, &ids); err != nil {
+	if err = r.getChildIds(r.dao, []string{pidString}, &ids); err != nil {
 		return
 	}
-	if err = dao.UpdateMenuByCondition(
+	if err = r.dao.UpdateMenuByCondition(
 		fmt.Sprintf("id IN(%s)", strings.Join(ids, ",")),
 		map[string]interface{}{"module": module},
 	); err != nil {
@@ -338,8 +362,7 @@ func (r *PermitServiceImpl) getGroupHavePermit(arg *wrappers.ArgAdminSetPermit) 
 		return
 	}
 	var mapMenus map[int64]*models.AdminMenu
-	if mapMenus, err = dao_impl.NewDaoPermitMenu(r.Context).
-		GetMenuMap(arg.PermitIds...); err != nil {
+	if mapMenus, err = r.dao.GetMenuMap(arg.PermitIds...); err != nil {
 		return
 	}
 
@@ -379,8 +402,7 @@ func (r *PermitServiceImpl) inSlice(id int64, slice []int64) (res bool) {
 
 func (r *PermitServiceImpl) isHomePage(permitIds []int64) (res bool, homePageId int64, module string, err error) {
 	var li []*models.AdminMenu
-	permitMenuDao := dao_impl.NewDaoPermitMenu(r.Context)
-	if li, err = permitMenuDao.GetMenu(permitIds...); err != nil {
+	if li, err = r.dao.GetMenu(permitIds...); err != nil {
 		return
 	}
 	for _, it := range li {
@@ -403,8 +425,7 @@ func (r *PermitServiceImpl) commonImport(module string) (res []int64, err error)
 		return
 	}
 	var da []*models.AdminMenu
-	daoPermitMenu := dao_impl.NewDaoPermitMenu(r.Context)
-	if da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
+	if da, err = r.dao.GetMenuByCondition(map[string]interface{}{
 		"permit_key": module,
 		"module":     wrappers.DefaultPermitModule,
 	}); err != nil {
@@ -413,7 +434,7 @@ func (r *PermitServiceImpl) commonImport(module string) (res []int64, err error)
 	for _, value := range da {
 		res = append(res, value.Id)
 	}
-	if da, err = daoPermitMenu.GetMenuByCondition(map[string]interface{}{
+	if da, err = r.dao.GetMenuByCondition(map[string]interface{}{
 		"module": module,
 		"label":  models.CommonMenuDefaultLabel,
 	}); err != nil {
@@ -698,9 +719,9 @@ func (r *PermitServiceImpl) addNewApiPermit(newPermit []wrappers.ImportSingle, g
 	return
 }
 
-type MenuHandler func(arg *wrappers.ArgPermitMenu, res *wrappers.ResultPermitMenuReturn) (err error)
-
-type ArgGetUserGroupIds struct {
-	UserId string `json:"user_id"`
-	Dao    daos.DaoPermit
+func NewPermitServiceImpl(context ...*base.Context) srvs.PermitService {
+	p := &PermitServiceImpl{}
+	p.SetContext(context...)
+	p.dao = dao_impl.NewDaoPermitMenu(p.Context)
+	return p
 }

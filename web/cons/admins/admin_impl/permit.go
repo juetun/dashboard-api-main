@@ -13,6 +13,25 @@ type ControllerPermit struct {
 	base.ControllerBase
 }
 
+func (r *ControllerPermit) GetSystem(c *gin.Context) {
+	var (
+		err error
+		arg wrappers.ArgGetSystem
+		res *wrappers.ResultGetSystem
+		ctx = base.CreateContext(&r.ControllerBase, c)
+	)
+	if haveErr := r.ParametersAccept(ctx, &arg); haveErr {
+		return
+	}
+
+	// 记录日志
+	if res, err = srv_impl.NewPermitServiceImpl(ctx).
+		GetSystem(&arg); err != nil {
+		r.ResponseError(c, err)
+		return
+	}
+	r.Response(c, base.SuccessCode, res)
+}
 
 func (r *ControllerPermit) GetMenu(c *gin.Context) {
 	var (

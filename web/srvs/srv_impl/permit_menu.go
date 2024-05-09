@@ -983,6 +983,7 @@ func (r *SrvPermitMenuImpl) getDefaultSelectModule(groupId []int64, isSupperAdmi
 	}
 	return
 }
+
 func (r *SrvPermitMenuImpl) getMessageCount(userHid int64) (count int, err error) {
 	var httpHeader = http.Header{}
 	logContent := map[string]interface{}{
